@@ -5,7 +5,7 @@ import uuid
 
 
 def clone_repo(repo_url: str, access_token: str | None) -> str:
-    temp_dir = Path(f"/var/app/clones/{uuid.uuid4()}")
+    temp_dir = Path(f"./clones/{uuid.uuid4()}")
     repo_url_mod = repo_url
 
     if access_token and repo_url.startswith("https://"):

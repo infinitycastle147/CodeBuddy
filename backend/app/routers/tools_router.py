@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.utils.embedder import process_repository
+from app.utils.embedder import process_repository, search_similar_code_chunks
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
 
@@ -10,6 +10,10 @@ router = APIRouter(prefix="/tools", tags=["tools"])
 class RepoRequest(BaseModel):
     repo_url: str
     access_token: str | None = None
+
+class VectorSearchRequest(BaseModel):
+    query: str
+    top_k: int = 5
 
 @router.get("/health")
 def health_check():
@@ -71,4 +75,15 @@ def query_jira_tickets(jira_query: str):
 @router.post("/feedback")
 def collect_user_feedback(feedback: str, tool_name: str):
     """Captures user ratings to refine summaries or diagrams."""
-    return {"message": "Feedback received", "tool_name": tool_name} 
+    return {"message": "Feedback received", "tool_name": tool_name}
+
+@router.post("/vector-search")
+def vector_search(request: VectorSearchRequest):
+    """
+    Performs a vector search over code/document chunks using the user's query.
+    """
+    try:
+        results = search_similar_code_chunks(request.query, request.top_k)
+        return {"results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) 

@@ -6,6 +6,8 @@ import shutil
 from pymongo import MongoClient
 import os
 from app.celery_app import celery_app
+from dotenv import load_dotenv
+load_dotenv()
 
 # MongoDB setup
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
@@ -21,6 +23,7 @@ def chunk_code(content: str, max_tokens: int = 512) -> list:
 
 @celery_app.task
 def process_repository(repo_url: str, access_token: str | None = None):
+    # Creates embeddings of size 384 dimensions
     model = SentenceTransformer("all-MiniLM-L6-v2")
     print(mongo_uri, "mongo_uri")
     try:

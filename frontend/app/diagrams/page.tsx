@@ -1,14 +1,15 @@
 "use client";
 import React from "react";
-import { Flowchart, Network, Database, FileDown } from "lucide-react";
+import { Network, Database, FileDown, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function DiagramTypeSelector() {
   return (
     <div className="flex gap-2">
-      <Button variant="outline"><Flowchart className="mr-2" /> UML</Button>
+      <Button variant="outline"><BarChart
+        className="mr-2" /> UML</Button>
       <Button variant="outline"><Network className="mr-2" /> ERD</Button>
-      <Button variant="outline"><Flowchart className="mr-2" /> Flowchart</Button>
+      <Button variant="outline"><BarChart className="mr-2" /> Flowchart</Button>
     </div>
   );
 }

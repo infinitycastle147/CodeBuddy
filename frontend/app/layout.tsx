@@ -27,6 +27,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <nav className="w-full flex justify-end p-4">
+          <a href="/dashboard" className="underline text-primary font-medium">Dashboard</a>
+        </nav>
         {children}
       </body>
     </html>

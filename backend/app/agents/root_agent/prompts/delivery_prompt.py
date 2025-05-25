@@ -1,0 +1,1 @@
+DELIVERY_PROMPT = "Assemble all outputs into a multimodal response." 

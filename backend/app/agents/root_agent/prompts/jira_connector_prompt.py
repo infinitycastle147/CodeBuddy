@@ -1,0 +1,1 @@
+JIRA_CONNECTOR_PROMPT = "Integrate with Jira API for ticket linking and updates." 

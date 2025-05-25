@@ -1,0 +1,1 @@
+INTENT_DETECTION_PROMPT = "Use tools to answer the user's question. Tools available: `search_similar_code_chunks`" 

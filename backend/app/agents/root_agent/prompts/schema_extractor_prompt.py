@@ -1,0 +1,1 @@
+SCHEMA_EXTRACTOR_PROMPT = "Extract database schema from ORM or SQL files." 

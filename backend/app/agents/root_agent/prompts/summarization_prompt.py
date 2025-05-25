@@ -1,0 +1,1 @@
+SUMMARIZATION_PROMPT = "Summarize relevant code tailored to the detected role." 

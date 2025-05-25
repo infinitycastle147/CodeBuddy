@@ -1,0 +1,1 @@
+GITHUB_FETCH_PROMPT = "Fetch or pull GitHub repo for the project." 

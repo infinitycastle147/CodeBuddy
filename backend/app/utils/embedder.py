@@ -59,7 +59,7 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
     Search for code/document chunks most similar to the query using MongoDB vector search.
     Args:
         query (str): The user query to embed and search for.
-        top_k (int): Number of top results to return.
+        top_k (int): Number of top results to return. Default is 5.
     Returns:
         List[Dict]: List of matching code chunks with metadata and similarity score.
     """

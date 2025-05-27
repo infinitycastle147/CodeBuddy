@@ -13,7 +13,8 @@ from .prompts.erd_generator_prompt import ERD_GENERATOR_PROMPT
 from .prompts.git_connector_prompt import GIT_CONNECTOR_PROMPT
 from .prompts.jira_connector_prompt import JIRA_CONNECTOR_PROMPT
 from .prompts.delivery_prompt import DELIVERY_PROMPT
-
+from .prompts.information_retrieval_prompt import INFORMATION_RETRIEVAL_PROMPT
+from .prompts.github_agent_prompt import GITHUB_AGENT_PROMPT
 class PromptManager:
     _PROMPT_MAP = {
         "role_detection_agent": ROLE_DETECTION_PROMPT,
@@ -29,6 +30,8 @@ class PromptManager:
         "git_connector_agent": GIT_CONNECTOR_PROMPT,
         "jira_connector_agent": JIRA_CONNECTOR_PROMPT,
         "delivery_agent": DELIVERY_PROMPT,
+        "information_retrieval_agent": INFORMATION_RETRIEVAL_PROMPT,
+        "github_agent": GITHUB_AGENT_PROMPT,
     }
 
     @classmethod

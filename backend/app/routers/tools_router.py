@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.utils.embedder import process_repository, search_similar_code_chunks
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
-from app.agents.root_agent import root_agent
+from app.agents.root_agent import get_github_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -101,6 +101,8 @@ async def run_root_agent(request: RootAgentRequest):
     Runs the Google ADK root agent workflow on the provided user input.
     """
     try:
+
+        print("Running root agent")
         # Set up session service and session (await the coroutine)
         session_service = InMemorySessionService()
 
@@ -109,22 +111,34 @@ async def run_root_agent(request: RootAgentRequest):
             user_id="123",
         )
 
+        print("Getting github agent")
+        github_agent = get_github_agent()
+
+        print("Github agent is ready")
+
+
         # Prepare the user input as ADK content
         content = types.Content(role='user', parts=[types.Part(text=request.user_input)])
 
-        # Set up the runner
-        runner = Runner(agent=root_agent, app_name="codebuddy", session_service=session_service)
-        
+        print("Content is ready")
 
+        # Set up the runner
+        runner = Runner(agent=github_agent, app_name="codebuddy", session_service=session_service)
+        
+        print("Runner is ready")
         # Run the agent
         events = runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content)
+
+        print("Events are ready")
 
         # Collect the final response
         async for event in events:
             if event.is_final_response():
                 final_response = event.content.parts[0].text
+                print("Final response is ready")
                 return {"result": final_response}
 
+        print("No final response from agent.")
         return {"result": "No final response from agent."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 

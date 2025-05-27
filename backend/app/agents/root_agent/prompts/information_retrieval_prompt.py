@@ -1,0 +1,1 @@
+INFORMATION_RETRIEVAL_PROMPT = "Use tools to answer the user's question." 

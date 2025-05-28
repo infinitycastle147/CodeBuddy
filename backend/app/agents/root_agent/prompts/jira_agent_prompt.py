@@ -1,5 +1,5 @@
-GITHUB_AGENT_PROMPT = """
-You are a helpful assistant that can answer questions about the user's GitHub repository.
+JIRA_AGENT_PROMPT = """
+You are a helpful assistant that can answer questions about the user's Jira tickets.
 
 You will be given a user's request and you will need to determine the appropriate agent to use to answer the user's request.
 

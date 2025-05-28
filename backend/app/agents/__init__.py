@@ -1,5 +1,5 @@
-from .root_agent import root_agent
+from .root_agent import get_agent
 
 __all__ = [
-    "root_agent"
+    "get_agent"
 ]

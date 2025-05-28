@@ -15,6 +15,9 @@ from .prompts.jira_connector_prompt import JIRA_CONNECTOR_PROMPT
 from .prompts.delivery_prompt import DELIVERY_PROMPT
 from .prompts.information_retrieval_prompt import INFORMATION_RETRIEVAL_PROMPT
 from .prompts.github_agent_prompt import GITHUB_AGENT_PROMPT
+from .prompts.chat_agent_prompt import CHAT_AGENT_PROMPT
+from .prompts.jira_agent_prompt import JIRA_AGENT_PROMPT
+
 class PromptManager:
     _PROMPT_MAP = {
         "role_detection_agent": ROLE_DETECTION_PROMPT,
@@ -32,6 +35,8 @@ class PromptManager:
         "delivery_agent": DELIVERY_PROMPT,
         "information_retrieval_agent": INFORMATION_RETRIEVAL_PROMPT,
         "github_agent": GITHUB_AGENT_PROMPT,
+        "chat_agent": CHAT_AGENT_PROMPT,
+        "jira_agent": JIRA_AGENT_PROMPT,
     }
 
     @classmethod

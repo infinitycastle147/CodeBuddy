@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.utils.embedder import process_repository, search_similar_code_chunks
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
-from app.agents.root_agent import get_github_agent
+from app.agents.root_agent import get_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -101,7 +101,7 @@ async def run_root_agent(request: RootAgentRequest):
     Runs the Google ADK root agent workflow on the provided user input.
     """
     try:
-
+        print(request, "request")
         print("Running root agent")
         # Set up session service and session (await the coroutine)
         session_service = InMemorySessionService()
@@ -111,11 +111,9 @@ async def run_root_agent(request: RootAgentRequest):
             user_id="123",
         )
 
-        print("Getting github agent")
-        github_agent = get_github_agent()
-
-        print("Github agent is ready")
-
+        print("Getting root agent")
+        root_agent = get_agent(request)
+        print("Root agent is ready")
 
         # Prepare the user input as ADK content
         content = types.Content(role='user', parts=[types.Part(text=request.user_input)])
@@ -123,7 +121,7 @@ async def run_root_agent(request: RootAgentRequest):
         print("Content is ready")
 
         # Set up the runner
-        runner = Runner(agent=github_agent, app_name="codebuddy", session_service=session_service)
+        runner = Runner(agent=root_agent, app_name="codebuddy", session_service=session_service)
         
         print("Runner is ready")
         # Run the agent

@@ -8,6 +8,7 @@ import os
 from app.celery_app import celery_app
 from dotenv import load_dotenv
 from typing import List, Dict
+import git
 load_dotenv()
 
 # MongoDB setup
@@ -24,34 +25,48 @@ def chunk_code(content: str, max_tokens: int = 512) -> list:
 
 @celery_app.task
 def process_repository(repo_url: str, access_token: str | None = None):
-    # Creates embeddings of size 384 dimensions
     model = SentenceTransformer("all-MiniLM-L6-v2")
-    print(mongo_uri, "mongo_uri")
     try:
-        repo_path = clone_repo(repo_url, access_token)
+        repo_path = clone_repo(repo_url, access_token)  # Shallow clone or full clone
+        repo = git.Repo(repo_path)
+
+        # Fetch all branches
+        repo.git.fetch("--all")
+        branches = [ref.name for ref in repo.remotes.origin.refs]
 
         supported_ext = [".py", ".js", ".ts", ".java", ".go", ".cpp", ".cs"]
-        for file_path in Path(repo_path).rglob("*"):
-            if file_path.suffix in supported_ext:
-                try:
-                    text = file_path.read_text(encoding="utf-8")
-                    chunks = chunk_code(text)
 
-                    for i, chunk in enumerate(chunks):
-                        embedding = model.encode([chunk])[0].tolist()
-                        document = {
-                            "repo_url": repo_url,
-                            "file_path": str(file_path),
-                            "chunk_index": i,
-                            "chunk": chunk,
-                            "embedding": embedding
-                        }
-                        collection.insert_one(document)
-                        print(f"Stored chunk {i} of {file_path.name}")
-                except Exception as e:
-                    print(f"Skipped {file_path}: {e}")
+        for branch_ref in branches:
+            branch_name = branch_ref.replace("origin/", "")
+            try:
+                repo.git.checkout("-f", branch_name)
+
+                for file_path in Path(repo_path).rglob("*"):
+                    if file_path.suffix in supported_ext:
+                        try:
+                            text = file_path.read_text(encoding="utf-8")
+                            chunks = chunk_code(text)
+
+                            for i, chunk in enumerate(chunks):
+                                embedding = model.encode([chunk])[0].tolist()
+                                document = {
+                                    "repo_url": repo_url,
+                                    "branch": branch_name,
+                                    "file_path": str(file_path),
+                                    "chunk_index": i,
+                                    "chunk": chunk,
+                                    "embedding": embedding
+                                }
+                                collection.insert_one(document)
+                                print(f"[{branch_name}] Stored chunk {i} of {file_path.name}")
+                        except Exception as e:
+                            print(f"[{branch_name}] Skipped {file_path}: {e}")
+            except Exception as branch_err:
+                print(f"Failed to process branch {branch_name}: {branch_err}")
+
     finally:
         shutil.rmtree(repo_path, ignore_errors=True)
+
 
 
 def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:

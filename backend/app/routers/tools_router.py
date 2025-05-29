@@ -33,8 +33,9 @@ def health_check():
 @router.post("/setup")
 async def setup_repo(request: RepoRequest):
     print(request, "request")
+    user_id = "123"
     try:
-        task = process_repository.delay(request.repo_url, request.access_token)
+        task = process_repository.delay(user_id, request.repo_url, request.access_token)
         return {"status": "processing", "task_id": task.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -50,14 +51,37 @@ def create_code_index(repo_url: str):
     return {"message": "Indexing started for repo", "repo_url": repo_url}
 
 @router.post("/chat")
-async def run_root_agent(request: RootAgentRequest):
+async def chat(request: RootAgentRequest):
     """
-    Runs the Google ADK root agent workflow on the provided user input.
+    Chat endpoint for interacting with the AI assistant.
+    
+    Request Body:
+    {
+        "user_input": string  // The user's message or question
+    }
+
+    Returns:
+    {
+        "result": string  // The AI assistant's response message
+    }
+
+    Example:
+    POST /tools/chat
+    {
+        "user_input": "What are the main features in this codebase?"
+    }
+
+    Response:
+    {
+        "result": "Based on analyzing the codebase, the main features are..."
+    }
+
+    Errors:
+    - 500: Internal server error if something goes wrong
     """
     try:
         print(request, "request")
         print("Running root agent")
-        # Set up session service and session (await the coroutine)
         session_service = InMemorySessionService()
 
         session = await session_service.create_session(
@@ -69,21 +93,17 @@ async def run_root_agent(request: RootAgentRequest):
         root_agent = get_agent(request)
         print("Root agent is ready")
 
-        # Prepare the user input as ADK content
         content = types.Content(role='user', parts=[types.Part(text=request.user_input)])
 
         print("Content is ready")
 
-        # Set up the runner
         runner = Runner(agent=root_agent, app_name="codebuddy", session_service=session_service)
         
         print("Runner is ready")
-        # Run the agent
         events = runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content)
 
         print("Events are ready")
 
-        # Collect the final response
         async for event in events:
             if event.is_final_response():
                 final_response = event.content.parts[0].text
@@ -98,7 +118,38 @@ async def run_root_agent(request: RootAgentRequest):
 @router.post("/diagram")
 async def generate_diagram(request: DiagramRequest):
     """
-    Generates a diagram based on the user's request.
+    Generate a diagram based on user input.
+
+    Request Body:
+    {
+        "user_input": string,     // Description or requirements for the diagram
+        "diagram_type": string    // Type of diagram to generate (e.g. "uml", "erd")
+    }
+
+    Returns:
+    {
+        "message": string,        // Status message
+        "request": object         // Echo of the original request
+    }
+
+    Example:
+    POST /tools/diagram
+    {
+        "user_input": "Generate class diagram for user authentication",
+        "diagram_type": "uml"
+    }
+
+    Response:
+    {
+        "message": "Diagram generation started",
+        "request": {
+            "user_input": "Generate class diagram for user authentication",
+            "diagram_type": "uml"
+        }
+    }
+
+    Errors:
+    - 500: Internal server error if something goes wrong
     """
     try:
         print(request, "request")

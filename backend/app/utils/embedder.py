@@ -24,7 +24,8 @@ def chunk_code(content: str, max_tokens: int = 512) -> list:
 
 
 @celery_app.task
-def process_repository(repo_url: str, access_token: str | None = None):
+def process_repository(user_id: str, repo_url: str, access_token: str | None = None):
+    print("mongo_uri", mongo_uri)
     model = SentenceTransformer("all-MiniLM-L6-v2")
     try:
         repo_path = clone_repo(repo_url, access_token)  # Shallow clone or full clone
@@ -35,6 +36,8 @@ def process_repository(repo_url: str, access_token: str | None = None):
         branches = [ref.name for ref in repo.remotes.origin.refs]
 
         supported_ext = [".py", ".js", ".ts", ".java", ".go", ".cpp", ".cs"]
+        excluded_dirs = ["node_modules", "venv", "env", "__pycache__", ".git", 
+                        "build", "dist", "target", "bin", "obj"]
 
         for branch_ref in branches:
             branch_name = branch_ref.replace("origin/", "")
@@ -42,6 +45,10 @@ def process_repository(repo_url: str, access_token: str | None = None):
                 repo.git.checkout("-f", branch_name)
 
                 for file_path in Path(repo_path).rglob("*"):
+                    # Skip excluded directories
+                    if any(excluded_dir in str(file_path) for excluded_dir in excluded_dirs):
+                        continue
+                        
                     if file_path.suffix in supported_ext:
                         try:
                             text = file_path.read_text(encoding="utf-8")
@@ -50,6 +57,7 @@ def process_repository(repo_url: str, access_token: str | None = None):
                             for i, chunk in enumerate(chunks):
                                 embedding = model.encode([chunk])[0].tolist()
                                 document = {
+                                    "user_id": user_id,
                                     "repo_url": repo_url,
                                     "branch": branch_name,
                                     "file_path": str(file_path),

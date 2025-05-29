@@ -20,6 +20,7 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
     """
     model = SentenceTransformer("all-MiniLM-L6-v2")
     query_embedding = model.encode([query])[0].tolist()
+    user_id = "123"
 
     pipeline = [
         {
@@ -32,10 +33,17 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
             }
         },
         {
+            "$match": {
+                "user_id": user_id
+            }
+        },
+        {
             "$project": {
                 "_id": 0,
+                "user_id": 1,
                 "repo_url": 1,
                 "file_path": 1,
+                "branch": 1,
                 "chunk_index": 1,
                 "chunk": 1,
                 "score": {"$meta": "vectorSearchScore"}

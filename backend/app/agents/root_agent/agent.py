@@ -92,7 +92,8 @@ def get_agent(request: RootAgentRequest):
             instruction=PromptManager.get_prompt("chat_agent"),
             description="This agent is responsible for handling the user's request and returning the appropriate response.",
             model="gemini-2.0-flash",
-            sub_agents=[github_agent, jira_agent, search_similar_code_chunks],
+            sub_agents=[github_agent, jira_agent],
+            tools=[search_similar_code_chunks]
         )
 
         return chat_agent

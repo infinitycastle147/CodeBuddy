@@ -1,1 +1,0 @@
-GIT_CONNECTOR_PROMPT = "Access commit history, diffs, and blame info from Git." 

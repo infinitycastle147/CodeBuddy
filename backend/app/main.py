@@ -18,5 +18,5 @@ app.include_router(tools_router)
 
 if __name__ == "__main__":
     uvicorn.run(
-        app, workers=settings.workers_count, factory=True, host="0.0.0.0", port=8000
+        app, workers=settings.workers_count, factory=True, host="0.0.0.0", port=5000
     )

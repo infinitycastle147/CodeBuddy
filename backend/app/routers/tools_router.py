@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.utils.embedder import process_repository, search_similar_code_chunks
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
-from app.agents.root_agent import get_agent
+from app.agents.root_agent import get_root_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -23,7 +23,7 @@ class VectorSearchRequest(BaseModel):
     query: str
     top_k: int = 5
 
-class RootAgentRequest(BaseModel):
+class ChatAgentRequest(BaseModel):
     user_input: str
 
 @router.get("/health")
@@ -38,7 +38,7 @@ async def setup_repo(request: RepoRequest):
         return {"status": "processing", "task_id": task.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @router.get("/task-status/{task_id}")
 def get_task_status(task_id: str):
     result = AsyncResult(task_id, app=celery_app)
@@ -50,7 +50,7 @@ def create_code_index(repo_url: str):
     return {"message": "Indexing started for repo", "repo_url": repo_url}
 
 @router.post("/chat")
-async def run_root_agent(request: RootAgentRequest):
+async def chat(request: RootAgentRequest):
     """
     Runs the Google ADK root agent workflow on the provided user input.
     """
@@ -66,7 +66,7 @@ async def run_root_agent(request: RootAgentRequest):
         )
 
         print("Getting root agent")
-        root_agent = get_agent(request)
+        root_agent = get_root_agent(request)
         print("Root agent is ready")
 
         # Prepare the user input as ADK content
@@ -94,7 +94,7 @@ async def run_root_agent(request: RootAgentRequest):
         return {"result": "No final response from agent."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
-    
+
 @router.post("/diagram")
 async def generate_diagram(request: DiagramRequest):
     """

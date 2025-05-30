@@ -1,1 +1,0 @@
-ROLE_DETECTION_PROMPT = "Detect the user's role based on usage context." 

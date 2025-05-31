@@ -39,37 +39,6 @@ interface Message {
   context?: string[]
 }
 
-const sampleMessages: Message[] = [
-  {
-    id: "1",
-    type: "assistant",
-    content:
-      "Hello! I'm your AI assistant. I can help you with code analysis, debugging, and answering questions about your project. What would you like to know?",
-    timestamp: new Date(Date.now() - 300000),
-    context: ["general"],
-  },
-  {
-    id: "2",
-    type: "user",
-    content: "Can you explain the authentication flow in our Next.js application?",
-    timestamp: new Date(Date.now() - 240000),
-  },
-  {
-    id: "3",
-    type: "assistant",
-    content:
-      "Based on your codebase, I can see you're using NextAuth.js for authentication. Here's how the flow works:\n\n1. **Sign In**: Users authenticate through providers (Google, GitHub, etc.)\n2. **Session Management**: JWT tokens are stored securely\n3. **Route Protection**: Middleware checks authentication status\n4. **API Routes**: Protected endpoints verify session tokens\n\nWould you like me to dive deeper into any specific part?",
-    timestamp: new Date(Date.now() - 180000),
-    context: ["code", "auth"],
-  },
-  {
-    id: "4",
-    type: "user",
-    content: "How can I add role-based access control?",
-    timestamp: new Date(Date.now() - 120000),
-  },
-]
-
 function MessageBubble({
   message,
   onFeedback,
@@ -205,57 +174,22 @@ function TypingIndicator() {
   )
 }
 
-function ChatHistory() {
-  const [messages, setMessages] = useState<Message[]>(sampleMessages)
-  const [isTyping, setIsTyping] = useState(false)
+function ChatHistory({ messages, isTyping, onFeedback }: {
+  messages: Message[];
+  isTyping: boolean;
+  onFeedback: (messageId: string, feedbackType: "positive" | "negative") => void;
+}) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isTyping])
-
-  const handleFeedback = (messageId: string, feedbackType: "positive" | "negative") => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, feedback: msg.feedback === feedbackType ? null : feedbackType } : msg,
-      ),
-    )
-  }
-
-  const addMessage = (content: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content,
-      timestamp: new Date(),
-    }
-    setMessages((prev) => [...prev, newMessage])
-
-    // Simulate AI response
-    setIsTyping(true)
-    setTimeout(() => {
-      setIsTyping(false)
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content:
-          "I understand your question. Let me analyze your codebase and provide you with a detailed response based on the current context.",
-        timestamp: new Date(),
-        context: ["code", "analysis"],
-      }
-      setMessages((prev) => [...prev, aiResponse])
-    }, 2000)
-  }
 
   return (
     <Card className="flex-1 flex flex-col">
       <CardContent className="flex-1 p-0">
         <div className="h-full overflow-y-auto p-6 space-y-6">
-          {messages.length === 0 ? (
+          {messages.length === 0 && !isTyping ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-4 max-w-md">
                 <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
@@ -272,7 +206,7 @@ function ChatHistory() {
           ) : (
             <>
               {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} onFeedback={handleFeedback} />
+                <MessageBubble key={message.id} message={message} onFeedback={onFeedback} />
               ))}
               {isTyping && <TypingIndicator />}
             </>
@@ -414,9 +348,20 @@ function ChatInputArea({ onSendMessage }: { onSendMessage: (message: string) => 
 }
 
 export default function AiChatPage() {
-  const [messages, setMessages] = useState<Message[]>(sampleMessages)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isTyping, setIsTyping] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSendMessage = (content: string) => {
+  const handleFeedback = (messageId: string, feedbackType: "positive" | "negative") => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, feedback: msg.feedback === feedbackType ? null : feedbackType } : msg,
+      ),
+    )
+  }
+
+  const addMessage = async (content: string) => {
+    setError(null)
     const newMessage: Message = {
       id: Date.now().toString(),
       type: "user",
@@ -424,6 +369,38 @@ export default function AiChatPage() {
       timestamp: new Date(),
     }
     setMessages((prev) => [...prev, newMessage])
+    setIsTyping(true)
+    try {
+      const response = await fetch("http://localhost:8000/tools/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_input: content }),
+      })
+      if (!response.ok) throw new Error("Failed to get response from AI assistant.")
+      const data = await response.json()
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: data.result || "Sorry, I couldn't understand that.",
+        timestamp: new Date(),
+        context: ["ai"],
+      }
+      setMessages((prev) => [...prev, aiResponse])
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 2).toString(),
+          type: "assistant",
+          content: "Sorry, something went wrong. Please try again later.",
+          timestamp: new Date(),
+          context: ["error"],
+        },
+      ])
+      setError("Failed to get response from AI assistant.")
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   return (
@@ -457,8 +434,8 @@ export default function AiChatPage() {
       <div className="flex-1 flex gap-4 p-6 overflow-scroll min-h-0">
         {/* Chat Area */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
-          <ChatHistory />
-          <ChatInputArea onSendMessage={handleSendMessage} />
+          <ChatHistory messages={messages} isTyping={isTyping} onFeedback={handleFeedback} />
+          <ChatInputArea onSendMessage={addMessage} />
         </div>
 
         {/* Context Sidebar */}

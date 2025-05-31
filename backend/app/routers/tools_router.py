@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.utils.embedder import process_repository, search_similar_code_chunks
+from app.utils.embedder import process_repository
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
 from app.agents.root_agent import get_root_agent
@@ -33,8 +33,9 @@ def health_check():
 @router.post("/setup")
 async def setup_repo(request: RepoRequest):
     print(request, "request")
+    user_id = "123"
     try:
-        task = process_repository.delay(request.repo_url, request.access_token)
+        task = process_repository.delay(user_id, request.repo_url, request.access_token)
         return {"status": "processing", "task_id": task.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -52,53 +53,75 @@ def create_code_index(repo_url: str):
 @router.post("/chat")
 async def chat(request: RootAgentRequest):
     """
-    Runs the Google ADK root agent workflow on the provided user input.
+    Chat endpoint for interacting with the AI assistant.
+    
+    Request Body:
+    {
+        "user_input": string  // The user's message or question
+    }
+
+    Returns:
+    {
+        "result": string  // The AI assistant's response message
+    }
     """
     try:
         print(request, "request")
         print("Running root agent")
-        # Set up session service and session (await the coroutine)
         session_service = InMemorySessionService()
 
         session = await session_service.create_session(
             app_name="codebuddy",
             user_id="123",
         )
+        
+        print("session is ready", session)
 
         print("Getting root agent")
         root_agent = get_root_agent(request)
         print("Root agent is ready")
 
-        # Prepare the user input as ADK content
         content = types.Content(role='user', parts=[types.Part(text=request.user_input)])
 
         print("Content is ready")
 
-        # Set up the runner
         runner = Runner(agent=root_agent, app_name="codebuddy", session_service=session_service)
         
         print("Runner is ready")
-        # Run the agent
-        events = runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content)
 
+        events = runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content)
+        
         print("Events are ready")
 
-        # Collect the final response
         async for event in events:
             if event.is_final_response():
-                final_response = event.content.parts[0].text
+                final_response = event.content.parts[0].text          
                 print("Final response is ready")
                 return {"result": final_response}
 
         print("No final response from agent.")
+        
         return {"result": "No final response from agent."}
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
 
 @router.post("/diagram")
 async def generate_diagram(request: DiagramRequest):
     """
-    Generates a diagram based on the user's request.
+    Generate a diagram based on user input.
+
+    Request Body:
+    {
+        "user_input": string,     // Description or requirements for the diagram
+        "diagram_type": string    // Type of diagram to generate (e.g. "uml", "erd")
+    }
+
+    Returns:
+    {
+        "message": string,        // Status message
+        "request": object         // Echo of the original request
+    }
     """
     try:
         print(request, "request")

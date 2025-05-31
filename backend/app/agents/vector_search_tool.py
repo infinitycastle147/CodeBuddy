@@ -2,7 +2,7 @@ from typing import List, Dict
 # from sentence_transformers import SentenceTransformer
 from pymongo import MongoClient
 import os
-
+import json
 # MongoDB setup
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 mongo_client = MongoClient(mongo_uri)
@@ -36,8 +36,10 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
         {
             "$project": {
                 "_id": 0,
+                "user_id": 1,
                 "repo_url": 1,
                 "file_path": 1,
+                "branch": 1,
                 "chunk_index": 1,
                 "chunk": 1,
                 "score": {"$meta": "vectorSearchScore"}
@@ -45,5 +47,6 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
         }
     ]
     results = list(collection.aggregate(pipeline))
+
     return results
 

@@ -1,1 +1,0 @@
-CODE_INDEXER_PROMPT = "Index and embed code for retrieval." 

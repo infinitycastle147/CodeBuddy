@@ -1,102 +1,94 @@
 import os
-from google.adk.agents import Agent
+from google.adk.agents import SequentialAgent, Agent
 from dotenv import load_dotenv
 from .vector_search_tool import search_similar_code_chunks
 from .prompt_manager import PromptManager
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
-from pydantic import BaseModel
 
 load_dotenv()
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
 
-class RootAgentRequest(BaseModel):
-    user_input: str
-
-
-def get_github_agent():
-    tools = MCPToolset(
-        connection_params=StdioServerParameters(
-            command="docker",
-            args=[
-                "run",
-                "-i",
-                "--rm",
-                "-e",
-                "GITHUB_PERSONAL_ACCESS_TOKEN",
-                "ghcr.io/github/github-mcp-server",
-            ],
-            env={
-                "GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv(
-                    "GITHUB_PERSONAL_ACCESS_TOKEN"
-                )
-            },
-        )
-    )
-
-    print("Tools are ready!")
-
-    return Agent(
-        name="github_agent",
-        instruction=PromptManager.get_prompt("github_agent"),
-        model="gemini-2.0-flash",
-        tools=[tools],
-    )
-
-
-def get_jira_agent():
-    tools = MCPToolset(
-        connection_params=StdioServerParameters(
-            command="docker",
-            args=[
-                "run",
-                "-i",
-                "--rm",
-                "-e",
-                "JIRA_URL",
-                "-e",
-                "JIRA_USERNAME",
-                "-e",
-                "JIRA_API_TOKEN",
-                "ghcr.io/sooperset/mcp-atlassian:latest",
-            ],
-            env={
-                "ENABLED_TOOLS": os.getenv("ENABLED_TOOLS"),
-                "JIRA_URL": os.getenv("JIRA_URL"),
-                "JIRA_USERNAME": os.getenv("JIRA_USERNAME"),
-                "JIRA_API_TOKEN": os.getenv("JIRA_API_TOKEN"),
-            },
-        )
-    )
-
-    print("Tools are ready!")
-
-    return Agent(
-        name="jira_agent",
-        instruction=PromptManager.get_prompt("jira_agent"),
-        model="gemini-2.0-flash",
-        tools=[tools],
-    )
-
-
-def get_agent(request: RootAgentRequest):
+def get_chat_agent(query: str):
     """
-    Runs the Google ADK github agent workflow on the provided user input.
-    """
+    This agent is responsible for handling the user's request and returning the appropriate response.
+    """ 
+
     try:
-        github_agent = get_github_agent()
-        jira_agent = get_jira_agent()
+        github_tools = MCPToolset(
+            connection_params=StdioServerParameters(
+                command="docker",
+                args=[
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server",
+                ],
+                env={
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv(
+                        "GITHUB_PERSONAL_ACCESS_TOKEN"
+                    )
+                },
+            )
+        )
+        jira_tools = MCPToolset(
+            connection_params=StdioServerParameters(
+                command="docker",
+                args=[
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "JIRA_URL",
+                    "-e",
+                    "JIRA_USERNAME",
+                    "-e",
+                    "JIRA_API_TOKEN",
+                    "ghcr.io/sooperset/mcp-atlassian:latest",
+                ],
+                env={
+                    "ENABLED_TOOLS": os.getenv("ENABLED_TOOLS"),
+                    "JIRA_URL": os.getenv("JIRA_URL"),
+                    "JIRA_USERNAME": os.getenv("JIRA_USERNAME"),
+                    "JIRA_API_TOKEN": os.getenv("JIRA_API_TOKEN"),
+                },
+            )
+        )
+
+        chat_agent_prompt = PromptManager.get_prompt("chat_agent").replace(
+            "{{query}}", query
+        )
 
         chat_agent = Agent(
             name="chat_agent",
-            instruction=PromptManager.get_prompt("chat_agent"),
+            instruction=chat_agent_prompt,
             description="This agent is responsible for handling the user's request and returning the appropriate response.",
             model="gemini-2.0-flash",
-            sub_agents=[github_agent, jira_agent],
-            tools=[search_similar_code_chunks]
+            tools=[github_tools, jira_tools, search_similar_code_chunks],
+            output_key="raw_search_results",
         )
 
-        return chat_agent
+        response_formatter_agent_prompt = PromptManager.get_prompt("response_formatter_agent")
+
+        response_formatter_agent = Agent(
+            name="response_formatter_agent",
+            instruction=response_formatter_agent_prompt,
+            description="This agent is responsible for formatting the response from the chat agent.",
+            model="gemini-2.0-flash",
+            output_key="formatted_search_results",
+        )
+
+        root_agent = SequentialAgent(
+            name="root_agent",
+            sub_agents=[chat_agent, response_formatter_agent],
+        )
+
+        return root_agent
+
+        # return chat_agent
     except Exception as e:
         print(f"Error: {e}")
         return None
+

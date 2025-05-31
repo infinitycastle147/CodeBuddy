@@ -2,7 +2,7 @@ from typing import List, Dict
 from sentence_transformers import SentenceTransformer
 from pymongo import MongoClient
 import os
-
+import json
 # MongoDB setup
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 mongo_client = MongoClient(mongo_uri)
@@ -20,7 +20,6 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
     """
     model = SentenceTransformer("all-MiniLM-L6-v2")
     query_embedding = model.encode([query])[0].tolist()
-    user_id = "123"
 
     pipeline = [
         {
@@ -30,11 +29,6 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
                 "path": "embedding",
                 "numCandidates": 100,
                 "limit": top_k
-            }
-        },
-        {
-            "$match": {
-                "user_id": user_id
             }
         },
         {
@@ -51,5 +45,6 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
         }
     ]
     results = list(collection.aggregate(pipeline))
+
     return results
 

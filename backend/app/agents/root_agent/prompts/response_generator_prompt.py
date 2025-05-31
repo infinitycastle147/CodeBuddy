@@ -1,1 +1,0 @@
-RESPONSE_GENERATOR_PROMPT = "Generate properly formatted response based on intent and context." 

@@ -1,1 +1,0 @@
-RAG_RETRIEVER_PROMPT = "Retrieve relevant code snippets using vector embeddings." 

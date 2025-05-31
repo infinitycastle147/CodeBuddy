@@ -1,5 +1,5 @@
-from .root_agent import get_agent
+from .root_agent import get_chat_agent
 
 __all__ = [
-    "get_agent"
+    "get_chat_agent"
 ]

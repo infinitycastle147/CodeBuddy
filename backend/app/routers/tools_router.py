@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.utils.embedder import process_repository, search_similar_code_chunks
+from app.utils.embedder import process_repository
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
-from app.agents.root_agent import get_agent
+from app.agents.root_agent import get_chat_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -64,20 +64,6 @@ async def chat(request: RootAgentRequest):
     {
         "result": string  // The AI assistant's response message
     }
-
-    Example:
-    POST /tools/chat
-    {
-        "user_input": "What are the main features in this codebase?"
-    }
-
-    Response:
-    {
-        "result": "Based on analyzing the codebase, the main features are..."
-    }
-
-    Errors:
-    - 500: Internal server error if something goes wrong
     """
     try:
         print(request, "request")
@@ -88,9 +74,11 @@ async def chat(request: RootAgentRequest):
             app_name="codebuddy",
             user_id="123",
         )
+        
+        print("session is ready", session)
 
         print("Getting root agent")
-        root_agent = get_agent(request)
+        root_agent = get_chat_agent(request.user_input)
         print("Root agent is ready")
 
         content = types.Content(role='user', parts=[types.Part(text=request.user_input)])
@@ -100,18 +88,21 @@ async def chat(request: RootAgentRequest):
         runner = Runner(agent=root_agent, app_name="codebuddy", session_service=session_service)
         
         print("Runner is ready")
-        events = runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content)
 
+        events = runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content)
+        
         print("Events are ready")
 
         async for event in events:
             if event.is_final_response():
-                final_response = event.content.parts[0].text
+                final_response = event.content.parts[0].text          
                 print("Final response is ready")
                 return {"result": final_response}
 
         print("No final response from agent.")
+        
         return {"result": "No final response from agent."}
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
     
@@ -131,25 +122,6 @@ async def generate_diagram(request: DiagramRequest):
         "message": string,        // Status message
         "request": object         // Echo of the original request
     }
-
-    Example:
-    POST /tools/diagram
-    {
-        "user_input": "Generate class diagram for user authentication",
-        "diagram_type": "uml"
-    }
-
-    Response:
-    {
-        "message": "Diagram generation started",
-        "request": {
-            "user_input": "Generate class diagram for user authentication",
-            "diagram_type": "uml"
-        }
-    }
-
-    Errors:
-    - 500: Internal server error if something goes wrong
     """
     try:
         print(request, "request")

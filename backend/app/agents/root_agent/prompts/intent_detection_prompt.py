@@ -1,1 +1,0 @@
-INTENT_DETECTION_PROMPT = "Detect the intent of the user's question." 

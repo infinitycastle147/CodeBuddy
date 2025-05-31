@@ -1,1 +1,0 @@
-UML_GENERATOR_PROMPT = "Generate UML diagrams in Mermaid or PlantUML syntax." 

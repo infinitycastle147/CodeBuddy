@@ -1,1 +1,0 @@
-ERD_GENERATOR_PROMPT = "Generate ERD diagrams from schema information." 

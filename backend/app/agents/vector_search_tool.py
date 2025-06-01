@@ -1,8 +1,8 @@
 from typing import List, Dict
-# from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 from pymongo import MongoClient
 import os
-import json
+
 # MongoDB setup
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 mongo_client = MongoClient(mongo_uri)
@@ -18,10 +18,8 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
     Returns:
         List[Dict]: List of matching code chunks with metadata and similarity score.
     """
-    # model = SentenceTransformer("all-MiniLM-L6-v2")
-    # query_embedding = model.encode([query])[0].tolist()
-    
-    query_embedding = "test"
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    query_embedding = model.encode([query])[0].tolist()
 
     pipeline = [
         {

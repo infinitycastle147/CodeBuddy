@@ -1,112 +1,52 @@
 import os
 from google.adk.agents import SequentialAgent
 from dotenv import load_dotenv
-from .information_retrieval_agent import get_information_retrieval_agent
-from .response_formatter import response_formatter_agent
+from .information_retrieval_agent import information_retrieval_agent
+from .diagram_generation_agent import diagram_generation_agent
+from .diagram_query_generator import diagram_query_generator_agent
 from .prompt_manager import PromptManager
+from google.adk.agents.callback_context import CallbackContext 
+from google.genai.types import Content
 
 load_dotenv()
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
+# --- Define the callback function ---
+def save_user_query_to_state(callback_context: CallbackContext):
+    """
+    Callback to save the user's initial query text into session state['query'].
+    Runs before the agent's main logic.
+    """
+    print(f"[Callback] Running before_agent_callback for {callback_context.agent_name}")
+    # Access the initial user input from this invocation
+    initial_user_content: Content = callback_context.user_content
 
-# class RootAgentRequest(BaseModel):
-#     user_input: str
+    user_query_text = "N/A" # Default value
 
+    # Extract text from the user content parts
+    if initial_user_content and initial_user_content.parts:
+         # Assuming the main query is in the first text part
+         for part in initial_user_content.parts:
+             if part.text:
+                 user_query_text = part.text
+                 break # Stop after finding the first text part
 
-# def get_github_agent():
-#     tools = MCPToolset(
-#         connection_params=StdioServerParameters(
-#             command="docker",
-#             args=[
-#                 "run",
-#                 "-i",
-#                 "--rm",
-#                 "-e",
-#                 "GITHUB_PERSONAL_ACCESS_TOKEN",
-#                 "ghcr.io/github/github-mcp-server",
-#             ],
-#             env={
-#                 "GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv(
-#                     "GITHUB_PERSONAL_ACCESS_TOKEN"
-#                 )
-#             },
-#         )
-#     )
+    print(f"[Callback] Saving user query '{user_query_text}' to state['query']")
+    # Save the extracted text into the session state
+    callback_context.state['query'] = user_query_text
 
-#     print("Tools are ready!")
+    # Return None to allow the agent's normal execution to proceed [15, 17]
+    return None
 
-#     return Agent(
-#         name="github_agent",
-#         instruction=PromptManager.get_prompt("github_agent"),
-#         model="gemini-2.0-flash",
-#         tools=[tools],
-#     )
+# root_agent =  information_retrieval_agent
+# --- Define the diagram agent ---
 
+diagram_agent =  SequentialAgent(
+    name="diagram_agent",
+    # model="gemini-2.0-flash",
+    sub_agents=[diagram_query_generator_agent,information_retrieval_agent,diagram_generation_agent],
+    description="This agent is responsible for generating diagrams based on user queries and information retrieval results.",
+    # before_agent_callback=save_user_query_to_state,
+)
 
-# def get_jira_agent():
-#     tools = MCPToolset(
-#         connection_params=StdioServerParameters(
-#             command="docker",
-#             args=[
-#                 "run",
-#                 "-i",
-#                 "--rm",
-#                 "-e",
-#                 "JIRA_URL",
-#                 "-e",
-#                 "JIRA_USERNAME",
-#                 "-e",
-#                 "JIRA_API_TOKEN",
-#                 "ghcr.io/sooperset/mcp-atlassian:latest",
-#             ],
-#             env={
-#                 "ENABLED_TOOLS": os.getenv("ENABLED_TOOLS"),
-#                 "JIRA_URL": os.getenv("JIRA_URL"),
-#                 "JIRA_USERNAME": os.getenv("JIRA_USERNAME"),
-#                 "JIRA_API_TOKEN": os.getenv("JIRA_API_TOKEN"),
-#             },
-#         )
-#     )
-
-#     print("Tools are ready!")
-
-#     return Agent(
-#         name="jira_agent",
-#         instruction=PromptManager.get_prompt("jira_agent"),
-#         model="gemini-2.0-flash",
-#         tools=[tools],
-#     )
-
-
-# def get_agent(request: RootAgentRequest):
-#     """
-#     Runs the Google ADK github agent workflow on the provided user input.
-#     """
-#     try:
-#         github_agent = get_github_agent()
-#         jira_agent = get_jira_agent()
-
-#         chat_agent = Agent(
-#             name="chat_agent",
-#             instruction=PromptManager.get_prompt("chat_agent"),
-#             description="This agent is responsible for handling the user's request and returning the appropriate response.",
-#             model="gemini-2.0-flash",
-#             sub_agents=[github_agent, jira_agent, search_similar_code_chunks],
-#         )
-
-#         return chat_agent
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         return None
-
-
-def get_root_agent(query: str):
-    information_retrieval_agent = get_information_retrieval_agent(query)
-
-    return SequentialAgent(
-        name="root_agent",
-        sub_agents=[information_retrieval_agent, response_formatter_agent],
-        description="This agent is responsible for handling the user's request and returning the appropriate response.",
-    )
-
-root_agent = get_root_agent("What is the purpose of the codebuddy project?")
+root_agent = diagram_agent

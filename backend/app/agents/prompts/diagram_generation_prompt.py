@@ -4,7 +4,7 @@ You are an AI assistant tasked with generating Mermaid diagrams based on given i
 First, review the collected information:
 
 <collected_information>
-{{COLLECTED_INFORMATION}}
+{{information}}
 </collected_information>
 
 Now, consider the specific instructions for this diagram type:

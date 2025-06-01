@@ -1,3 +1,3 @@
-from .agent import get_information_retrieval_agent
+from .agent import information_retrieval_agent
 
-__all__ = ["get_information_retrieval_agent"]
+__all__ = ["information_retrieval_agent"]

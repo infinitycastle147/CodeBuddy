@@ -28,6 +28,7 @@ import {
   MoreVertical,
   Filter,
   SortAsc,
+  FileIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,6 +47,10 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AppSidebar } from "@/custom-components/app-sidebar"
+import { TopBar } from "@/custom-components/top-bar"
+import { useSearchParams } from "next/navigation"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 interface FileNode {
   id: string
@@ -281,8 +286,13 @@ function FileTreePanel() {
       <CardHeader className="pb-3 border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <File className="w-5 h-5" />
-            Explorer
+            <SidebarTrigger />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+              <FileIcon className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl text-black font-bold leading-tight">Explorer</h1>
+            </div>
           </CardTitle>
           <div className="flex items-center gap-1">
             <TooltipProvider>

@@ -42,6 +42,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Toggle } from "@/components/ui/toggle"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 interface DiagramType {
   id: string
@@ -495,6 +496,7 @@ export default function DiagramStudioPage() {
         <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center gap-3">
+              <SidebarTrigger />
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <BarChart className="w-4 h-4 text-primary-foreground" />
               </div>

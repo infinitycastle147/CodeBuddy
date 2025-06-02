@@ -26,6 +26,7 @@ import {
   DollarSign,
   Calendar,
   ChevronRight,
+  HomeIcon,
 } from "lucide-react"
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -42,72 +43,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 
-interface NavigationItem {
-  href: string
-  icon: React.ReactNode
-  label: string
-  isActive?: boolean
-  badge?: string
-}
-
-const navigationItems: NavigationItem[] = [
-  { href: "/dashboard", icon: <Home className="w-4 h-4" />, label: "Insights", isActive: true },
-  { href: "/diagrams", icon: <BarChart3 className="w-4 h-4" />, label: "Diagrams" },
-  { href: "/explorer", icon: <FileText className="w-4 h-4" />, label: "Files", badge: "12" },
-  { href: "/chat", icon: <MessageCircle className="w-4 h-4" />, label: "Chat", badge: "3" },
-  { href: "/settings", icon: <Settings className="w-4 h-4" />, label: "Settings" },
-]
-
-function SidebarNavigation() {
-  return (
-    <Sidebar className="border-r border-border">
-      <SidebarHeader className="border-b border-border p-6">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-sm">Dashboard</span>
-            <span className="text-xs text-muted-foreground">Analytics Hub</span>
-          </div>
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="p-4">
-        <SidebarMenu className="space-y-2">
-          {navigationItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={item.isActive}
-                className="w-full justify-start h-10 px-3 rounded-lg transition-all duration-200 hover:bg-accent/50"
-              >
-                <a href={item.href} className="flex items-center gap-3">
-                  {item.icon}
-                  <span className="font-medium">{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
-    </Sidebar>
-  )
-}
-
 function TopbarNavigation() {
   return (
     <header className="flex items-center justify-between w-full h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="lg:hidden" />
+        <SidebarTrigger />
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbPage className="font-medium">Dashboard</BreadcrumbPage>
+            <BreadcrumbItem className="flex items-center gap-3">  
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                <HomeIcon className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl text-black font-bold leading-tight">Dashboard</h1>
+                <p className="text-xs text-muted-foreground leading-tight">
+                  Welcome to your dashboard, where you can manage your projects and view insights.
+                </p>
+              </div>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -342,14 +294,9 @@ function RoleDashboardMainPanel() {
 
 export default function DashboardPage() {
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-screen bg-background text-foreground">
-        <SidebarNavigation />
-        <div className="flex flex-col flex-1 min-w-0">
-          <TopbarNavigation />
-          <RoleDashboardMainPanel />
-        </div>
-      </div>
-    </SidebarProvider>
+    <div className="flex flex-col flex-1 min-w-0">
+      <TopbarNavigation />
+      <RoleDashboardMainPanel />
+    </div>
   )
 }

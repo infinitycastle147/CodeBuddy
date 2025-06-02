@@ -1,6 +1,6 @@
 "use client"
 
-import DashboardPage from "@/app/dashboard/dashboard-page"
+import DashboardPage from "@/app/(authorised)/dashboard/dashboard-page"
 
 export default function Page() {
   return <DashboardPage />

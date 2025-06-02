@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 interface Message {
   id: string
@@ -409,6 +410,7 @@ export default function AiChatPage() {
       <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
         <div className="flex items-center justify-between h-16 px-6">
           <div className="flex items-center gap-3">
+            <SidebarTrigger />
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-primary-foreground" />
             </div>

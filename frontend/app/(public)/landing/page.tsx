@@ -48,7 +48,7 @@ export default function LandingPage() {
         <section className="relative py-20 md:py-32">
           <div className="px-4">
             <div className="mx-auto max-w-4xl text-center">
-              <Badge variant="secondary" className="mb-6">
+              <Badge variant="secondary" className="mb-6 hover:bg-blue-50">
                 <Sparkles className="mr-1 h-3 w-3" />
                 AI-Powered Development Assistant
               </Badge>
@@ -95,7 +95,7 @@ export default function LandingPage() {
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               <Card className="border-0 shadow-sm h-full flex flex-col">
                 <CardHeader className="flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/5">
                     <Zap className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Smart Code Analysis</CardTitle>
@@ -107,7 +107,7 @@ export default function LandingPage() {
 
               <Card className="border-0 shadow-sm h-full flex flex-col">
                 <CardHeader className="flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/5">
                     <Users className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Role-Aware Assistant</CardTitle>
@@ -119,7 +119,7 @@ export default function LandingPage() {
 
               <Card className="border-0 shadow-sm h-full flex flex-col">
                 <CardHeader className="flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/5">
                     <BookOpen className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Visual Diagrams</CardTitle>
@@ -131,7 +131,7 @@ export default function LandingPage() {
 
               <Card className="border-0 shadow-sm h-full flex flex-col">
                 <CardHeader className="flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/5">
                     <Shield className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Secure & Private</CardTitle>
@@ -143,7 +143,7 @@ export default function LandingPage() {
 
               <Card className="border-0 shadow-sm h-full flex flex-col">
                 <CardHeader className="flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/5">
                     <Rocket className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Git Integration</CardTitle>
@@ -155,7 +155,7 @@ export default function LandingPage() {
 
               <Card className="border-0 shadow-sm h-full flex flex-col">
                 <CardHeader className="flex-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/5">
                     <Code2 className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Multi-Language Support</CardTitle>

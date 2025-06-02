@@ -1,5 +1,5 @@
 "use client"
-import SettingsPage from "@/app/settings/settings-page"
+import SettingsPage from "@/app/(authorised)/settings/settings-page"
 
 
 export default function Page() {

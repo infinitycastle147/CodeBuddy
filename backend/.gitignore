@@ -113,3 +113,6 @@ Thumbs.db
 
 # Application logs
 logs
+
+.venv/
+venv/

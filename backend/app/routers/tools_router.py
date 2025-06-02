@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.utils.embedder import process_repository
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
-from app.agents.root_agent import get_chat_agent
+from app.agents.root_agent import get_root_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -23,7 +23,7 @@ class VectorSearchRequest(BaseModel):
     query: str
     top_k: int = 5
 
-class RootAgentRequest(BaseModel):
+class ChatAgentRequest(BaseModel):
     user_input: str
 
 @router.get("/health")
@@ -39,7 +39,7 @@ async def setup_repo(request: RepoRequest):
         return {"status": "processing", "task_id": task.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @router.get("/task-status/{task_id}")
 def get_task_status(task_id: str):
     result = AsyncResult(task_id, app=celery_app)
@@ -78,7 +78,7 @@ async def chat(request: RootAgentRequest):
         print("session is ready", session)
 
         print("Getting root agent")
-        root_agent = get_chat_agent(request.user_input)
+        root_agent = get_root_agent(request)
         print("Root agent is ready")
 
         content = types.Content(role='user', parts=[types.Part(text=request.user_input)])
@@ -105,7 +105,7 @@ async def chat(request: RootAgentRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
-    
+
 @router.post("/diagram")
 async def generate_diagram(request: DiagramRequest):
     """

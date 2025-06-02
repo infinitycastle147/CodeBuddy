@@ -1,137 +1,108 @@
+"use client"
+import { Badge } from "@/components/ui/badge"
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarHeader,
-    SidebarFooter,
-  } from "@/components/ui/sidebar"
-  import {
-    BarChart3,
-    FileCode,
-    MessageSquare,
-    Settings,
-    GitBranch,
-    Eye,
-    BarChart3Icon as Diagram3,
-    Clock,
-  } from "lucide-react"
-  
-  interface AppSidebarProps {
-    role: string
-  }
-  
-  const roleConfig = {
-    backend: {
-      color: "text-blue-600",
-      icon: "🧩",
-      name: "Backend Engineer",
-    },
-    frontend: {
-      color: "text-green-600",
-      icon: "🎨",
-      name: "Frontend Developer",
-    },
-    aiml: {
-      color: "text-purple-600",
-      icon: "🧠",
-      name: "AI/ML Engineer",
-    },
-    pm: {
-      color: "text-orange-600",
-      icon: "📋",
-      name: "Product Manager",
-    },
-  }
-  
-  export function AppSidebar({ role }: AppSidebarProps) {
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.backend
-  
-    const menuItems = [
-      {
-        title: "Dashboard",
-        icon: BarChart3,
-        url: `/dashboard?role=${role}`,
-        isActive: true,
-      },
-      {
-        title: "Code Explorer",
-        icon: FileCode,
-        url: `/explorer?role=${role}`,
-      },
-      {
-        title: "Diagrams",
-        icon: Diagram3,
-        url: `/diagrams?role=${role}`,
-      },
-      {
-        title: "AI Assistant",
-        icon: MessageSquare,
-        url: `/chat?role=${role}`,
-      },
-      {
-        title: "Timeline",
-        icon: Clock,
-        url: `/timeline?role=${role}`,
-      },
-      {
-        title: "Settings",
-        icon: Settings,
-        url: `/settings?role=${role}`,
-      },
-    ]
-  
-    return (
-      <Sidebar>
-        <SidebarHeader className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Eye className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h2 className="font-semibold">CodeLens</h2>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span>{config.icon}</span>
-                {config.name}
-              </p>
-            </div>
+  Sidebar,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+} from "@/components/ui/sidebar"
+import {
+  BarChart3,
+  Settings,
+  Home,
+  FileText,
+  MessageCircle,
+  GitBranchPlus,
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+
+interface AppSidebarProps {
+  role: string
+}
+
+const roleConfig = {
+  backend: {
+    color: "text-blue-600",
+    icon: "🧩",
+    name: "Backend Engineer",
+  },
+  frontend: {
+    color: "text-green-600",
+    icon: "🎨",
+    name: "Frontend Developer",
+  },
+  aiml: {
+    color: "text-purple-600",
+    icon: "🧠",
+    name: "AI/ML Engineer",
+  },
+  pm: {
+    color: "text-orange-600",
+    icon: "📋",
+    name: "Product Manager",
+  },
+}
+
+interface NavigationItem {
+  href: string
+  icon: React.ReactNode
+  label: string
+  isActive?: boolean
+  badge?: string
+}
+
+const navigationItems: NavigationItem[] = [
+  { href: "/dashboard", icon: <Home className="w-4 h-4" />, label: "Insights", isActive: true },
+  { href: "/diagrams", icon: <GitBranchPlus className="w-4 h-4" />, label: "Diagrams" },
+  { href: "/explorer", icon: <FileText className="w-4 h-4" />, label: "Files", badge: "12" },
+  { href: "/chat", icon: <MessageCircle className="w-4 h-4" />, label: "Chat", badge: "3" },
+  { href: "/settings", icon: <Settings className="w-4 h-4" />, label: "Settings" },
+]
+
+export function AppSidebar({ role }: AppSidebarProps) {
+  const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.backend
+  const router = useRouter();
+
+  return (
+    <Sidebar className="border-r border-border">
+      <SidebarHeader className="border-b border-border p-6 cursor-pointer" onClick={() => { router.push('/dashboard') }}>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <BarChart3 className="w-4 h-4 text-primary-foreground" />
           </div>
-        </SidebarHeader>
-  
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={item.isActive}>
-                      <a href={item.url}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-  
-        <SidebarFooter className="p-4">
-          <div className="text-xs text-muted-foreground">
-            <div className="flex items-center gap-2 mb-1">
-              <GitBranch className="w-3 h-3" />
-              <span>main</span>
-            </div>
-            <div>Repository: ecommerce-platform</div>
+          <div className="flex flex-col">
+            <span className="font-semibold text-sm">Dashboard</span>
+            <span className="text-xs text-muted-foreground">
+              {config.name} <span className={config.color}>{config.icon}</span>
+            </span>
           </div>
-        </SidebarFooter>
-      </Sidebar>
-    )
-  }
-  
+        </div>
+      </SidebarHeader>
+      <SidebarContent className="p-4">
+        <SidebarMenu className="space-y-2">
+          {navigationItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={item.isActive}
+                className="w-full justify-start h-10 px-3 rounded-lg transition-all duration-200 hover:bg-accent/50"
+              >
+                <a href={item.href} className="flex items-center gap-3">
+                  {item.icon}
+                  <span className="font-medium">{item.label}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
+  )
+}

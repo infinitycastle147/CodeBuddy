@@ -2,20 +2,11 @@
 
 import type React from "react"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {
-  Home,
   BarChart3,
   FileText,
-  MessageCircle,
   Settings,
   Search,
   Bell,
@@ -28,7 +19,7 @@ import {
   ChevronRight,
   HomeIcon,
 } from "lucide-react"
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb"
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem} from "@/components/ui/breadcrumb"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

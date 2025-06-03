@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import {
   Code,
   Brain,
@@ -20,7 +26,7 @@ import {
   FileText,
   Database,
   Settings,
-} from "lucide-react"
+} from "lucide-react";
 
 // Mock data - in real app this would come from API
 const userData = {
@@ -33,10 +39,26 @@ const userData = {
   totalQueries: 1247,
   aiAdaptationScore: 85,
   recentActivity: [
-    { type: "query", content: "Explain the authentication flow in our API", time: "2 hours ago" },
-    { type: "analysis", content: "Generated API documentation for user service", time: "5 hours ago" },
-    { type: "collaboration", content: "Shared insights with Frontend team", time: "1 day ago" },
-    { type: "integration", content: "Connected new GitHub repository", time: "2 days ago" },
+    {
+      type: "query",
+      content: "Explain the authentication flow in our API",
+      time: "2 hours ago",
+    },
+    {
+      type: "analysis",
+      content: "Generated API documentation for user service",
+      time: "5 hours ago",
+    },
+    {
+      type: "collaboration",
+      content: "Shared insights with Frontend team",
+      time: "1 day ago",
+    },
+    {
+      type: "integration",
+      content: "Connected new GitHub repository",
+      time: "2 days ago",
+    },
   ],
   integrations: [
     { name: "GitHub", status: "connected", repos: 12 },
@@ -44,13 +66,32 @@ const userData = {
     { name: "Slack", status: "connected", channels: 8 },
     { name: "Docker", status: "pending", repos: 0 },
   ],
-  skillTags: ["Node.js", "PostgreSQL", "Docker", "Microservices", "REST APIs", "GraphQL"],
-  recentProjects: [
-    { name: "User Authentication Service", language: "TypeScript", lastActive: "Today" },
-    { name: "Payment Processing API", language: "Python", lastActive: "Yesterday" },
-    { name: "Data Pipeline Optimization", language: "Go", lastActive: "3 days ago" },
+  skillTags: [
+    "Node.js",
+    "PostgreSQL",
+    "Docker",
+    "Microservices",
+    "REST APIs",
+    "GraphQL",
   ],
-}
+  recentProjects: [
+    {
+      name: "User Authentication Service",
+      language: "TypeScript",
+      lastActive: "Today",
+    },
+    {
+      name: "Payment Processing API",
+      language: "Python",
+      lastActive: "Yesterday",
+    },
+    {
+      name: "Data Pipeline Optimization",
+      language: "Go",
+      lastActive: "3 days ago",
+    },
+  ],
+};
 
 const roleConfig = {
   backend: {
@@ -93,12 +134,12 @@ const roleConfig = {
       { label: "Team Alignments", value: "23", trend: "+8%" },
     ],
   },
-}
+};
 
 export default function UserProfile() {
-  const [activeTab, setActiveTab] = useState("overview")
-  const config = roleConfig[userData.role as keyof typeof roleConfig]
-  const RoleIcon = config.icon
+  const [activeTab, setActiveTab] = useState("overview");
+  const config = roleConfig[userData.role as keyof typeof roleConfig];
+  const RoleIcon = config.icon;
 
   return (
     <div className="h-full flex justify-center items-center bg-background">
@@ -107,7 +148,10 @@ export default function UserProfile() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={userData.avatar || "/placeholder.svg"} alt={userData.name} />
+              <AvatarImage
+                src={userData.avatar || "/placeholder.svg"}
+                alt={userData.name}
+              />
               <AvatarFallback className="text-lg">
                 {userData.name
                   .split(" ")
@@ -124,7 +168,9 @@ export default function UserProfile() {
                 </Badge>
                 <Badge variant="outline">{userData.teamName}</Badge>
               </div>
-              <p className="text-muted-foreground mt-1">Joined {userData.joinDate}</p>
+              <p className="text-muted-foreground mt-1">
+                Joined {userData.joinDate}
+              </p>
             </div>
           </div>
           <Button variant="outline" className="gap-2">
@@ -139,20 +185,31 @@ export default function UserProfile() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Total Queries</span>
+                <span className="text-sm text-muted-foreground">
+                  Total Queries
+                </span>
               </div>
-              <p className="text-2xl font-bold">{userData.totalQueries.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                {userData.totalQueries.toLocaleString()}
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Brain className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">AI Adaptation</span>
+                <span className="text-sm text-muted-foreground">
+                  AI Adaptation
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold">{userData.aiAdaptationScore}%</p>
-                <Progress value={userData.aiAdaptationScore} className="flex-1" />
+                <p className="text-2xl font-bold">
+                  {userData.aiAdaptationScore}%
+                </p>
+                <Progress
+                  value={userData.aiAdaptationScore}
+                  className="flex-1"
+                />
               </div>
             </CardContent>
           </Card>
@@ -160,10 +217,16 @@ export default function UserProfile() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Integrations</span>
+                <span className="text-sm text-muted-foreground">
+                  Integrations
+                </span>
               </div>
               <p className="text-2xl font-bold">
-                {userData.integrations.filter((i) => i.status === "connected").length}/{userData.integrations.length}
+                {
+                  userData.integrations.filter((i) => i.status === "connected")
+                    .length
+                }
+                /{userData.integrations.length}
               </p>
             </CardContent>
           </Card>
@@ -171,9 +234,13 @@ export default function UserProfile() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Team Projects</span>
+                <span className="text-sm text-muted-foreground">
+                  Team Projects
+                </span>
               </div>
-              <p className="text-2xl font-bold">{userData.recentProjects.length}</p>
+              <p className="text-2xl font-bold">
+                {userData.recentProjects.length}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -218,10 +285,15 @@ export default function UserProfile() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {userData.recentProjects.map((project, index) => (
-                    <div key={index} className="flex items-center justify-between">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
                       <div>
                         <p className="font-medium">{project.name}</p>
-                        <p className="text-sm text-muted-foreground">{project.language}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {project.language}
+                        </p>
                       </div>
                       <Badge variant="outline">{project.lastActive}</Badge>
                     </div>
@@ -239,15 +311,21 @@ export default function UserProfile() {
                   {config.title} Insights
                 </CardTitle>
                 <CardDescription>
-                  Role-specific metrics and AI-generated insights tailored for your work
+                  Role-specific metrics and AI-generated insights tailored for
+                  your work
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {config.insights.map((insight, index) => (
-                    <div key={index} className="text-center p-4 border rounded-lg">
+                    <div
+                      key={index}
+                      className="text-center p-4 border rounded-lg"
+                    >
                       <p className="text-2xl font-bold">{insight.value}</p>
-                      <p className="text-sm text-muted-foreground">{insight.label}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {insight.label}
+                      </p>
                       <Badge variant="secondary" className="mt-2">
                         {insight.trend}
                       </Badge>
@@ -271,14 +349,24 @@ export default function UserProfile() {
                   {userData.recentActivity.map((activity, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <div className="mt-1">
-                        {activity.type === "query" && <MessageSquare className="h-4 w-4" />}
-                        {activity.type === "analysis" && <Brain className="h-4 w-4" />}
-                        {activity.type === "collaboration" && <Users className="h-4 w-4" />}
-                        {activity.type === "integration" && <GitBranch className="h-4 w-4" />}
+                        {activity.type === "query" && (
+                          <MessageSquare className="h-4 w-4" />
+                        )}
+                        {activity.type === "analysis" && (
+                          <Brain className="h-4 w-4" />
+                        )}
+                        {activity.type === "collaboration" && (
+                          <Users className="h-4 w-4" />
+                        )}
+                        {activity.type === "integration" && (
+                          <GitBranch className="h-4 w-4" />
+                        )}
                       </div>
                       <div className="flex-1">
                         <p className="text-sm">{activity.content}</p>
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.time}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -294,19 +382,33 @@ export default function UserProfile() {
                   <Database className="h-5 w-5" />
                   Connected Integrations
                 </CardTitle>
-                <CardDescription>Tools and services connected to enhance your CodeBuddy experience</CardDescription>
+                <CardDescription>
+                  Tools and services connected to enhance your CodeBuddy
+                  experience
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {userData.integrations.map((integration, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div>
                         <p className="font-medium">{integration.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {integration.status === "connected" ? `${integration.repos} repositories` : "Not connected"}
+                          {integration.status === "connected"
+                            ? `${integration.repos} repositories`
+                            : "Not connected"}
                         </p>
                       </div>
-                      <Badge variant={integration.status === "connected" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          integration.status === "connected"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
                         {integration.status}
                       </Badge>
                     </div>
@@ -318,5 +420,5 @@ export default function UserProfile() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

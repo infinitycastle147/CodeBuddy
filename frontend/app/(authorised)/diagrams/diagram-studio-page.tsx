@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
+import type React from "react";
+import { useState } from "react";
 import {
   Network,
   Database,
@@ -30,26 +30,37 @@ import {
   Trash2,
   Move,
   Plus,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Toggle } from "@/components/ui/toggle"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Toggle } from "@/components/ui/toggle";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface DiagramType {
-  id: string
-  name: string
-  icon: React.ReactNode
-  description: string
-  category: string
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  category: string;
 }
 
 const diagramTypes: DiagramType[] = [
@@ -95,28 +106,60 @@ const diagramTypes: DiagramType[] = [
     description: "Mind mapping diagrams",
     category: "Planning",
   },
-]
+];
 
 interface Tool {
-  id: string
-  name: string
-  icon: React.ReactNode
-  shortcut?: string
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  shortcut?: string;
 }
 
 const tools: Tool[] = [
-  { id: "select", name: "Select", icon: <MousePointer className="w-4 h-4" />, shortcut: "V" },
-  { id: "rectangle", name: "Rectangle", icon: <Square className="w-4 h-4" />, shortcut: "R" },
-  { id: "circle", name: "Circle", icon: <Circle className="w-4 h-4" />, shortcut: "C" },
-  { id: "arrow", name: "Arrow", icon: <ArrowRight className="w-4 h-4" />, shortcut: "A" },
-  { id: "text", name: "Text", icon: <Type className="w-4 h-4" />, shortcut: "T" },
-  { id: "shape", name: "Shapes", icon: <Shapes className="w-4 h-4" />, shortcut: "S" },
-]
+  {
+    id: "select",
+    name: "Select",
+    icon: <MousePointer className="w-4 h-4" />,
+    shortcut: "V",
+  },
+  {
+    id: "rectangle",
+    name: "Rectangle",
+    icon: <Square className="w-4 h-4" />,
+    shortcut: "R",
+  },
+  {
+    id: "circle",
+    name: "Circle",
+    icon: <Circle className="w-4 h-4" />,
+    shortcut: "C",
+  },
+  {
+    id: "arrow",
+    name: "Arrow",
+    icon: <ArrowRight className="w-4 h-4" />,
+    shortcut: "A",
+  },
+  {
+    id: "text",
+    name: "Text",
+    icon: <Type className="w-4 h-4" />,
+    shortcut: "T",
+  },
+  {
+    id: "shape",
+    name: "Shapes",
+    icon: <Shapes className="w-4 h-4" />,
+    shortcut: "S",
+  },
+];
 
 function DiagramTypeSelector() {
-  const [selectedType, setSelectedType] = useState("uml")
+  const [selectedType, setSelectedType] = useState("uml");
 
-  const categories = Array.from(new Set(diagramTypes.map((type) => type.category)))
+  const categories = Array.from(
+    new Set(diagramTypes.map((type) => type.category))
+  );
 
   return (
     <Card>
@@ -150,7 +193,9 @@ function DiagramTypeSelector() {
                       {type.icon}
                       <div className="flex flex-col gap-1">
                         <span className="text-xs font-medium">{type.name}</span>
-                        <span className="text-xs text-muted-foreground hidden lg:block">{type.description}</span>
+                        <span className="text-xs text-muted-foreground hidden lg:block">
+                          {type.description}
+                        </span>
                       </div>
                     </Button>
                   ))}
@@ -160,13 +205,13 @@ function DiagramTypeSelector() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function Toolbar() {
-  const [activeTool, setActiveTool] = useState("select")
-  const [showGrid, setShowGrid] = useState(true)
-  const [zoom, setZoom] = useState([100])
+  const [activeTool, setActiveTool] = useState("select");
+  const [showGrid, setShowGrid] = useState(true);
+  const [zoom, setZoom] = useState([100]);
 
   return (
     <Card>
@@ -191,14 +236,26 @@ function Toolbar() {
 
           {/* View Controls */}
           <div className="flex items-center gap-2">
-            <Toggle pressed={showGrid} onPressedChange={setShowGrid} className="h-9 w-9 p-0" title="Toggle Grid">
+            <Toggle
+              pressed={showGrid}
+              onPressedChange={setShowGrid}
+              className="h-9 w-9 p-0"
+              title="Toggle Grid"
+            >
               <Grid className="w-4 h-4" />
             </Toggle>
             <Button variant="outline" size="sm">
               <ZoomOut className="w-4 h-4" />
             </Button>
             <div className="flex items-center gap-2 min-w-[120px]">
-              <Slider value={zoom} onValueChange={setZoom} max={200} min={25} step={25} className="flex-1" />
+              <Slider
+                value={zoom}
+                onValueChange={setZoom}
+                max={200}
+                min={25}
+                step={25}
+                className="flex-1"
+              />
               <span className="text-xs font-medium w-10">{zoom[0]}%</span>
             </div>
             <Button variant="outline" size="sm">
@@ -244,65 +301,69 @@ function Toolbar() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function DiagramCanvas() {
-    return (
-      <Card className="flex-1 shadow-sm rounded-xl">
-        <CardContent className="p-0 h-full">
-          <div className="relative h-full min-h-[500px] bg-gradient-to-br from-background to-muted/20 rounded-lg overflow-hidden">
-            {/* Grid Background */}
-            <div
-              className="absolute inset-0 opacity-20 pointer-events-none"
-              style={{
-                backgroundImage: `
+  return (
+    <Card className="flex-1 shadow-sm rounded-xl">
+      <CardContent className="p-0 h-full">
+        <div className="relative h-full min-h-[500px] bg-gradient-to-br from-background to-muted/20 rounded-lg overflow-hidden">
+          {/* Grid Background */}
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage: `
                   linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
                   linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)
                 `,
-                backgroundSize: "20px 20px",
-              }}
-            />
-  
-            {/* Canvas Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center space-y-6 z-10">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <Plus className="w-8 h-8 text-primary" />
-              </div>
-              <div className="space-y-2 max-w-md">
-                <h3 className="text-lg font-semibold">Start Creating</h3>
-                <p className="text-muted-foreground">
-                  Select a diagram type and start building your visual representation. Use the toolbar to add shapes,
-                  text, and connections.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <Button size="sm" className="flex items-center gap-1">
-                  <Plus className="w-4 h-4" />
-                  Add Shape
-                </Button>
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
-                  <Upload className="w-4 h-4" />
-                  Import
-                </Button>
-              </div>
+              backgroundSize: "20px 20px",
+            }}
+          />
+
+          {/* Canvas Content */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center space-y-6 z-10">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Plus className="w-8 h-8 text-primary" />
             </div>
-  
-            {/* Canvas Controls */}
-            <div className="absolute bottom-4 right-4 flex gap-2 z-20">
-              <Button variant="secondary" size="sm">
-                <Eye className="w-4 h-4" />
+            <div className="space-y-2 max-w-md">
+              <h3 className="text-lg font-semibold">Start Creating</h3>
+              <p className="text-muted-foreground">
+                Select a diagram type and start building your visual
+                representation. Use the toolbar to add shapes, text, and
+                connections.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Button size="sm" className="flex items-center gap-1">
+                <Plus className="w-4 h-4" />
+                Add Shape
               </Button>
-              <Button variant="secondary" size="sm">
-                <Layers className="w-4 h-4" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Upload className="w-4 h-4" />
+                Import
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-  
+
+          {/* Canvas Controls */}
+          <div className="absolute bottom-4 right-4 flex gap-2 z-20">
+            <Button variant="secondary" size="sm">
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button variant="secondary" size="sm">
+              <Layers className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function PropertiesPanel() {
   return (
@@ -414,14 +475,18 @@ function PropertiesPanel() {
             <Move className="w-4 h-4 mr-2" />
             Bring to Front
           </Button>
-          <Button variant="destructive" className="w-full justify-start" size="sm">
+          <Button
+            variant="destructive"
+            className="w-full justify-start"
+            size="sm"
+          >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete
           </Button>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ExportControls() {
@@ -430,7 +495,7 @@ function ExportControls() {
     { id: "svg", name: "SVG", icon: <FileDown className="w-4 h-4" /> },
     { id: "pdf", name: "PDF", icon: <FileDown className="w-4 h-4" /> },
     { id: "json", name: "JSON", icon: <FileDown className="w-4 h-4" /> },
-  ]
+  ];
 
   return (
     <Card>
@@ -443,7 +508,11 @@ function ExportControls() {
       <CardContent>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {exportFormats.map((format) => (
-            <Button key={format.id} variant="outline" className="h-auto p-3 flex flex-col items-center gap-2">
+            <Button
+              key={format.id}
+              variant="outline"
+              className="h-auto p-3 flex flex-col items-center gap-2"
+            >
               {format.icon}
               <span className="text-xs font-medium">{format.name}</span>
             </Button>
@@ -486,63 +555,69 @@ function ExportControls() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function DiagramStudioPage() {
-    return (
-      <div className="flex flex-col overflow-scroll bg-background text-foreground">
-        {/* Header */}
-        <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger />
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-                <BarChart className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold leading-tight">Diagram Studio</h1>
-                <p className="text-xs text-muted-foreground leading-tight">
-                  Professional diagram editor
-                </p>
-              </div>
+  return (
+    <div className="flex flex-col overflow-scroll bg-background text-foreground">
+      {/* Header */}
+      <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-between h-16 px-6">
+          <div className="flex items-center gap-3">
+            <SidebarTrigger />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+              <BarChart className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Badge variant="secondary">Beta</Badge>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Settings</span>
-              </Button>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold leading-tight">
+                Diagram Studio
+              </h1>
+              <p className="text-xs text-muted-foreground leading-tight">
+                Professional diagram editor
+              </p>
             </div>
           </div>
-        </header>
-  
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col gap-4 p-6 min-h-0 overflow-hidden">
-          {/* Top Controls */}
-          <div className="shrink-0 space-y-4">
-            <DiagramTypeSelector />
-            <Toolbar />
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="secondary">Beta</Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </Button>
           </div>
-  
-          {/* Canvas and Properties Grid */}
-          <div className="flex-1 flex gap-4 min-h-0">
-            {/* Canvas Area */}
-            <div className="flex-1 flex flex-col min-w-0">
-              <DiagramCanvas />
-            </div>
-            
-            {/* Properties Panel */}
-            <div className="shrink-0">
-              <PropertiesPanel />
-            </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col gap-4 p-6 min-h-0 overflow-hidden">
+        {/* Top Controls */}
+        <div className="shrink-0 space-y-4">
+          <DiagramTypeSelector />
+          <Toolbar />
+        </div>
+
+        {/* Canvas and Properties Grid */}
+        <div className="flex-1 flex gap-4 min-h-0">
+          {/* Canvas Area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <DiagramCanvas />
           </div>
-  
-          {/* Bottom Controls */}
+
+          {/* Properties Panel */}
           <div className="shrink-0">
-            <ExportControls />
+            <PropertiesPanel />
           </div>
-        </main>
-      </div>
-    )
-  }
+        </div>
+
+        {/* Bottom Controls */}
+        <div className="shrink-0">
+          <ExportControls />
+        </div>
+      </main>
+    </div>
+  );
+}

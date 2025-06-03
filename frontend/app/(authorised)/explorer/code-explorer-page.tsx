@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
+import type React from "react";
+import { useState } from "react";
 import {
   File,
   Code,
@@ -29,13 +29,13 @@ import {
   Filter,
   SortAsc,
   FileIcon,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -43,24 +43,31 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AppSidebar } from "@/custom-components/app-sidebar"
-import { TopBar } from "@/custom-components/top-bar"
-import { useSearchParams } from "next/navigation"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+} from "@/components/ui/breadcrumb";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface FileNode {
-  id: string
-  name: string
-  type: "file" | "folder"
-  children?: FileNode[]
-  isOpen?: boolean
-  size?: string
-  lastModified?: string
-  language?: string
+  id: string;
+  name: string;
+  type: "file" | "folder";
+  children?: FileNode[];
+  isOpen?: boolean;
+  size?: string;
+  lastModified?: string;
+  language?: string;
 }
 
 const fileTree: FileNode[] = [
@@ -186,7 +193,13 @@ const fileTree: FileNode[] = [
     type: "folder",
     children: [
       { id: "17", name: "images", type: "folder", children: [] },
-      { id: "18", name: "favicon.ico", type: "file", size: "4.2 KB", lastModified: "1 month ago" },
+      {
+        id: "18",
+        name: "favicon.ico",
+        type: "file",
+        size: "4.2 KB",
+        lastModified: "1 month ago",
+      },
     ],
   },
   {
@@ -205,41 +218,49 @@ const fileTree: FileNode[] = [
     lastModified: "1 week ago",
     language: "markdown",
   },
-]
+];
 
 function FileTreeNode({
   node,
   level = 0,
   onSelect,
-}: { node: FileNode; level?: number; onSelect: (node: FileNode) => void }) {
-  const [isOpen, setIsOpen] = useState(node.isOpen || false)
+}: {
+  node: FileNode;
+  level?: number;
+  onSelect: (node: FileNode) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(node.isOpen || false);
 
   const handleToggle = () => {
     if (node.type === "folder") {
-      setIsOpen(!isOpen)
+      setIsOpen(!isOpen);
     } else {
-      onSelect(node)
+      onSelect(node);
     }
-  }
+  };
 
   const getFileIcon = (node: FileNode) => {
     if (node.type === "folder") {
-      return isOpen ? <FolderOpen className="w-4 h-4 text-blue-500" /> : <Folder className="w-4 h-4 text-blue-500" />
+      return isOpen ? (
+        <FolderOpen className="w-4 h-4 text-blue-500" />
+      ) : (
+        <Folder className="w-4 h-4 text-blue-500" />
+      );
     }
 
     switch (node.language) {
       case "typescript":
-        return <FileText className="w-4 h-4 text-blue-600" />
+        return <FileText className="w-4 h-4 text-blue-600" />;
       case "javascript":
-        return <FileText className="w-4 h-4 text-yellow-600" />
+        return <FileText className="w-4 h-4 text-yellow-600" />;
       case "json":
-        return <FileText className="w-4 h-4 text-green-600" />
+        return <FileText className="w-4 h-4 text-green-600" />;
       case "markdown":
-        return <FileText className="w-4 h-4 text-gray-600" />
+        return <FileText className="w-4 h-4 text-gray-600" />;
       default:
-        return <File className="w-4 h-4 text-gray-500" />
+        return <File className="w-4 h-4 text-gray-500" />;
     }
-  }
+  };
 
   return (
     <div>
@@ -250,7 +271,11 @@ function FileTreeNode({
       >
         {node.type === "folder" && (
           <div className="w-4 h-4 flex items-center justify-center">
-            {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {isOpen ? (
+              <ChevronDown className="w-3 h-3" />
+            ) : (
+              <ChevronRight className="w-3 h-3" />
+            )}
           </div>
         )}
         {node.type === "file" && <div className="w-4" />}
@@ -265,21 +290,25 @@ function FileTreeNode({
       {node.type === "folder" && isOpen && node.children && (
         <div>
           {node.children.map((child) => (
-            <FileTreeNode key={child.id} node={child} level={level + 1} onSelect={onSelect} />
+            <FileTreeNode
+              key={child.id}
+              node={child}
+              level={level + 1}
+              onSelect={onSelect}
+            />
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function FileTreePanel() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedFile, setSelectedFile] = useState<FileNode | null>(null)
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleFileSelect = (node: FileNode) => {
-    setSelectedFile(node)
-  }
+    console.log(node);
+  };
 
   return (
     <Card className="w-80 h-full rounded-none border-r border-l-0 border-t-0 border-b-0 flex flex-col">
@@ -291,7 +320,9 @@ function FileTreePanel() {
               <FileIcon className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl text-black font-bold leading-tight">Explorer</h1>
+              <h1 className="text-xl text-black font-bold leading-tight">
+                Explorer
+              </h1>
             </div>
           </CardTitle>
           <div className="flex items-center gap-1">
@@ -331,17 +362,20 @@ function FileTreePanel() {
         <ScrollArea className="h-full">
           <div className="p-2 space-y-1">
             {fileTree.map((node) => (
-              <FileTreeNode key={node.id} node={node} onSelect={handleFileSelect} />
+              <FileTreeNode
+                key={node.id}
+                node={node}
+                onSelect={handleFileSelect}
+              />
             ))}
           </div>
         </ScrollArea>
       </CardContent>
     </Card>
-  )
+  );
 }
-
 function CodeViewerPanel() {
-  const [selectedFile, setSelectedFile] = useState("dashboard.tsx")
+  const [selectedFile] = useState("dashboard.tsx");
 
   const sampleCode = `import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -391,7 +425,7 @@ export default function Dashboard() {
       </div>
     </div>
   )
-}`
+}`;
 
   return (
     <Card className="flex-1 h-full rounded-none border-0 flex flex-col">
@@ -415,7 +449,9 @@ export default function Dashboard() {
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbPage className="text-sm font-medium">{selectedFile}</BreadcrumbPage>
+                    <BreadcrumbPage className="text-sm font-medium">
+                      {selectedFile}
+                    </BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>
@@ -487,7 +523,7 @@ export default function Dashboard() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function AiInsightCard({
@@ -496,10 +532,10 @@ function AiInsightCard({
   description,
   action,
 }: {
-  icon: React.ReactNode
-  title: string
-  description: string
-  action: string
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  action: string;
 }) {
   return (
     <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
@@ -509,14 +545,16 @@ function AiInsightCard({
         </div>
         <div className="flex-1 space-y-2">
           <h4 className="font-medium text-sm">{title}</h4>
-          <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {description}
+          </p>
           <Button variant="ghost" size="sm" className="h-7 text-xs p-2">
             {action}
           </Button>
         </div>
       </div>
     </Card>
-  )
+  );
 }
 
 function AiContextualPanel() {
@@ -524,35 +562,43 @@ function AiContextualPanel() {
     {
       icon: <Zap className="w-4 h-4" />,
       title: "Performance Optimization",
-      description: "This component could benefit from React.memo to prevent unnecessary re-renders.",
+      description:
+        "This component could benefit from React.memo to prevent unnecessary re-renders.",
       action: "Apply optimization",
     },
     {
       icon: <AlertCircle className="w-4 h-4" />,
       title: "Accessibility Issue",
-      description: "Missing alt text for images and ARIA labels for interactive elements.",
+      description:
+        "Missing alt text for images and ARIA labels for interactive elements.",
       action: "Fix accessibility",
     },
     {
       icon: <BookOpen className="w-4 h-4" />,
       title: "Documentation",
-      description: "Add JSDoc comments to improve code documentation and IntelliSense.",
+      description:
+        "Add JSDoc comments to improve code documentation and IntelliSense.",
       action: "Generate docs",
     },
     {
       icon: <CheckCircle className="w-4 h-4" />,
       title: "Best Practices",
-      description: "Code follows React and TypeScript best practices. Well structured!",
+      description:
+        "Code follows React and TypeScript best practices. Well structured!",
       action: "View details",
     },
-  ]
+  ];
 
   const dependencies = [
-    { name: "StatCard", type: "Component", file: "components/ui/stat-card.tsx" },
+    {
+      name: "StatCard",
+      type: "Component",
+      file: "components/ui/stat-card.tsx",
+    },
     { name: "Card", type: "UI Component", file: "components/ui/card.tsx" },
     { name: "Button", type: "UI Component", file: "components/ui/button.tsx" },
     { name: "lucide-react", type: "Icon Library", file: "node_modules" },
-  ]
+  ];
 
   return (
     <Card className="w-96 h-full rounded-none border-l border-r-0 border-t-0 border-b-0 flex flex-col">
@@ -606,7 +652,9 @@ function AiContextualPanel() {
                   >
                     <div className="space-y-1">
                       <div className="font-medium text-sm">{dep.name}</div>
-                      <div className="text-xs text-muted-foreground">{dep.type}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {dep.type}
+                      </div>
                     </div>
                     <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                       <ExternalLink className="w-3 h-3" />
@@ -627,7 +675,8 @@ function AiContextualPanel() {
                   <div className="space-y-1">
                     <h3 className="font-medium">Usage Analysis</h3>
                     <p className="text-sm text-muted-foreground">
-                      This component is used in 3 places across your application.
+                      This component is used in 3 places across your
+                      application.
                     </p>
                   </div>
                   <Button variant="outline" size="sm">
@@ -640,7 +689,7 @@ function AiContextualPanel() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function CodeExplorerPage() {
@@ -650,5 +699,5 @@ export default function CodeExplorerPage() {
       <CodeViewerPanel />
       <AiContextualPanel />
     </div>
-  )
+  );
 }

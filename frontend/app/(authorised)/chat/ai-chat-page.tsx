@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Send,
   ThumbsUp,
@@ -21,38 +21,54 @@ import {
   GitBranch,
   Ticket,
   FileText,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface Message {
-  id: string
-  type: "user" | "assistant"
-  content: string
-  timestamp: Date
-  feedback?: "positive" | "negative" | null
-  context?: string[]
+  id: string;
+  type: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+  feedback?: "positive" | "negative" | null;
+  context?: string[];
 }
 
 function MessageBubble({
   message,
   onFeedback,
-}: { message: Message; onFeedback: (id: string, type: "positive" | "negative") => void }) {
-  const isUser = message.type === "user"
-  const [showActions, setShowActions] = useState(false)
+}: {
+  message: Message;
+  onFeedback: (id: string, type: "positive" | "negative") => void;
+}) {
+  const isUser = message.type === "user";
+  const [showActions, setShowActions] = useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(message.content)
-  }
+    navigator.clipboard.writeText(message.content);
+  };
 
   return (
-    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} group`}>
+    <div
+      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} group`}
+    >
       <Avatar className="w-8 h-8 flex-shrink-0">
         {isUser ? (
           <>
@@ -68,15 +84,23 @@ function MessageBubble({
         )}
       </Avatar>
 
-      <div className={`flex flex-col gap-2 max-w-[80%] ${isUser ? "items-end" : "items-start"}`}>
+      <div
+        className={`flex flex-col gap-2 max-w-[80%] ${
+          isUser ? "items-end" : "items-start"
+        }`}
+      >
         <div
           className={`rounded-2xl px-4 py-3 ${
-            isUser ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"
+            isUser
+              ? "bg-primary text-primary-foreground rounded-br-md"
+              : "bg-muted text-foreground rounded-bl-md"
           }`}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
         >
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+            {message.content}
+          </div>
 
           {message.context && message.context.length > 0 && (
             <div className="flex gap-1 mt-2 flex-wrap">
@@ -90,7 +114,12 @@ function MessageBubble({
         </div>
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          <span>
+            {message.timestamp.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
 
           {(showActions || message.feedback) && !isUser && (
             <div className="flex items-center gap-1">
@@ -103,7 +132,13 @@ function MessageBubble({
                       className="h-6 w-6 p-0"
                       onClick={() => onFeedback(message.id, "positive")}
                     >
-                      <ThumbsUp className={`w-3 h-3 ${message.feedback === "positive" ? "text-green-600" : ""}`} />
+                      <ThumbsUp
+                        className={`w-3 h-3 ${
+                          message.feedback === "positive"
+                            ? "text-green-600"
+                            : ""
+                        }`}
+                      />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Helpful</TooltipContent>
@@ -119,7 +154,11 @@ function MessageBubble({
                       className="h-6 w-6 p-0"
                       onClick={() => onFeedback(message.id, "negative")}
                     >
-                      <ThumbsDown className={`w-3 h-3 ${message.feedback === "negative" ? "text-red-600" : ""}`} />
+                      <ThumbsDown
+                        className={`w-3 h-3 ${
+                          message.feedback === "negative" ? "text-red-600" : ""
+                        }`}
+                      />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Not helpful</TooltipContent>
@@ -129,7 +168,12 @@ function MessageBubble({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={copyToClipboard}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={copyToClipboard}
+                    >
                       <Copy className="w-3 h-3" />
                     </Button>
                   </TooltipTrigger>
@@ -153,7 +197,7 @@ function MessageBubble({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function TypingIndicator() {
@@ -172,19 +216,26 @@ function TypingIndicator() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function ChatHistory({ messages, isTyping, onFeedback }: {
+function ChatHistory({
+  messages,
+  isTyping,
+  onFeedback,
+}: {
   messages: Message[];
   isTyping: boolean;
-  onFeedback: (messageId: string, feedbackType: "positive" | "negative") => void;
+  onFeedback: (
+    messageId: string,
+    feedbackType: "positive" | "negative"
+  ) => void;
 }) {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, isTyping])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
   return (
     <Card className="flex-1 flex flex-col">
@@ -197,9 +248,12 @@ function ChatHistory({ messages, isTyping, onFeedback }: {
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Start a conversation</h3>
+                  <h3 className="text-lg font-semibold">
+                    Start a conversation
+                  </h3>
                   <p className="text-muted-foreground">
-                    Ask me anything about your code, project structure, or development workflow.
+                    Ask me anything about your code, project structure, or
+                    development workflow.
                   </p>
                 </div>
               </div>
@@ -207,7 +261,11 @@ function ChatHistory({ messages, isTyping, onFeedback }: {
           ) : (
             <>
               {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} onFeedback={onFeedback} />
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  onFeedback={onFeedback}
+                />
               ))}
               {isTyping && <TypingIndicator />}
             </>
@@ -216,16 +274,35 @@ function ChatHistory({ messages, isTyping, onFeedback }: {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ContextPanel() {
   const contextItems = [
-    { icon: <Code className="w-4 h-4" />, label: "Code Analysis", status: "active" },
-    { icon: <GitBranch className="w-4 h-4" />, label: "Current Branch", status: "active", detail: "feature/auth" },
-    { icon: <Ticket className="w-4 h-4" />, label: "Active Ticket", status: "active", detail: "AUTH-123" },
-    { icon: <FileText className="w-4 h-4" />, label: "Recent Commits", status: "active", detail: "3 commits" },
-  ]
+    {
+      icon: <Code className="w-4 h-4" />,
+      label: "Code Analysis",
+      status: "active",
+    },
+    {
+      icon: <GitBranch className="w-4 h-4" />,
+      label: "Current Branch",
+      status: "active",
+      detail: "feature/auth",
+    },
+    {
+      icon: <Ticket className="w-4 h-4" />,
+      label: "Active Ticket",
+      status: "active",
+      detail: "AUTH-123",
+    },
+    {
+      icon: <FileText className="w-4 h-4" />,
+      label: "Recent Commits",
+      status: "active",
+      detail: "3 commits",
+    },
+  ];
 
   return (
     <Card>
@@ -243,49 +320,64 @@ function ContextPanel() {
               <span className="text-sm">{item.label}</span>
             </div>
             <div className="flex items-center gap-2">
-              {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
-              <div className={`w-2 h-2 rounded-full ${item.status === "active" ? "bg-green-500" : "bg-gray-300"}`} />
+              {item.detail && (
+                <span className="text-xs text-muted-foreground">
+                  {item.detail}
+                </span>
+              )}
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  item.status === "active" ? "bg-green-500" : "bg-gray-300"
+                }`}
+              />
             </div>
           </div>
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }
 
-function ChatInputArea({ onSendMessage }: { onSendMessage: (message: string) => void }) {
-  const [message, setMessage] = useState("")
-  const [isRecording, setIsRecording] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+function ChatInputArea({
+  onSendMessage,
+}: {
+  onSendMessage: (message: string) => void;
+}) {
+  const [message, setMessage] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (message.trim()) {
-      onSendMessage(message.trim())
-      setMessage("")
+      onSendMessage(message.trim());
+      setMessage("");
       if (textareaRef.current) {
-        textareaRef.current.style.height = "auto"
+        textareaRef.current.style.height = "auto";
       }
     }
-  }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(e)
+      e.preventDefault();
+      handleSubmit(e);
     }
-  }
+  };
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        120
+      )}px`;
     }
-  }
+  };
 
   useEffect(() => {
-    adjustTextareaHeight()
-  }, [message])
+    adjustTextareaHeight();
+  }, [message]);
 
   return (
     <Card>
@@ -305,7 +397,12 @@ function ChatInputArea({ onSendMessage }: { onSendMessage: (message: string) => 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
                       <Paperclip className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
@@ -320,7 +417,9 @@ function ChatInputArea({ onSendMessage }: { onSendMessage: (message: string) => 
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className={`h-8 w-8 p-0 ${isRecording ? "text-red-500" : ""}`}
+                      className={`h-8 w-8 p-0 ${
+                        isRecording ? "text-red-500" : ""
+                      }`}
                       onClick={() => setIsRecording(!isRecording)}
                     >
                       <Mic className="w-4 h-4" />
@@ -345,49 +444,59 @@ function ChatInputArea({ onSendMessage }: { onSendMessage: (message: string) => 
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function AiChatPage() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isTyping, setIsTyping] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFeedback = (messageId: string, feedbackType: "positive" | "negative") => {
+  const handleFeedback = (
+    messageId: string,
+    feedbackType: "positive" | "negative"
+  ) => {
     setMessages((prev) =>
       prev.map((msg) =>
-        msg.id === messageId ? { ...msg, feedback: msg.feedback === feedbackType ? null : feedbackType } : msg,
-      ),
-    )
-  }
+        msg.id === messageId
+          ? {
+              ...msg,
+              feedback: msg.feedback === feedbackType ? null : feedbackType,
+            }
+          : msg
+      )
+    );
+  };
 
   const addMessage = async (content: string) => {
-    setError(null)
+    setError(null);
     const newMessage: Message = {
       id: Date.now().toString(),
       type: "user",
       content,
       timestamp: new Date(),
-    }
-    setMessages((prev) => [...prev, newMessage])
-    setIsTyping(true)
+    };
+    setMessages((prev) => [...prev, newMessage]);
+    setIsTyping(true);
     try {
       const response = await fetch("http://localhost:8000/tools/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_input: content }),
-      })
-      if (!response.ok) throw new Error("Failed to get response from AI assistant.")
-      const data = await response.json()
+      });
+      if (!response.ok)
+        throw new Error("Failed to get response from AI assistant.");
+      const data = await response.json();
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
         content: data.result || "Sorry, I couldn't understand that.",
         timestamp: new Date(),
         context: ["ai"],
-      }
-      setMessages((prev) => [...prev, aiResponse])
+      };
+      setMessages((prev) => [...prev, aiResponse]);
     } catch (err) {
+      console.error(err);
       setMessages((prev) => [
         ...prev,
         {
@@ -397,12 +506,12 @@ export default function AiChatPage() {
           timestamp: new Date(),
           context: ["error"],
         },
-      ])
-      setError("Failed to get response from AI assistant.")
+      ]);
+      setError("Failed to get response from AI assistant.");
     } finally {
-      setIsTyping(false)
+      setIsTyping(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col bg-background text-foreground">
@@ -416,7 +525,9 @@ export default function AiChatPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold">AI Assistant</h1>
-              <p className="text-xs text-muted-foreground">Intelligent code and project assistant</p>
+              <p className="text-xs text-muted-foreground">
+                Intelligent code and project assistant
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -436,7 +547,11 @@ export default function AiChatPage() {
       <div className="flex-1 flex gap-4 p-6 overflow-scroll min-h-0">
         {/* Chat Area */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
-          <ChatHistory messages={messages} isTyping={isTyping} onFeedback={handleFeedback} />
+          <ChatHistory
+            messages={messages}
+            isTyping={isTyping}
+            onFeedback={handleFeedback}
+          />
           <ChatInputArea onSendMessage={addMessage} />
         </div>
 
@@ -445,6 +560,14 @@ export default function AiChatPage() {
           <ContextPanel />
         </div>
       </div>
+      
+      {/* Error Message */}
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg shadow-lg">
+          <AlertCircle className="w-4 h-4 mr-2" />
+          {error}
+        </div>
+      )}
     </div>
-  )
+  );
 }

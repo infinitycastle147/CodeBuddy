@@ -1,11 +1,10 @@
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Sparkles, Code2, Users, BookOpen, Github, Twitter, Linkedin, Mail, ArrowRight, Zap, Shield, Rocket } from 'lucide-react'
+import { Sparkles, Code2, Users, BookOpen, Github, Twitter, Linkedin, ArrowRight, Zap, Shield, Rocket } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -194,8 +193,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <p className="text-muted-foreground flex-1">
-                    "CodeBuddy has transformed how I approach code reviews and debugging. 
-                    The AI insights are incredibly accurate and save me hours every week."
+                    &quot;CodeBuddy has transformed how I approach code reviews and debugging. 
+                    The AI insights are incredibly accurate and save me hours every week.&quot;
                   </p>
                 </CardContent>
               </Card>
@@ -213,8 +212,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <p className="text-muted-foreground flex-1">
-                    "The role-aware features are game-changing. I get high-level insights 
-                    without getting lost in technical details. Perfect for stakeholder updates."
+                    &quot;The role-aware features are game-changing. I get high-level insights 
+                    without getting lost in technical details. Perfect for stakeholder updates.&quot;
                   </p>
                 </CardContent>
               </Card>
@@ -232,8 +231,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <p className="text-muted-foreground flex-1">
-                    "The diagram generation feature is phenomenal. It automatically creates 
-                    architecture diagrams that would take me hours to draw manually."
+                    &quot;The diagram generation feature is phenomenal. It automatically creates 
+                    architecture diagrams that would take me hours to draw manually.&quot;
                   </p>
                 </CardContent>
               </Card>

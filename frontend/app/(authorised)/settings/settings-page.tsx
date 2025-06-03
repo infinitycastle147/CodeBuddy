@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Card,
@@ -33,7 +33,16 @@ import {
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export default function SettingsPage() {
+// Define a fallback component for Suspense
+function SettingsPageFallback() {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <p>Loading settings...</p>
+    </div>
+  );
+}
+
+function SettingsPageContent() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "backend";
   const [notifications, setNotifications] = useState(true);
@@ -359,5 +368,13 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<SettingsPageFallback />}>
+      <SettingsPageContent />
+    </Suspense>
   );
 }

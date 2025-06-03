@@ -1,10 +1,8 @@
-import React from 'react'
-import UserProfile from './user-profile'
+import React from "react";
+import UserProfile from "./user-profile";
 
 const page = () => {
-  return (
-    <UserProfile />
-  )
-}
+  return <UserProfile />;
+};
 
-export default page
+export default page;

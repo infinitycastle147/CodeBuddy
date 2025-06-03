@@ -1,23 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { User, Bell, Palette, GitBranch, Database, SettingsIcon, Settings } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  User,
+  Bell,
+  Palette,
+  GitBranch,
+  Database,
+  SettingsIcon,
+  Settings,
+} from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function SettingsPage() {
-  const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "backend"
-  const [notifications, setNotifications] = useState(true)
-  const [aiSuggestions, setAiSuggestions] = useState(true)
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role") || "backend";
+  const [notifications, setNotifications] = useState(true);
+  const [aiSuggestions, setAiSuggestions] = useState(true);
 
   return (
     <div className="">
@@ -38,7 +58,11 @@ export default function SettingsPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Badge variant="secondary">Beta</Badge>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
             </Button>
@@ -62,7 +86,9 @@ export default function SettingsPage() {
                 <User className="w-5 h-5" />
                 Profile Information
               </CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
+              <CardDescription>
+                Update your personal information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -77,7 +103,11 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="john.doe@company.com" />
+                <Input
+                  id="email"
+                  type="email"
+                  defaultValue="john.doe@company.com"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
@@ -92,7 +122,9 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Role Configuration</CardTitle>
-              <CardDescription>Customize your role-specific experience</CardDescription>
+              <CardDescription>
+                Customize your role-specific experience
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -103,7 +135,9 @@ export default function SettingsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="backend">🧩 Backend Engineer</SelectItem>
-                    <SelectItem value="frontend">🎨 Frontend Developer</SelectItem>
+                    <SelectItem value="frontend">
+                      🎨 Frontend Developer
+                    </SelectItem>
                     <SelectItem value="aiml">🧠 AI/ML Engineer</SelectItem>
                     <SelectItem value="pm">📋 Product Manager</SelectItem>
                   </SelectContent>
@@ -152,14 +186,18 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">GitHub</div>
-                  <div className="text-sm text-muted-foreground">Connected as @johndoe</div>
+                  <div className="text-sm text-muted-foreground">
+                    Connected as @johndoe
+                  </div>
                 </div>
                 <Badge className="bg-green-100 text-green-800">Connected</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">GitLab</div>
-                  <div className="text-sm text-muted-foreground">Not connected</div>
+                  <div className="text-sm text-muted-foreground">
+                    Not connected
+                  </div>
                 </div>
                 <Button variant="outline" size="sm">
                   Connect
@@ -180,7 +218,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Jira</div>
-                  <div className="text-sm text-muted-foreground">Sync tickets and stories</div>
+                  <div className="text-sm text-muted-foreground">
+                    Sync tickets and stories
+                  </div>
                 </div>
                 <Button variant="outline" size="sm">
                   Connect
@@ -189,7 +229,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Linear</div>
-                  <div className="text-sm text-muted-foreground">Not connected</div>
+                  <div className="text-sm text-muted-foreground">
+                    Not connected
+                  </div>
                 </div>
                 <Button variant="outline" size="sm">
                   Connect
@@ -206,29 +248,43 @@ export default function SettingsPage() {
                 <Bell className="w-5 h-5" />
                 Notification Preferences
               </CardTitle>
-              <CardDescription>Choose what you want to be notified about</CardDescription>
+              <CardDescription>
+                Choose what you want to be notified about
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Code Changes</div>
-                  <div className="text-sm text-muted-foreground">Get notified about commits and PRs</div>
+                  <div className="text-sm text-muted-foreground">
+                    Get notified about commits and PRs
+                  </div>
                 </div>
-                <Switch checked={notifications} onCheckedChange={setNotifications} />
+                <Switch
+                  checked={notifications}
+                  onCheckedChange={setNotifications}
+                />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">AI Suggestions</div>
-                  <div className="text-sm text-muted-foreground">Receive AI-powered insights</div>
+                  <div className="text-sm text-muted-foreground">
+                    Receive AI-powered insights
+                  </div>
                 </div>
-                <Switch checked={aiSuggestions} onCheckedChange={setAiSuggestions} />
+                <Switch
+                  checked={aiSuggestions}
+                  onCheckedChange={setAiSuggestions}
+                />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Security Alerts</div>
-                  <div className="text-sm text-muted-foreground">Important security notifications</div>
+                  <div className="text-sm text-muted-foreground">
+                    Important security notifications
+                  </div>
                 </div>
                 <Switch defaultChecked />
               </div>
@@ -236,7 +292,9 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Performance Issues</div>
-                  <div className="text-sm text-muted-foreground">Performance degradation alerts</div>
+                  <div className="text-sm text-muted-foreground">
+                    Performance degradation alerts
+                  </div>
                 </div>
                 <Switch defaultChecked />
               </div>
@@ -275,7 +333,9 @@ export default function SettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="adaptive">Adaptive (changes with role)</SelectItem>
+                    <SelectItem value="adaptive">
+                      Adaptive (changes with role)
+                    </SelectItem>
                     <SelectItem value="consistent">Consistent</SelectItem>
                   </SelectContent>
                 </Select>
@@ -299,5 +359,5 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

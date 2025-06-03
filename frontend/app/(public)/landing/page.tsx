@@ -48,7 +48,7 @@ export default function LandingPage() {
           <div className="px-4">
             <div className="mx-auto max-w-4xl text-center">
               <Badge variant="secondary" className="mb-6 hover:bg-blue-50">
-                <Sparkles className="mr-1 h-3 w-3" />
+                <Sparkles className="mr-1 h-3 w-3 text-blue-600" />
                 AI-Powered Development Assistant
               </Badge>
               

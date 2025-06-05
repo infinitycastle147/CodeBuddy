@@ -7,12 +7,6 @@ First, review the collected information:
 {{information}}
 </collected_information>
 
-Now, consider the specific instructions for this diagram type:
-
-<specific_instructions>
-{{SPECIFIC_INSTRUCTIONS}}
-</specific_instructions>
-
 Keep in mind these general instructions for creating diagrams:
 
 <general_instructions>
@@ -29,15 +23,7 @@ To generate the Mermaid diagram:
 
 4. Based on your analysis, create a Mermaid diagram that accurately represents the collected information while adhering to both the specific and general instructions.
 
-5. Ensure that your diagram is well-structured, easy to read, and follows Mermaid syntax correctly.
-
-6. If you encounter any ambiguities or need to make assumptions, briefly explain your reasoning.
-
 Please provide your output in the following format:
-
-<analysis>
-Briefly explain your analysis of the collected information and how you applied the instructions to create the diagram.
-</analysis>
 
 <mermaid_diagram>
 Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax.
@@ -47,4 +33,5 @@ Write your Mermaid diagram code here. Ensure it is properly formatted and follow
 If necessary, provide any additional explanations about your diagram, including any assumptions made or clarifications about your interpretation of the information and instructions.
 </explanation>
 
-Remember to focus on creating a clear, accurate, and visually effective diagram that best represents the given information while following all provided instructions."""
+Remember to focus on creating a clear, accurate, and visually effective diagram that best represents the given information while following all provided instructions.
+"""

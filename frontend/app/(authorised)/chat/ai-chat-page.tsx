@@ -85,16 +85,14 @@ function MessageBubble({
       </Avatar>
 
       <div
-        className={`flex flex-col gap-2 max-w-[80%] ${
-          isUser ? "items-end" : "items-start"
-        }`}
+        className={`flex flex-col gap-2 max-w-[80%] ${isUser ? "items-end" : "items-start"
+          }`}
       >
         <div
-          className={`rounded-2xl px-4 py-3 ${
-            isUser
+          className={`rounded-2xl px-4 py-3 ${isUser
               ? "bg-primary text-primary-foreground rounded-br-md"
               : "bg-muted text-foreground rounded-bl-md"
-          }`}
+            }`}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
         >
@@ -133,11 +131,10 @@ function MessageBubble({
                       onClick={() => onFeedback(message.id, "positive")}
                     >
                       <ThumbsUp
-                        className={`w-3 h-3 ${
-                          message.feedback === "positive"
+                        className={`w-3 h-3 ${message.feedback === "positive"
                             ? "text-green-600"
                             : ""
-                        }`}
+                          }`}
                       />
                     </Button>
                   </TooltipTrigger>
@@ -155,9 +152,8 @@ function MessageBubble({
                       onClick={() => onFeedback(message.id, "negative")}
                     >
                       <ThumbsDown
-                        className={`w-3 h-3 ${
-                          message.feedback === "negative" ? "text-red-600" : ""
-                        }`}
+                        className={`w-3 h-3 ${message.feedback === "negative" ? "text-red-600" : ""
+                          }`}
                       />
                     </Button>
                   </TooltipTrigger>
@@ -326,9 +322,8 @@ function ContextPanel() {
                 </span>
               )}
               <div
-                className={`w-2 h-2 rounded-full ${
-                  item.status === "active" ? "bg-green-500" : "bg-gray-300"
-                }`}
+                className={`w-2 h-2 rounded-full ${item.status === "active" ? "bg-green-500" : "bg-gray-300"
+                  }`}
               />
             </div>
           </div>
@@ -417,9 +412,8 @@ function ChatInputArea({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className={`h-8 w-8 p-0 ${
-                        isRecording ? "text-red-500" : ""
-                      }`}
+                      className={`h-8 w-8 p-0 ${isRecording ? "text-red-500" : ""
+                        }`}
                       onClick={() => setIsRecording(!isRecording)}
                     >
                       <Mic className="w-4 h-4" />
@@ -460,9 +454,9 @@ export default function AiChatPage() {
       prev.map((msg) =>
         msg.id === messageId
           ? {
-              ...msg,
-              feedback: msg.feedback === feedbackType ? null : feedbackType,
-            }
+            ...msg,
+            feedback: msg.feedback === feedbackType ? null : feedbackType,
+          }
           : msg
       )
     );
@@ -560,7 +554,7 @@ export default function AiChatPage() {
           <ContextPanel />
         </div>
       </div>
-      
+
       {/* Error Message */}
       {error && (
         <div className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg shadow-lg">

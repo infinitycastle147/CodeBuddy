@@ -9,6 +9,7 @@ mongo_client = MongoClient(mongo_uri)
 db = mongo_client["CodeBuddy"]
 collection = db["codebuddy"]
 
+
 def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
     """
     Search for code/document chunks most similar to the query using MongoDB vector search.
@@ -28,7 +29,7 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
                 "queryVector": query_embedding,
                 "path": "embedding",
                 "numCandidates": 100,
-                "limit": top_k
+                "limit": top_k,
             }
         },
         {
@@ -40,11 +41,10 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
                 "branch": 1,
                 "chunk_index": 1,
                 "chunk": 1,
-                "score": {"$meta": "vectorSearchScore"}
+                "score": {"$meta": "vectorSearchScore"},
             }
-        }
+        },
     ]
     results = list(collection.aggregate(pipeline))
 
     return results
-

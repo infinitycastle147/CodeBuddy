@@ -5,6 +5,7 @@ from .prompts.response_formatter_agent_prompt import RESPONSE_FORMATTER_AGENT_PR
 from .prompts.diagram_generation_prompt import DIAGRAM_GENERATION_PROMPT
 from .prompts.diagram_query_generator import DIAGRAM_QUERY_GENERATOR_PROMPT
 from .prompts.diagram_agent_prompt import DIAGRAM_AGENT_PROMPT
+from .prompts.diagram_checker_agent_prompt import DIAGRAM_CHECKER_AGENT_PROMPT
 
 class PromptManager:
     _PROMPT_MAP = {
@@ -13,6 +14,7 @@ class PromptManager:
         "diagram_generation_agent": DIAGRAM_GENERATION_PROMPT,
         "diagram_query_generator": DIAGRAM_QUERY_GENERATOR_PROMPT,
         "diagram_agent": DIAGRAM_AGENT_PROMPT,
+        "diagram_checker_agent": DIAGRAM_CHECKER_AGENT_PROMPT,
     }   
 
     @classmethod

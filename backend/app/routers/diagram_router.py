@@ -7,24 +7,29 @@ from app.agents.root_agent import get_root_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
+from google.adk.models.lite_llm import LiteLlm
 
 router = APIRouter(prefix="/diagram", tags=["diagram"])
 
+
 class DiagramRequest(BaseModel):
-    query : str
+    query: str
+
 
 class DiagramResponse(BaseModel):
     diagram_mermaid: str
+
 
 @router.get("/health")
 def health_check():
     return {"message": "Diagram router is healthy", "status": "ok"}, 200
 
+
 @router.post("/generate")
 async def generate_diagram(request: DiagramRequest):
     """
     Generate a diagram based on the user's query.
-    
+
     Request Body:
     {
         "query": string  // The user's query for diagram generation
@@ -42,7 +47,7 @@ async def generate_diagram(request: DiagramRequest):
     runner = Runner(
         agent=root_agent,
         session_service=session_service,
-        model=types.Model.GEMINI_PRO,
+        model=LiteLlm(model="openai/gpt-3.5-turbo"),
         temperature=0.2,
     )
 
@@ -50,6 +55,7 @@ async def generate_diagram(request: DiagramRequest):
     response = await runner.run(request.query)
 
     return DiagramResponse(diagram_mermaid=response)
+
 
 @router.patch("/update/{diagram_id}")
 async def update_diagram(request: DiagramRequest):
@@ -73,7 +79,7 @@ async def update_diagram(request: DiagramRequest):
     runner = Runner(
         agent=root_agent,
         session_service=session_service,
-        model=types.Model.GEMINI_PRO,
+        model=LiteLlm(model="openai/gpt-3.5-turbo"),
         temperature=0.2,
     )
 
@@ -81,6 +87,7 @@ async def update_diagram(request: DiagramRequest):
     response = await runner.run(request.query)
 
     return DiagramResponse(diagram_mermaid=response)
+
 
 @router.get("/diagram/{diagram_id}")
 async def get_diagram(diagram_id: str):

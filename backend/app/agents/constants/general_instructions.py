@@ -7,7 +7,6 @@ GENERAL_INSTRUCTIONS = """
 
 2. **Follow Proper Mermaid Syntax**  
    - Use correct Mermaid syntax based on the diagram type (e.g., `flowchart`, `sequence`, `class`, `state`).  
-   - Test your diagram using a Mermaid live editor to ensure it renders correctly.
 
 3. **Structure for Readability**  
    - Organize the diagram in a logical layout (e.g., top-to-bottom, left-to-right).  

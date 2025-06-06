@@ -1,14 +1,21 @@
-from fastapi import FastAPI
+# Standard library imports
 import uvicorn
-from app.routers.tools_router import router as tools_router
+
+# Third-party imports
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Local application imports
+from app.routers.tools_router import router as tools_router
 from settings import settings
 
+# Initialize FastAPI application
 app = FastAPI(
     title="CodeBuddy",
     description="CodeBuddy is a tool for developers to help them with their code.",
 )
 
+# Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allow_origins,
@@ -17,8 +24,10 @@ app.add_middleware(
     allow_headers=settings.cors_allow_headers,
 )
 
+# Include application routers
 app.include_router(tools_router)
 
+# Entry point for running the application
 if __name__ == "__main__":
     uvicorn.run(
         app,

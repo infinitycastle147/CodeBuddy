@@ -1,21 +1,28 @@
+# Standard library imports (if any)
+
+# Third-party imports
 from google.adk.agents import LlmAgent
-from ..prompt_manager import PromptManager
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.lite_llm import LiteLlm
+
+# Local application imports
+from ..prompt_manager import PromptManager
 
 
 def save_refined_query_to_state(callback_context: CallbackContext):
     """
-    Callback to save the refined query text into session state['refined_query'].
-    Runs before the agent's main logic.
+    Callback function to save the refined query text into session state['query'].
+    This function runs before the agent's main logic and ensures the query is
+    extracted from the user content or state and stored in the session state.
     """
-
     query = callback_context.state.get("query", None)
 
     if query is None:
         print(
-            "[Callback] No refined query found in state, checking user content...",
-            callback_context.user_content.parts[0].text,
+            "[Callback] No query found in state, extracting from user content...",
+            callback_context.user_content.parts[0].text
+            if callback_context.user_content.parts
+            else "No user content available",
         )
         query = (
             callback_context.user_content.parts[0].text
@@ -25,16 +32,17 @@ def save_refined_query_to_state(callback_context: CallbackContext):
 
     callback_context.state["query"] = query
 
-    print(f"[Callback] Saving refined query '{query}' to state['query']")
+    print(f"[Callback] Saved query '{query}' to state['query']")
 
     # Return None to allow the agent's normal execution to proceed
     return None
 
 
+# Define the chat query generator agent
 chat_query_generator_agent = LlmAgent(
     name="chat_query_generator_agent",
     instruction=PromptManager.get_prompt("chat_query_generator_agent"),
-    description="This agent is responsible for generating a refined query based on the user's input.",
+    description="Generates a refined query based on the user's input.",
     model=LiteLlm(model="openai/gpt-3.5-turbo"),
     before_agent_callback=save_refined_query_to_state,
     output_key="refined_query",

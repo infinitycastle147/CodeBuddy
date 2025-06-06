@@ -1,6 +1,7 @@
-import os
-from dotenv import load_dotenv
+# --- Third-Party Imports ---
 from google.adk.agents import SequentialAgent
+
+# --- Local Application Imports ---
 from .information_retrieval_agent import get_information_retrieval_agent
 from .diagram_generation_agent import diagram_generation_agent
 from .diagram_query_generator_agent import diagram_query_generator_agent
@@ -9,10 +10,7 @@ from .diagram_checker_agent import diagram_checker_agent
 from .chat_query_generator_agent import chat_query_generator_agent
 from .security_checker_agent import security_checker_agent
 
-load_dotenv()
-API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# --- Define the diagram agent ---
+# --- Define the Diagram Agent ---
 diagram_agent = SequentialAgent(
     name="diagram_agent",
     sub_agents=[
@@ -20,12 +18,12 @@ diagram_agent = SequentialAgent(
         diagram_query_generator_agent,
         get_information_retrieval_agent(),
         diagram_generation_agent,
-        diagram_checker_agent
+        diagram_checker_agent,
     ],
     description="This agent is responsible for generating diagrams based on user queries and information retrieval results.",
 )
 
-# -- Define the chat agent
+# --- Define the Chat Agent ---
 chat_agent = SequentialAgent(
     name="chat_agent",
     sub_agents=[

@@ -1,39 +1,41 @@
+# --- Standard Library Imports ---
 import os
+
+# --- Third-Party Imports ---
 from google.adk.agents import LlmAgent
-from ..vector_search_tool import search_similar_code_chunks
-from ..prompt_manager import PromptManager
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.lite_llm import LiteLlm
 
+# --- Local Application Imports ---
+from ..vector_search_tool import search_similar_code_chunks
+from ..prompt_manager import PromptManager
 
-# --- Define the callback function ---
+
+# --- Callback Functions ---
 def save_user_query_to_state(callback_context: CallbackContext):
     """
     Callback to save the user's initial query text into session state['query'].
     Runs before the agent's main logic.
     """
-    print(f"[Callback] Running before_agent_callback for {callback_context.agent_name}")
+    print(f"[Callback] Running save_user_query_to_state for {callback_context.agent_name}")
     refined_query = callback_context.state.get("refined_query", None)
     callback_context.state["refined_query"] = refined_query
 
-    # Return None to allow the agent's normal execution to proceed [15, 17]
+    # Return None to allow the agent's normal execution to proceed
     return None
 
 
-# ---
 def save_refined_query_to_state(callback_context: CallbackContext):
     """
     Callback to save the refined query text into session state['refined_query'].
     Runs before the agent's main logic.
     """
-
     refined_query = callback_context.state.get("refined_query", None)
 
     if refined_query is None:
         print(
-            "[Callback] No refined query found in state, checking user content...",
-            callback_context.user_content.parts[0].text,
+            "[Callback] No refined query found in state, checking user content..."
         )
         refined_query = (
             callback_context.user_content.parts[0].text
@@ -43,19 +45,19 @@ def save_refined_query_to_state(callback_context: CallbackContext):
 
     callback_context.state["refined_query"] = refined_query
 
-    print(
-        f"[Callback] Saving refined query '{refined_query}' to state['refined_query']"
-    )
+    print(f"[Callback] Saved refined query '{refined_query}' to state['refined_query']")
 
     # Return None to allow the agent's normal execution to proceed
     return None
 
 
+# --- Agent Definition ---
 def get_information_retrieval_agent():
     """
-    Runs the Google ADK github agent workflow on the provided user input.
+    Creates and configures the Information Retrieval Agent with the required tools and callbacks.
     """
     try:
+        # Configure Jira tools
         jira_tools = MCPToolset(
             connection_params=StdioServerParameters(
                 command="docker",
@@ -80,6 +82,7 @@ def get_information_retrieval_agent():
             )
         )
 
+        # Configure GitHub tools
         github_tools = MCPToolset(
             connection_params=StdioServerParameters(
                 command="docker",
@@ -99,14 +102,16 @@ def get_information_retrieval_agent():
             )
         )
 
+        # Retrieve the prompt for the agent
         information_retrieval_prompt = PromptManager.get_prompt(
             "information_retrieval_agent"
         )
 
+        # Create the Information Retrieval Agent
         information_retrieval_agent = LlmAgent(
             name="information_retrieval_agent",
             instruction=information_retrieval_prompt,
-            description="This agent is responsible for handling the user's request and returning the appropriate response.",
+            description="Handles user requests and returns appropriate responses.",
             model=LiteLlm(model="openai/gpt-3.5-turbo"),
             tools=[jira_tools, github_tools, search_similar_code_chunks],
             output_key="information",

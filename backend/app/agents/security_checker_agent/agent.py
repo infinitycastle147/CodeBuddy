@@ -1,21 +1,28 @@
+# Standard Library Imports
+# (No standard library imports in this code)
+
+# Third-Party Imports
 from google.adk.agents import LlmAgent
-from ..prompt_manager import PromptManager
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.lite_llm import LiteLlm
+
+# Local Application Imports
+from ..prompt_manager import PromptManager
 
 
 def save_refined_query_to_state(callback_context: CallbackContext):
     """
-    Callback to save the refined query text into session state['refined_query'].
-    Runs before the agent's main logic.
+    Callback function to save the refined query text into the session state['query'].
+    This function executes before the agent's main logic.
     """
-
-    query = callback_context.state.get("query", None)
+    query = callback_context.state.get("query")
 
     if query is None:
         print(
-            "[Callback] No refined query found in state, checking user content...",
-            callback_context.user_content.parts[0].text,
+            "[Callback] No refined query found in state. Checking user content...",
+            callback_context.user_content.parts[0].text
+            if callback_context.user_content.parts
+            else "N/A",
         )
         query = (
             callback_context.user_content.parts[0].text
@@ -25,16 +32,17 @@ def save_refined_query_to_state(callback_context: CallbackContext):
 
     callback_context.state["query"] = query
 
-    print(f"[Callback] Saving refined query '{query}' to state['query']")
+    print(f"[Callback] Saved refined query '{query}' to state['query']")
 
-    # Return None to allow the agent's normal execution to proceed
+    # Returning None allows the agent's normal execution to proceed
     return None
 
 
+# Define the security checker agent
 security_checker_agent = LlmAgent(
     name="security_checker_agent",
     instruction=PromptManager.get_prompt("security_checker_agent"),
-    description="This agent is responsible for checking the security of the user's query.",
+    description="Agent responsible for validating the security of user queries.",
     model=LiteLlm(model="openai/gpt-3.5-turbo"),
     before_agent_callback=save_refined_query_to_state,
     output_key="query",

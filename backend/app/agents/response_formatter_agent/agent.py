@@ -47,6 +47,6 @@ response_formatter_agent = LlmAgent(
         "Handles the user's request and returns the appropriate response "
         "based on the provided instructions."
     ),
-    model=LiteLlm(model="openai/gpt-3.5-turbo"),
+    model="gemini-2.0-flash",
     before_agent_callback=save_refined_query_to_state,
 )

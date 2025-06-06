@@ -47,7 +47,7 @@ async def generate_diagram(request: DiagramRequest):
     runner = Runner(
         agent=root_agent,
         session_service=session_service,
-        model=LiteLlm(model="openai/gpt-3.5-turbo"),
+        model="gemini-2.0-flash",
         temperature=0.2,
     )
 
@@ -79,7 +79,7 @@ async def update_diagram(request: DiagramRequest):
     runner = Runner(
         agent=root_agent,
         session_service=session_service,
-        model=LiteLlm(model="openai/gpt-3.5-turbo"),
+        model="gemini-2.0-flash",
         temperature=0.2,
     )
 

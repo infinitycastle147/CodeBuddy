@@ -12,7 +12,7 @@ from .response_formatter_agent import response_formatter_agent
 from .diagram_generation_agent import diagram_generation_agent
 from .diagram_checker_agent import diagram_checker_agent
 from .chat_query_generator_agent import chat_query_generator_agent
-from .security_checker_agent import security_checker_agent
+from .security_checker_agent import get_security_checker_agent
 
 # Defining the public API of the module
 __all__ = [
@@ -26,5 +26,5 @@ __all__ = [
     "diagram_query_generator_agent",
     "diagram_checker_agent",
     "chat_query_generator_agent",
-    "security_checker_agent",
+    "get_security_checker_agent",
 ]

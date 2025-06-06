@@ -484,7 +484,7 @@ export default function AiChatPage() {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: data.result || "Sorry, I couldn't understand that.",
+        content: data || "Sorry, I couldn't understand that.",
         timestamp: new Date(),
         context: ["ai"],
       };

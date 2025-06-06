@@ -32,7 +32,7 @@ diagram_generation_agent = LlmAgent(
     name="diagram_generation_agent",
     instruction=PromptManager.get_prompt("diagram_generation_agent"),
     description="Handles user requests and generates appropriate diagram responses.",
-    model=LiteLlm(model="openai/gpt-3.5-turbo"),
+    model="gemini-2.0-flash",
     output_key="diagram",
     before_agent_callback=save_information_retrieval_query_to_state,
 )

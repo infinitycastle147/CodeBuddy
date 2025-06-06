@@ -18,7 +18,9 @@ def save_user_query_to_state(callback_context: CallbackContext):
     Callback to save the user's initial query text into session state['query'].
     Runs before the agent's main logic.
     """
-    print(f"[Callback] Running save_user_query_to_state for {callback_context.agent_name}")
+    print(
+        f"[Callback] Running save_user_query_to_state for {callback_context.agent_name}"
+    )
     refined_query = callback_context.state.get("refined_query", None)
     callback_context.state["refined_query"] = refined_query
 
@@ -33,13 +35,28 @@ def save_refined_query_to_state(callback_context: CallbackContext):
     """
     refined_query = callback_context.state.get("refined_query", None)
 
+    print(
+        f"[Callback] Running save_refined_query_to_state for {callback_context.agent_name}"
+    )
+    print(
+        "[Callback] Checking if refined_query is already in state['refined_query']...",
+        refined_query if refined_query is not None else "None",
+    )
+
     if refined_query is None:
+        print("[Callback] No refined query found in state, checking user content...")
         print(
-            "[Callback] No refined query found in state, checking user content..."
-        )
+            "[Callback] User content :",
+            callback_context.user_content)
+        
+        # Safely access user_content.parts
+        user_content = getattr(callback_context, "user_content", None)
+        parts = getattr(user_content, "parts", []) if user_content else []
+        print("[Callback] User content parts:", parts)
+
         refined_query = (
-            callback_context.user_content.parts[0].text
-            if callback_context.user_content.parts
+            parts[0].text
+            if parts and hasattr(parts[0], "text")
             else "N/A"
         )
 
@@ -112,8 +129,9 @@ def get_information_retrieval_agent():
             name="information_retrieval_agent",
             instruction=information_retrieval_prompt,
             description="Handles user requests and returns appropriate responses.",
-            model=LiteLlm(model="openai/gpt-3.5-turbo"),
-            tools=[jira_tools, github_tools, search_similar_code_chunks],
+            model="gemini-2.0-flash",
+            # tools=[jira_tools, github_tools, search_similar_code_chunks],
+            tools=[search_similar_code_chunks],
             output_key="information",
             before_agent_callback=save_refined_query_to_state,
         )

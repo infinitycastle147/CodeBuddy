@@ -38,12 +38,21 @@ def save_refined_query_to_state(callback_context: CallbackContext):
     return None
 
 
-# Define the security checker agent
-security_checker_agent = LlmAgent(
-    name="security_checker_agent",
-    instruction=PromptManager.get_prompt("security_checker_agent"),
-    description="Agent responsible for validating the security of user queries.",
-    model=LiteLlm(model="openai/gpt-3.5-turbo"),
-    before_agent_callback=save_refined_query_to_state,
-    output_key="query",
-)
+def get_security_checker_agent():
+    """
+    Creates and configures the Security Checker Agent with the required callbacks.
+    This agent is responsible for validating the security of user queries.
+    """
+    try:
+        security_checker_agent = LlmAgent(
+            name="security_checker_agent",
+            instruction=PromptManager.get_prompt("security_checker_agent"),
+            description="Agent responsible for validating the security of user queries.",
+            model="gemini-2.0-flash",
+            before_agent_callback=save_refined_query_to_state,
+            output_key="query",
+        )
+        return security_checker_agent
+    except Exception as e:
+        print(f"Error creating security checker agent: {e}")
+        return None

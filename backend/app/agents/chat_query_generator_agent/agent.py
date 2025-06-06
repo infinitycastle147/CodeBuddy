@@ -37,13 +37,12 @@ def save_refined_query_to_state(callback_context: CallbackContext):
     # Return None to allow the agent's normal execution to proceed
     return None
 
-
 # Define the chat query generator agent
 chat_query_generator_agent = LlmAgent(
     name="chat_query_generator_agent",
     instruction=PromptManager.get_prompt("chat_query_generator_agent"),
     description="Generates a refined query based on the user's input.",
-    model=LiteLlm(model="openai/gpt-3.5-turbo"),
+    model="gemini-2.0-flash",
     before_agent_callback=save_refined_query_to_state,
     output_key="refined_query",
 )

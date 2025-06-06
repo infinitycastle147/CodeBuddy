@@ -44,5 +44,9 @@ Clarifying questions to ask user (if needed):
 2. [...]
 </refined_query_for_agent>
 
+OUTPUT INSTRUCTIONS:
+- Do not include any analysis, reasoning, or internal commentary in your output.
+- Do not include ```tool_code and ``` tags.
+
 Ensure your output is focused, grounded in the user’s original message, and helpful for improving retrieval accuracy. Do not fabricate context — only use what is inferred or clearly stated.
 """

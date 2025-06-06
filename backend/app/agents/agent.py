@@ -8,13 +8,13 @@ from .diagram_query_generator_agent import diagram_query_generator_agent
 from .response_formatter_agent import response_formatter_agent
 from .diagram_checker_agent import diagram_checker_agent
 from .chat_query_generator_agent import chat_query_generator_agent
-from .security_checker_agent import security_checker_agent
+from .security_checker_agent import get_security_checker_agent
 
 # --- Define the Diagram Agent ---
 diagram_agent = SequentialAgent(
     name="diagram_agent",
     sub_agents=[
-        security_checker_agent,
+        get_security_checker_agent(),
         diagram_query_generator_agent,
         get_information_retrieval_agent(),
         diagram_generation_agent,
@@ -27,7 +27,7 @@ diagram_agent = SequentialAgent(
 chat_agent = SequentialAgent(
     name="chat_agent",
     sub_agents=[
-        security_checker_agent,
+        get_security_checker_agent(),
         chat_query_generator_agent,
         get_information_retrieval_agent(),
         response_formatter_agent,

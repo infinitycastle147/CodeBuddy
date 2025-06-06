@@ -20,7 +20,9 @@ def save_user_query_to_state(callback_context: CallbackContext):
     user_query_text = callback_context.state.get("query", None)
 
     if user_query_text is None:
-        print(f"[Callback] Running before_agent_callback for {callback_context.agent_name}")
+        print(
+            f"[Callback] Running before_agent_callback for {callback_context.agent_name}"
+        )
 
         # Access the initial user input from this invocation
         initial_user_content: Content = callback_context.user_content
@@ -46,7 +48,7 @@ diagram_query_generator_agent = LlmAgent(
     name="diagram_query_generator_agent",
     instruction=PromptManager.get_prompt("diagram_query_generator"),
     description="Generates a structured query for an information retrieval agent.",
-    model=LiteLlm(model="openai/gpt-3.5-turbo"),
+    model="gemini-2.0-flash",
     before_agent_callback=save_user_query_to_state,
     output_key="refined_query",
 )

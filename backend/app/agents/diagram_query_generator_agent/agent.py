@@ -10,21 +10,25 @@ def save_user_query_to_state(callback_context: CallbackContext):
     Callback to save the user's initial query text into session state['query'].
     Runs before the agent's main logic.
     """
-    print(f"[Callback] Running before_agent_callback for {callback_context.agent_name}")
-    # Access the initial user input from this invocation
-    initial_user_content: Content = callback_context.user_content
 
-    user_query_text = "N/A"  # Default value
+    user_query_text = callback_context.state.get("query", None)
+    
+    if user_query_text is None:
 
-    # Extract text from the user content parts
-    if initial_user_content and initial_user_content.parts:
-        # Assuming the main query is in the first text part
-        for part in initial_user_content.parts:
-            if part.text:
-                user_query_text = part.text
-                break  # Stop after finding the first text part
+        print(f"[Callback] Running before_agent_callback for {callback_context.agent_name}")
+        # Access the initial user input from this invocation
+        initial_user_content: Content = callback_context.user_content
 
-    print(f"[Callback] Saving user query '{user_query_text}' to state['query']")
+        # Extract text from the user content parts
+        if initial_user_content and initial_user_content.parts:
+            # Assuming the main query is in the first text part
+            for part in initial_user_content.parts:
+                if part.text:
+                    user_query_text = part.text
+                    break  # Stop after finding the first text part
+
+        print(f"[Callback] Saving user query '{user_query_text}' to state['query']")
+    
     # Save the extracted text into the session state
     callback_context.state["query"] = user_query_text
 

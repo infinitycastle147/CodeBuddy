@@ -6,6 +6,7 @@ from .prompts.diagram_generation_prompt import DIAGRAM_GENERATION_PROMPT
 from .prompts.diagram_query_generator import DIAGRAM_QUERY_GENERATOR_PROMPT
 from .prompts.diagram_agent_prompt import DIAGRAM_AGENT_PROMPT
 from .prompts.diagram_checker_agent_prompt import DIAGRAM_CHECKER_AGENT_PROMPT
+from .prompts.chat_query_generator_agent_prompt import CHAT_QUERY_GENERATOR_AGENT_PROMPT
 
 class PromptManager:
     _PROMPT_MAP = {
@@ -15,6 +16,7 @@ class PromptManager:
         "diagram_query_generator": DIAGRAM_QUERY_GENERATOR_PROMPT,
         "diagram_agent": DIAGRAM_AGENT_PROMPT,
         "diagram_checker_agent": DIAGRAM_CHECKER_AGENT_PROMPT,
+        "chat_query_generator_agent": CHAT_QUERY_GENERATOR_AGENT_PROMPT,
     }   
 
     @classmethod

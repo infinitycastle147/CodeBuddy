@@ -41,6 +41,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import ReactMarkdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
 
 interface Message {
   id: string;
@@ -90,14 +92,16 @@ function MessageBubble({
       >
         <div
           className={`rounded-2xl px-4 py-3 ${isUser
-              ? "bg-primary text-primary-foreground rounded-br-md"
-              : "bg-muted text-foreground rounded-bl-md"
+            ? "bg-primary text-primary-foreground rounded-br-md"
+            : "bg-muted text-foreground rounded-bl-md"
             }`}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
         >
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {message.content}
+          <div className="prose prose-sm max-w-none text-sm leading-relaxed">
+            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+              {message.content}
+            </ReactMarkdown>
           </div>
 
           {message.context && message.context.length > 0 && (
@@ -132,8 +136,8 @@ function MessageBubble({
                     >
                       <ThumbsUp
                         className={`w-3 h-3 ${message.feedback === "positive"
-                            ? "text-green-600"
-                            : ""
+                          ? "text-green-600"
+                          : ""
                           }`}
                       />
                     </Button>

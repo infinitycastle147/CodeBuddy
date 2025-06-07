@@ -14,6 +14,7 @@ def setup_mongo_connection() -> MongoClient:
         MongoClient: The MongoDB client instance.
     """
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+    print("Mongo DB URI : ", mongo_uri)
     mongo_client = MongoClient(mongo_uri)
     return mongo_client
 
@@ -34,6 +35,8 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
         List[Dict]: List of matching code chunks with metadata and similarity score.
     """
     # Load the sentence transformer model
+    print("Loading SentenceTransformer model...")
+
     model = SentenceTransformer("all-MiniLM-L6-v2")
     
     # Generate the query embedding
@@ -43,7 +46,7 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
     pipeline = [
         {
             "$vectorSearch": {
-                "index": "embedding",  # MongoDB Atlas vector index name
+                "index": "embedding",  
                 "queryVector": query_embedding,
                 "path": "embedding",
                 "numCandidates": 100,
@@ -66,4 +69,11 @@ def search_similar_code_chunks(query: str, top_k: int = 5) -> List[Dict]:
 
     # Execute the aggregation pipeline and return results
     results = list(collection.aggregate(pipeline))
+
+    print(f"Found {len(results)} results for query: '{query}'")
+    if not results:
+        print("No results found.")
+        return []
+    print("Results:", results)
+
     return results

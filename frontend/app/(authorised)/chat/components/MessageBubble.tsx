@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { ThumbsUp, ThumbsDown, Bot, User, Copy, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

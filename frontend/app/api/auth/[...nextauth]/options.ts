@@ -24,7 +24,12 @@ export const authOptions: NextAuthOptions = {
                 email: { label: "Email", type: "text", placeholder: "Enter your email" },
                 password: { label: "Password", type: "password", placeholder: "Enter your password" }
             },
-            async authorize(credentials: any) {
+            async authorize(credentials) {
+
+                if (!credentials) {
+                    throw new Error("Credentials are required for login");
+                }
+
                 await dbConnect();
 
                 // Accept either email or username for login
@@ -66,6 +71,7 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async session({ session, user, token }) {
 
+            console.log("Session Callback:", { session, user, token });
             if (token) {
                 session.user._id = token.sub;
                 session.user.name = token.name;
@@ -78,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         },
         async jwt({ token, user, account, profile, isNewUser }) {
 
+            console.log("JWT Callback:", { token, user, account, profile, isNewUser });
             if (user) {
                 token.isVerified = user.isVerified;
                 token.id = user._id?.toString();

@@ -52,7 +52,7 @@ function DiagramCanvas({
         setError(null)
         const { svg } = await mermaid.render("mermaid-diagram", mermaidCode)
         setSvg(svg)
-      } catch (err) {
+      } catch {
         setSvg("")
         setError("Error rendering diagram. Please check your Mermaid syntax.")
       } finally {
@@ -97,7 +97,7 @@ function DiagramCanvas({
         title: "Diagram saved",
         description: "Your diagram has been saved successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error saving diagram",
         description: "There was an error saving your diagram.",

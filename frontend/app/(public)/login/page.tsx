@@ -8,7 +8,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { UserCog, Github, ShieldCheck, Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react"
-import { useSession, signIn } from "next-auth/react"
+import { signIn } from "next-auth/react"
 
 const roles = [
 	{ label: "Backend Engineer", value: "backend" },

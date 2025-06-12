@@ -1,0 +1,54 @@
+"use client"
+
+import { useRef, useEffect } from "react"
+import { Sparkles } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import MessageBubble from "@/app/(authorised)/chat/components/MessageBubble"
+import TypingIndicator from "@/app/(authorised)/chat/components/TypingIndicator"
+import type { Message } from "@/app/(authorised)/chat/components/types"
+
+interface ChatHistoryProps {
+  messages: Message[]
+  isTyping: boolean
+  onFeedback: (messageId: string, feedbackType: "positive" | "negative") => void
+}
+
+export default function ChatHistory({ messages, isTyping, onFeedback }: ChatHistoryProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, isTyping])
+
+  return (
+    <Card className="flex-1 flex flex-col">
+      <CardContent className="flex-1 p-0">
+        <div className="h-full overflow-y-auto p-6 space-y-6">
+          {messages.length === 0 && !isTyping ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4 max-w-md">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Start a conversation</h3>
+                  <p className="text-muted-foreground">
+                    Ask me anything about your code, project structure, or development workflow.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <MessageBubble key={message.id} message={message} onFeedback={onFeedback} />
+              ))}
+              {isTyping && <TypingIndicator />}
+            </>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

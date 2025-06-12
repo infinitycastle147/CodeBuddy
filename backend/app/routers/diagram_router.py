@@ -1,60 +1,61 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.utils.embedder import process_repository
-from celery.result import AsyncResult
-from app.celery.worker import celery_app
+from app.dto.diagram_dto import DiagramRequest, DiagramResponse
 from app.agents.root_agent import get_root_agent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
-from google.adk.models.lite_llm import LiteLlm
+from app.agents import diagram_agent
 
 router = APIRouter(prefix="/diagram", tags=["diagram"])
-
-
-class DiagramRequest(BaseModel):
-    query: str
-
-
-class DiagramResponse(BaseModel):
-    diagram_mermaid: str
 
 
 @router.get("/health")
 def health_check():
     return {"message": "Diagram router is healthy", "status": "ok"}, 200
 
-
-@router.post("/generate")
+# Diagram Generation Endpoint
+@router.post("/diagram")
 async def generate_diagram(request: DiagramRequest):
     """
-    Generate a diagram based on the user's query.
-
-    Request Body:
-    {
-        "query": string  // The user's query for diagram generation
-    }
+    Generate a diagram based on user input using the diagram agent.
     """
-    # Get the root agent for the current user session
-    root_agent = get_root_agent()
-    if not root_agent:
-        raise HTTPException(status_code=404, detail="Root agent not found")
+    try:
+        session_service = InMemorySessionService()
+        session = await session_service.create_session(
+            app_name="codebuddy",
+            user_id="123",
+        )
 
-    # Create a session service for the chat
-    session_service = InMemorySessionService()
+        content = types.Content(
+            role="user", parts=[types.Part(text=request.user_input)]
+        )
 
-    # Create a runner for the root agent
-    runner = Runner(
-        agent=root_agent,
-        session_service=session_service,
-        model="gemini-2.0-flash",
-        temperature=0.2,
-    )
+        runner = Runner(
+            agent=diagram_agent, app_name="codebuddy", session_service=session_service
+        )
 
-    # Run the agent with the user's query to generate a diagram
-    response = await runner.run(request.query)
+        events = runner.run_async(
+            user_id=session.user_id, session_id=session.id, new_message=content
+        )
 
-    return DiagramResponse(diagram_mermaid=response)
+        last_final_response = None
+
+        async for event in events:
+            if event.is_final_response() and event.content and event.content.parts:
+                final_response = event.content.parts[0].text
+                last_final_response = (
+                    final_response["response"]
+                    if isinstance(final_response, dict) and "response" in final_response
+                    else final_response
+                )
+
+        if last_final_response is not None:
+            return last_final_response
+
+        return {"result": "No final response from agent."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.patch("/update/{diagram_id}")

@@ -15,8 +15,10 @@ import {
   FileText,
   MessageCircle,
   GitBranchPlus,
+  Code2Icon,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
 
 interface AppSidebarProps {
   role: string
@@ -64,16 +66,22 @@ const navigationItems: NavigationItem[] = [
 export function AppSidebar({ role }: AppSidebarProps) {
   const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.backend
   const router = useRouter();
+  const pathname = usePathname();
+  const [activeHref, setActiveHref] = useState<string>(pathname);
+
+  useEffect(() => {
+    setActiveHref(pathname);
+  }, [pathname]);
 
   return (
     <Sidebar className="border-r border-border">
       <SidebarHeader className="border-b border-border p-6 cursor-pointer" onClick={() => { router.push('/dashboard') }}>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-4 h-4 text-primary-foreground" />
+            <Code2Icon className="w-4 h-4 text-primary-foreground" />
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">Dashboard</span>
+            <span className="font-semibold text-sm">Code Buddy</span>
             <span className="text-xs text-muted-foreground">
               {config.name} <span className={config.color}>{config.icon}</span>
             </span>
@@ -86,10 +94,18 @@ export function AppSidebar({ role }: AppSidebarProps) {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={item.isActive}
+                isActive={activeHref === item.href}
                 className="w-full justify-start h-10 px-3 rounded-lg transition-all duration-200 hover:bg-accent/50"
               >
-                <a href={item.href} className="flex items-center gap-3">
+                <a
+                  href={item.href}
+                  className="flex items-center gap-3"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveHref(item.href);
+                    router.push(item.href);
+                  }}
+                >
                   {item.icon}
                   <span className="font-medium">{item.label}</span>
                   {item.badge && (

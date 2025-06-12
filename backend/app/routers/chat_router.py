@@ -1,23 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.utils.embedder import process_repository
-from celery.result import AsyncResult
-from app.celery.worker import celery_app
-from app.agents.root_agent import get_root_agent
+from app.dto.chat_dto import ChatRequest
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
-from google.adk.models.lite_llm import LiteLlm
+from app.agents import chat_agent
 
 router = APIRouter(prefix="/chat", tags=["chat"])
-
-
-class ChatRequest(BaseModel):
-    query: str
-
-
-class ChatResponse(BaseModel):
-    response: str
 
 
 @router.get("/health")
@@ -36,45 +24,44 @@ async def get_chat(chat_id: str):
     return {"chat_id": chat_id, "message": "Chat retrieved successfully"}
 
 
+# Chat Agent Endpoint
 @router.post("/{chat_id}/message")
-async def send_message(chat_id: str, request: ChatRequest):
+async def chat(request: ChatRequest):
     """
-    Send a message to the chat session.
+    Chat endpoint for interacting with the AI assistant using the chat agent.
     """
-    # verify that chat_id is from right user
-    # get chat by chat_id from chats collection
-    # append message to chat messages
+    try:
+        session_service = InMemorySessionService()
+        session = await session_service.create_session(
+            app_name="codebuddy",
+            user_id="123",
+        )
 
-    # get the root agent for the chat session
-    root_agent = get_root_agent(chat_id)
-    if not root_agent:
-        raise HTTPException(status_code=404, detail="Chat session not found")
+        content = types.Content(role="user", parts=[types.Part(text=request.query)])
 
-    # create a session service for the chat
-    session_service = InMemorySessionService()
+        runner = Runner(
+            agent=chat_agent, app_name="codebuddy", session_service=session_service
+        )
 
-    # create a runner for the root agent
-    runner = Runner(
-        agent=root_agent,
-        session_service=session_service,
-        model="gemini-2.0-flash",
-        temperature=0.2,
-    )
+        events = runner.run_async(
+            user_id=session.user_id, session_id=session.id, new_message=content
+        )
 
-    # run the agent with the user's query
-    response = await runner.run(request.query)
-    if not response:
-        raise HTTPException(status_code=500, detail="Failed to process the message")
+        last_final_response = None
 
-    # append the response to the chat messages
+        async for event in events:
+            if event.is_final_response() and event.content and event.content.parts:
+                final_response = event.content.parts[0].text
+                last_final_response = (
+                    final_response["response"]
+                    if isinstance(final_response, dict) and "response" in final_response
+                    else final_response
+                )
 
-    if isinstance(response, types.Response):
-        response_text = response.text
-    else:
-        response_text = str(response)
+        if last_final_response is not None:
+            return last_final_response
 
-    # Log the response for debugging
-    print(f"Response from root agent: {response_text}")
+        return {"result": "No final response from agent."}
 
-    # Return the response as part of the chat session
-    return ChatResponse(response=response_text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,31 +1,20 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from app.utils.embedder import process_repository
 from celery.result import AsyncResult
 from app.celery.worker import celery_app
-from app.agents.root_agent import get_root_agent
-from google.adk.sessions import InMemorySessionService
-from google.adk.runners import Runner
-from google.genai import types
+from app.dto.connection_dto import (
+    GithubConnectionRequest,
+    JiraConnectionRequest,
+    ConnectionResponse,
+)
 
 router = APIRouter(prefix="/connection", tags=["connection"])
 
-class GithubConnectionRequest(BaseModel):
-    repo_url: str
-    access_token: str | None = None
-
-class ConnectionResponse(BaseModel):
-    status: str
-    message: str
-
-class JiraConnectionRequest(BaseModel):
-    jira_url: str
-    username: str
-    api_token: str
 
 @router.get("/health")
 def health_check():
     return {"message": "Connection router is healthy", "status": "ok"}, 200
+
 
 @router.post("/github")
 async def connect_github(request: GithubConnectionRequest):
@@ -41,10 +30,13 @@ async def connect_github(request: GithubConnectionRequest):
     user_id = "123"
     try:
         task = process_repository.delay(user_id, request.repo_url, request.access_token)
-        return ConnectionResponse(status="processing", message=f"Task started with ID: {task.id}")
+        return ConnectionResponse(
+            status="processing", message=f"Task started with ID: {task.id}"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 @router.get("/task-status/{task_id}")
 def get_task_status(task_id: str):
     """
@@ -55,6 +47,7 @@ def get_task_status(task_id: str):
     """
     result = AsyncResult(task_id, app=celery_app)
     return {"task_id": task_id, "status": result.status}
+
 
 @router.post("/jira")
 async def connect_jira(request: JiraConnectionRequest):
@@ -70,7 +63,10 @@ async def connect_jira(request: JiraConnectionRequest):
     """
     # Here you would implement the logic to connect to Jira using the provided credentials.
     # This is a placeholder response.
-    return ConnectionResponse(status="connected", message="Connected to Jira successfully")
+    return ConnectionResponse(
+        status="connected", message="Connected to Jira successfully"
+    )
+
 
 @router.post("/test")
 async def test_connection(type: str):
@@ -82,9 +78,13 @@ async def test_connection(type: str):
     """
     if type == "github":
         # Implement GitHub connection test logic here
-        return ConnectionResponse(status="success", message="GitHub connection test successful")
+        return ConnectionResponse(
+            status="success", message="GitHub connection test successful"
+        )
     elif type == "jira":
         # Implement Jira connection test logic here
-        return ConnectionResponse(status="success", message="Jira connection test successful")
+        return ConnectionResponse(
+            status="success", message="Jira connection test successful"
+        )
     else:
         raise HTTPException(status_code=400, detail="Unsupported connection type")

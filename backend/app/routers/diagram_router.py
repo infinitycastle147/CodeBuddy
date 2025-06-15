@@ -16,7 +16,7 @@ router = APIRouter(prefix="/diagram", tags=["diagram"])
 def health_check():
     return create_response(message="Diagram router is healthy")
 
-@router.get("/{diagram_id}", response_model=DiagramResponse)
+@router.get("/{diagram_id}")
 async def get_diagram(
     diagram_id: str,
     diagram_repo: DiagramRepository = Depends(get_diagram_repository)
@@ -24,6 +24,9 @@ async def get_diagram(
     """Get a diagram by its ID."""
     try:
         diagram = await diagram_repo.find_by_id(diagram_id)
+
+        diagram = DiagramResponse(**diagram) if diagram else None
+
         if not diagram:
             return create_error_response(
                 code="diagram_not_found",
@@ -41,13 +44,22 @@ async def get_diagram(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@router.get("/", response_model=List[DiagramResponse])
+@router.get("/")
 async def list_diagrams(
     diagram_repo: DiagramRepository = Depends(get_diagram_repository)
 ):
     """List all diagrams."""
     try:
         diagrams = await diagram_repo.find_all()
+
+        if not diagrams:
+            return create_response(
+                message="No diagrams found",
+                data=[]
+            )
+        
+        diagrams = [DiagramResponse(**diagram) for diagram in diagrams]
+
         return create_response(
             message="Diagrams retrieved successfully",
             data=diagrams
@@ -60,7 +72,7 @@ async def list_diagrams(
         )
 
 # Diagram Generation Endpoint
-@router.post("/", response_model=DiagramResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_diagram(
     request: DiagramRequest,
     diagram_repo: DiagramRepository = Depends(get_diagram_repository)
@@ -75,12 +87,13 @@ async def create_diagram(
         # Create a new diagram
         diagram = Diagram(
             title=request.title or "New Diagram",
-            description=request.description or "",
             content=diagram_content
         )
         
         # Save the diagram
         created_diagram = await diagram_repo.create(diagram.dict(by_alias=True))
+
+        created_diagram = DiagramResponse(**created_diagram)
         
         return create_response(
             message="Diagram created successfully",
@@ -93,7 +106,7 @@ async def create_diagram(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@router.patch("/{diagram_id}", response_model=DiagramResponse)
+@router.patch("/{diagram_id}")
 async def update_diagram(
     diagram_id: str,
     request: DiagramRequest,
@@ -126,6 +139,8 @@ async def update_diagram(
         updated_diagram = await diagram_repo.update(
             diagram_id, existing_diagram.dict(by_alias=True)
         )
+
+        updated_diagram = DiagramResponse(**updated_diagram)
         
         return create_response(
             message="Diagram updated successfully",

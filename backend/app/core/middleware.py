@@ -2,7 +2,7 @@ from fastapi import Request, HTTPException
 from cryptography.fernet import Fernet
 from typing import TypeVar, Optional
 from pydantic import BaseModel
-from app.core.config import settings
+from settings import settings
 
 class SetupData(BaseModel):
     github: Optional[dict] = {
@@ -22,7 +22,7 @@ class SetupData(BaseModel):
 
 class CredentialDecryptor:
     def __init__(self):
-        self.fernet = Fernet(settings.ENCRYPTION_KEY)
+        self.fernet = Fernet(settings.encryption_key.encode())
 
     def decrypt(self, encrypted_data: str) -> str:
         """Decrypt encrypted credentials."""

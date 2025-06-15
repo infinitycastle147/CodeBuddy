@@ -1,30 +1,44 @@
 from functools import lru_cache
 from typing import AsyncGenerator
-from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
-from app.repositories.implementations import UserRepository, ChatRepository, DiagramRepository
 
-@lru_cache()
-def get_mongo_client() -> AsyncIOMotorClient:
-    """Get MongoDB client instance."""
-    return AsyncIOMotorClient(settings.MONGO_URI)
+from fastapi import Depends
+from pymongo import MongoClient
 
-async def get_mongo_db() -> AsyncGenerator[AsyncIOMotorClient, None]:
-    """Get MongoDB database dependency."""
+from app.repositories.implementations import (
+    UserRepository,
+    ChatRepository,
+    DiagramRepository,
+)
+from app.db.mongodb import get_mongo_client
+
+
+async def get_mongo_db() -> AsyncGenerator[MongoClient, None]:
+    """Get MongoDB database dependency for FastAPI dependency injection."""
     client = get_mongo_client()
     try:
         yield client
     finally:
-        client.close()
+        # We don't close the client here as it's a singleton
+        # The connection will be returned to the pool
+        pass
 
-def get_user_repository(client: AsyncIOMotorClient = get_mongo_client()) -> UserRepository:
+
+def get_user_repository(
+    client: MongoClient = Depends(get_mongo_client),
+) -> UserRepository:
     """Get UserRepository instance."""
     return UserRepository(client)
 
-def get_chat_repository(client: AsyncIOMotorClient = get_mongo_client()) -> ChatRepository:
+
+def get_chat_repository(
+    client: MongoClient = Depends(get_mongo_client),
+) -> ChatRepository:
     """Get ChatRepository instance."""
     return ChatRepository(client)
 
-def get_diagram_repository(client: AsyncIOMotorClient = get_mongo_client()) -> DiagramRepository:
+
+def get_diagram_repository(
+    client: MongoClient = Depends(get_mongo_client),
+) -> DiagramRepository:
     """Get DiagramRepository instance."""
     return DiagramRepository(client)

@@ -9,14 +9,18 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - APP_NAME=CodeBuddy
-      - HOST=0.0.0.0
-      - PORT=8000
-      - RELOAD=False
-      - WORKERS=4
-      - CORS_ORIGINS=["*"]
-      - REDIS_URL=redis://redis:6379/0
-      - MONGO_URI=mongodb://mongo:27017/
+      - APPLICATION_NAME=CodeBuddy
+      - APPLICATION_HOST=0.0.0.0
+      - APPLICATION_PORT=8000
+      - APPLICATION_AUTO_RELOAD=False
+      - APPLICATION_UVICORN_WORKERS_COUNT=4
+      - APPLICATION_CORS_ALLOW_ORIGINS=["*"]
+      - APPLICATION_CORS_ALLOW_METHODS=["*"]
+      - APPLICATION_CORS_ALLOW_HEADERS=["*"]
+      - APPLICATION_REDIS_URL=redis://redis:6379/0
+      - APPLICATION_MONGO_URI=mongodb://mongo:27017/
+      - APPLICATION_MONGO_DB=CodeBuddy
+      - APPLICATION_MONGO_COLLECTION=codebuddy
     depends_on:
       redis:
         condition: service_healthy

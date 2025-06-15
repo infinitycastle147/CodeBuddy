@@ -6,6 +6,7 @@ from google.adk.agents import LlmAgent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.lite_llm import LiteLlm
+from loguru import logger
 
 # --- Local Application Imports ---
 from ..vector_search_tool import search_similar_code_chunks
@@ -34,44 +35,45 @@ def save_refined_query_to_state(callback_context: CallbackContext):
     Runs before the agent's main logic.
     """
     refined_query = callback_context.state.get("refined_query", None)
+    user_id = callback_context.state.get("user_id", None)
+    repo_url = callback_context.state.get("repo_url", None)
 
-    print(
+    logger.debug(
         f"[Callback] Running save_refined_query_to_state for {callback_context.agent_name}"
     )
-    print(
-        "[Callback] Checking if refined_query is already in state['refined_query']...",
-        refined_query if refined_query is not None else "None",
+    logger.debug(
+        f"[Callback] Current state: refined_query={refined_query}, user_id={user_id}, repo_url={repo_url}"
     )
 
     if refined_query is None:
-        print("[Callback] No refined query found in state, checking user content...")
-        print(
-            "[Callback] User content :",
-            callback_context.user_content)
+        logger.debug("[Callback] No refined query found in state, checking user content...")
         
         # Safely access user_content.parts
         user_content = getattr(callback_context, "user_content", None)
         parts = getattr(user_content, "parts", []) if user_content else []
-        print("[Callback] User content parts:", parts)
-
+        
         refined_query = (
             parts[0].text
             if parts and hasattr(parts[0], "text")
             else "N/A"
         )
 
+    # Store all relevant information in state
     callback_context.state["refined_query"] = refined_query
+    callback_context.state["user_id"] = user_id
+    callback_context.state["repo_url"] = repo_url
 
-    print(f"[Callback] Saved refined query '{refined_query}' to state['refined_query']")
+    logger.info(f"[Callback] Saved query '{refined_query}' and filters (user_id={user_id}, repo_url={repo_url}) to state")
 
     # Return None to allow the agent's normal execution to proceed
     return None
 
 
 # --- Agent Definition ---
-def get_information_retrieval_agent():
+def get_information_retrieval_agent(jira_api_token: str = None, jira_server_url: str = None):
     """
-    Creates and configures the Information Retrieval Agent with the required tools and callbacks.
+    Creates and returns an information retrieval agent that can search for code chunks
+    similar to a user query. The agent can filter results by user_id and repo_url.
     """
     try:
         # Configure Jira tools
@@ -94,7 +96,7 @@ def get_information_retrieval_agent():
                     "ENABLED_TOOLS": os.getenv("ENABLED_TOOLS"),
                     "JIRA_URL": os.getenv("JIRA_URL"),
                     "JIRA_USERNAME": os.getenv("JIRA_USERNAME"),
-                    "JIRA_API_TOKEN": os.getenv("JIRA_API_TOKEN"),
+                    "JIRA_API_TOKEN": jira_api_token or os.getenv("JIRA_API_TOKEN"),
                 },
             )
         )

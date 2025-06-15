@@ -1,5 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from app.dto.chat_dto import ChatRequest, CreateChatRequest, ChatResponse, MessageResponse
+from app.dto.chat_dto import (
+    ChatRequest,
+    CreateChatRequest,
+    ChatResponse,
+    MessageResponse,
+)
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -8,18 +13,18 @@ from app.repositories.implementations import ChatRepository
 from app.api.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
 from app.models.chat import Chat
-from typing import List
 
 router = APIRouter(prefix="/chat", tags=["chat"])
+
 
 @router.get("/health")
 def health_check():
     return create_response(message="Chat router is healthy")
 
-@router.get("/{chat_id}", response_model=ChatResponse)
+
+@router.get("/{chat_id}")
 async def get_chat(
-    chat_id: str,
-    chat_repo: ChatRepository = Depends(get_chat_repository)
+    chat_id: str, chat_repo: ChatRepository = Depends(get_chat_repository)
 ):
     """
     Retrieve a chat session by its ID.
@@ -30,23 +35,23 @@ async def get_chat(
             return create_error_response(
                 code="chat_not_found",
                 message="Chat session not found",
-                status_code=status.HTTP_404_NOT_FOUND
+                status_code=status.HTTP_404_NOT_FOUND,
             )
-        return create_response(
-            message="Chat retrieved successfully",
-            data=chat
-        )
+
+        chat = ChatResponse(**chat.model_dump(by_alias=True))
+
+        return create_response(message="Chat retrieved successfully", data=chat)
     except Exception as e:
         return create_error_response(
             code="get_chat_error",
             message=str(e),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-@router.post("/", response_model=ChatResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_chat(
-    request: CreateChatRequest,
-    chat_repo: ChatRepository = Depends(get_chat_repository)
+    request: CreateChatRequest, chat_repo: ChatRepository = Depends(get_chat_repository)
 ):
     """
     Create a new chat session.
@@ -54,34 +59,34 @@ async def create_chat(
     try:
         # Create a new chat
         chat = Chat(title=request.title)
-        
+
         # Add initial message if provided
         if request.initial_message:
             chat.add_message(role="user", content=request.initial_message)
-            
+
             # Generate AI response to initial message
             ai_response = await generate_ai_response(request.initial_message)
             chat.add_message(role="assistant", content=ai_response)
-        
+
         # Save the chat
         created_chat = await chat_repo.create(chat.dict(by_alias=True))
-        
-        return create_response(
-            message="Chat created successfully",
-            data=created_chat
-        )
+
+        created_chat = ChatResponse(**created_chat)
+
+        return create_response(message="Chat created successfully", data=created_chat)
     except Exception as e:
         return create_error_response(
             code="create_chat_error",
             message=str(e),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-@router.post("/{chat_id}/message", response_model=MessageResponse)
+
+@router.post("/{chat_id}/message")
 async def add_message(
     chat_id: str,
     request: ChatRequest,
-    chat_repo: ChatRepository = Depends(get_chat_repository)
+    chat_repo: ChatRepository = Depends(get_chat_repository),
 ):
     """
     Add a message to an existing chat and get AI response.
@@ -93,49 +98,52 @@ async def add_message(
             return create_error_response(
                 code="chat_not_found",
                 message="Chat session not found",
-                status_code=status.HTTP_404_NOT_FOUND
+                status_code=status.HTTP_404_NOT_FOUND,
             )
-        
+
         # Add user message
         user_message = chat.add_message(role="user", content=request.message)
-        
+
         # Generate AI response
         ai_response = await generate_ai_response(request.message, chat)
         assistant_message = chat.add_message(role="assistant", content=ai_response)
-        
+
         # Update the chat
         await chat_repo.update(chat_id, chat.dict(by_alias=True))
-        
+
+        assistant_message = MessageResponse(
+            **assistant_message.model_dump(by_alias=True)
+        )
+
         return create_response(
-            message="Message added successfully",
-            data=assistant_message
+            message="Message added successfully", data=assistant_message
         )
     except Exception as e:
         return create_error_response(
             code="add_message_error",
             message=str(e),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-@router.get("/", response_model=List[ChatResponse])
-async def list_chats(
-    chat_repo: ChatRepository = Depends(get_chat_repository)
-):
+
+@router.get("/")
+async def list_chats(chat_repo: ChatRepository = Depends(get_chat_repository)):
     """
     List all chat sessions.
     """
     try:
         chats = await chat_repo.find_all()
-        return create_response(
-            message="Chats retrieved successfully",
-            data=chats
-        )
+        if not chats:
+            return create_response(message="No chat sessions found", data=[])
+        chats = [ChatResponse(**chat) for chat in chats]
+        return create_response(message="Chats retrieved successfully", data=chats)
     except Exception as e:
         return create_error_response(
             code="list_chats_error",
             message=str(e),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 async def generate_ai_response(message: str, chat: Chat = None) -> str:
     """

@@ -16,6 +16,7 @@ from app.routers.user_router import router as user_router
 from app.core.middleware import decrypt_credentials_middleware
 from settings import settings
 
+
 def create_app() -> FastAPI:
     """
     Factory function to create and configure the FastAPI application.
@@ -23,15 +24,16 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="CodeBuddy",
         description="CodeBuddy is a tool for developers to help them with their code.",
+        swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}},
     )
 
     # Configure CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_allow_origins,
+        allow_origins=settings.get_cors_origins,
         allow_credentials=True,
-        allow_methods=settings.cors_allow_methods,
-        allow_headers=settings.cors_allow_headers,
+        allow_methods=settings.get_cors_methods,
+        allow_headers=settings.get_cors_headers,
     )
 
     # Add credential decryption middleware
@@ -54,6 +56,7 @@ def create_app() -> FastAPI:
 
     return app
 
+app = create_app()
 
 # Entry point for running the application
 if __name__ == "__main__":

@@ -1,28 +1,28 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 from app.models.user import User
 from app.models.chat import Chat
 from app.models.diagram import Diagram
 from .base import BaseRepository
+from app.db.mongodb import async_find_one, async_find
 
 class UserRepository(BaseRepository[User]):
-    def __init__(self, mongo_client: AsyncIOMotorClient):
+    def __init__(self, mongo_client: MongoClient):
         super().__init__(mongo_client, "codebuddy", "users")
         self.model_class = User
 
     async def find_by_email(self, email: str) -> User | None:
         """Find a user by email address."""
-        document = await self.collection.find_one({"email": email})
+        document = await async_find_one(self.collection, {"email": email})
         return User(**document) if document else None
 
 class ChatRepository(BaseRepository[Chat]):
-    def __init__(self, mongo_client: AsyncIOMotorClient):
+    def __init__(self, mongo_client: MongoClient):
         super().__init__(mongo_client, "codebuddy", "chats")
         self.model_class = Chat
 
     async def find_by_title(self, title: str) -> list[Chat]:
         """Find all chats by title."""
-        cursor = self.collection.find({"title": title})
-        documents = await cursor.to_list(length=None)
+        documents = await async_find(self.collection, {"title": title})
         return [Chat(**doc) for doc in documents]
         
     async def add_message_to_chat(self, chat_id: str, role: str, content: str) -> Chat:
@@ -41,11 +41,11 @@ class ChatRepository(BaseRepository[Chat]):
         return chat
 
 class DiagramRepository(BaseRepository[Diagram]):
-    def __init__(self, mongo_client: AsyncIOMotorClient):
+    def __init__(self, mongo_client: MongoClient):
         super().__init__(mongo_client, "codebuddy", "diagrams")
         self.model_class = Diagram
 
     async def find_by_title(self, title: str) -> Diagram | None:
         """Find a diagram by its title."""
-        document = await self.collection.find_one({"title": title})
+        document = await async_find_one(self.collection, {"title": title})
         return Diagram(**document) if document else None

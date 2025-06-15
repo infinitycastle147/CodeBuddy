@@ -1,21 +1,21 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import GitHubProvider from "next-auth/providers/github";
-// import EmailProvider from "next-auth/providers/email";
+import GitHubProvider from "next-auth/providers/github";
+import EmailProvider from "next-auth/providers/email";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/app/model/user";
 
 export const authOptions: NextAuthOptions = {
     providers: [
-        // EmailProvider({
-        //     server: process.env.EMAIL_SERVER,
-        //     from: process.env.EMAIL_FROM
-        // }),
-        // GitHubProvider({
-        //     clientId: process.env.GITHUB_ID || "",
-        //     clientSecret: process.env.GITHUB_SECRET || "",
-        // }),
+        EmailProvider({
+            server: process.env.EMAIL_SERVER,
+            from: process.env.EMAIL_FROM
+        }),
+        GitHubProvider({
+            clientId: process.env.GITHUB_ID || "",
+            clientSecret: process.env.GITHUB_SECRET || "",
+        }),
         CredentialsProvider({
             id: "credentials",
             name: "Credentials",
@@ -66,33 +66,38 @@ export const authOptions: NextAuthOptions = {
     },
     session: {
         strategy: "jwt",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
     },
-    secret: process.env.NEXTAUTH_SECRET || "your-secret-key",
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async session({ session, user, token }) {
-
-            console.log("Session Callback:", { session, user, token });
-            if (token) {
-                session.user._id = token.sub;
-                session.user.name = token.name;
-                session.user.email = token.email;
-                session.user.isVerified = token.isVerified;
-                session.user.username = token.username;
+            try {
+                if (token) {
+                    session.user._id = token.sub;
+                    session.user.name = token.name;
+                    session.user.email = token.email;
+                    session.user.isVerified = token.isVerified;
+                    session.user.username = token.username;
+                }
+                return session;
+            } catch (error) {
+                console.error('Session Callback Error:', error);
+                return session;
             }
-
-            return session
         },
         async jwt({ token, user, account, profile, isNewUser }) {
-
-            console.log("JWT Callback:", { token, user, account, profile, isNewUser });
-            if (user) {
-                token.isVerified = user.isVerified;
-                token.id = user._id?.toString();
-                token.username = user.username;
-                token.email = user.email ?? undefined;
+            try {
+                if (user) {
+                    token.isVerified = user.isVerified;
+                    token.id = user._id?.toString();
+                    token.username = user.username;
+                    token.email = user.email ?? undefined;
+                }
+                return token;
+            } catch (error) {
+                console.error('JWT Callback Error:', error);
+                return token;
             }
-
-            return token
         }
     },
 }

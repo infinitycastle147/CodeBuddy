@@ -1,23 +1,146 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, status
 from app.dto.diagram_dto import DiagramRequest, DiagramResponse
-from app.agents.root_agent import get_root_agent
+from app.models.diagram import Diagram
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 from app.agents import diagram_agent
+from app.repositories.implementations import DiagramRepository
+from app.api.dependencies import get_diagram_repository
+from app.core.responses import create_response, create_error_response
+from typing import List
 
 router = APIRouter(prefix="/diagram", tags=["diagram"])
 
-
 @router.get("/health")
 def health_check():
-    return {"message": "Diagram router is healthy", "status": "ok"}, 200
+    return create_response(message="Diagram router is healthy")
+
+@router.get("/{diagram_id}", response_model=DiagramResponse)
+async def get_diagram(
+    diagram_id: str,
+    diagram_repo: DiagramRepository = Depends(get_diagram_repository)
+):
+    """Get a diagram by its ID."""
+    try:
+        diagram = await diagram_repo.find_by_id(diagram_id)
+        if not diagram:
+            return create_error_response(
+                code="diagram_not_found",
+                message="Diagram not found",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        return create_response(
+            message="Diagram retrieved successfully",
+            data=diagram
+        )
+    except Exception as e:
+        return create_error_response(
+            code="get_diagram_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@router.get("/", response_model=List[DiagramResponse])
+async def list_diagrams(
+    diagram_repo: DiagramRepository = Depends(get_diagram_repository)
+):
+    """List all diagrams."""
+    try:
+        diagrams = await diagram_repo.find_all()
+        return create_response(
+            message="Diagrams retrieved successfully",
+            data=diagrams
+        )
+    except Exception as e:
+        return create_error_response(
+            code="list_diagrams_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 # Diagram Generation Endpoint
-@router.post("/diagram")
-async def generate_diagram(request: DiagramRequest):
+@router.post("/", response_model=DiagramResponse, status_code=status.HTTP_201_CREATED)
+async def create_diagram(
+    request: DiagramRequest,
+    diagram_repo: DiagramRepository = Depends(get_diagram_repository)
+):
     """
     Generate a diagram based on user input using the diagram agent.
+    """
+    try:
+        # Generate diagram content using AI
+        diagram_content = await generate_diagram_content(request.user_input)
+        
+        # Create a new diagram
+        diagram = Diagram(
+            title=request.title or "New Diagram",
+            description=request.description or "",
+            content=diagram_content
+        )
+        
+        # Save the diagram
+        created_diagram = await diagram_repo.create(diagram.dict(by_alias=True))
+        
+        return create_response(
+            message="Diagram created successfully",
+            data=created_diagram
+        )
+    except Exception as e:
+        return create_error_response(
+            code="create_diagram_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@router.patch("/{diagram_id}", response_model=DiagramResponse)
+async def update_diagram(
+    diagram_id: str,
+    request: DiagramRequest,
+    diagram_repo: DiagramRepository = Depends(get_diagram_repository)
+):
+    """
+    Update an existing diagram based on the user's input.
+    """
+    try:
+        # Check if diagram exists
+        existing_diagram = await diagram_repo.find_by_id(diagram_id)
+        if not existing_diagram:
+            return create_error_response(
+                code="diagram_not_found",
+                message="Diagram not found",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Update diagram fields if provided
+        if request.title:
+            existing_diagram.title = request.title
+        if request.description:
+            existing_diagram.description = request.description
+        
+        # If user input is provided, regenerate diagram content
+        if request.user_input:
+            existing_diagram.content = await generate_diagram_content(request.user_input)
+        
+        # Update the diagram
+        updated_diagram = await diagram_repo.update(
+            diagram_id, existing_diagram.dict(by_alias=True)
+        )
+        
+        return create_response(
+            message="Diagram updated successfully",
+            data=updated_diagram
+        )
+    except Exception as e:
+        return create_error_response(
+            code="update_diagram_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+async def generate_diagram_content(user_input: str) -> str:
+    """
+    Generate diagram content using the diagram agent.
     """
     try:
         session_service = InMemorySessionService()
@@ -27,7 +150,7 @@ async def generate_diagram(request: DiagramRequest):
         )
 
         content = types.Content(
-            role="user", parts=[types.Part(text=request.user_input)]
+            role="user", parts=[types.Part(text=user_input)]
         )
 
         runner = Runner(
@@ -52,52 +175,8 @@ async def generate_diagram(request: DiagramRequest):
         if last_final_response is not None:
             return last_final_response
 
-        return {"result": "No final response from agent."}
+        return "No diagram content could be generated."
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.patch("/update/{diagram_id}")
-async def update_diagram(request: DiagramRequest):
-    """
-    Update an existing diagram based on the user's query.
-
-    Request Body:
-    {
-        "query": string  // The user's query for updating the diagram
-    }
-    """
-    # Get the root agent for the current user session
-    root_agent = get_root_agent()
-    if not root_agent:
-        raise HTTPException(status_code=404, detail="Root agent not found")
-
-    # Create a session service for the chat
-    session_service = InMemorySessionService()
-
-    # Create a runner for the root agent
-    runner = Runner(
-        agent=root_agent,
-        session_service=session_service,
-        model="gemini-2.0-flash",
-        temperature=0.2,
-    )
-
-    # Run the agent with the user's query to update a diagram
-    response = await runner.run(request.query)
-
-    return DiagramResponse(diagram_mermaid=response)
-
-
-@router.get("/diagram/{diagram_id}")
-async def get_diagram(diagram_id: str):
-    """
-    Retrieve a diagram by its ID.
-
-    Path Parameter:
-    - diagram_id: The ID of the diagram to retrieve
-    """
-    # This is a placeholder for actual diagram retrieval logic
-    # In a real application, you would fetch the diagram from a database or storage
-    return {"diagram_id": diagram_id, "message": "Diagram retrieved successfully"}

@@ -1,7 +1,15 @@
 from pydantic import BaseModel, Field
+from typing import List
 from app.models.base import BaseModelWithId
+from app.models.message import Message
 
 class Chat(BaseModelWithId):
-
-    role: str = Field(..., description="Role of the chat participant (e.g., user, agent)")
-    content: str = Field(..., description="Content of the chat message")
+    """Represents a chat conversation with multiple messages."""
+    title: str = Field(default="New Chat", description="Title of the chat conversation")
+    messages: List[Message] = Field(default_factory=list, description="List of messages in the chat")
+    
+    def add_message(self, role: str, content: str) -> Message:
+        """Add a new message to the chat and return it."""
+        message = Message(role=role, content=content)
+        self.messages.append(message)
+        return message

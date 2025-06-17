@@ -4,7 +4,6 @@
 # Third-Party Imports
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
-from google.adk.models.lite_llm import LiteLlm
 
 # Local Application Imports
 from ..prompt_manager import PromptManager

@@ -288,13 +288,6 @@ async def search_similar_code_chunks(
 
         # Add match stage if filters are provided
         match_conditions = {}
-        if user_id:
-            match_conditions["user_id"] = user_id
-        if repo_url:
-            match_conditions["repo_url"] = repo_url
-
-        if match_conditions:
-            pipeline.append({"$match": match_conditions})
 
         # Add vector search stage
         pipeline.append(
@@ -308,6 +301,14 @@ async def search_similar_code_chunks(
                 }
             }
         )
+
+        if user_id:
+            match_conditions["user_id"] = user_id
+        if repo_url:
+            match_conditions["repo_url"] = repo_url
+
+        if match_conditions:
+            pipeline.append({"$match": match_conditions})
 
         # Project only needed fields
         pipeline.append(

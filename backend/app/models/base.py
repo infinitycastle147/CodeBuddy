@@ -22,7 +22,7 @@ class PyObjectId(str):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v: Any) -> str:  # noqa: ANN401
+    def validate(cls, v: Any, info: Any) -> str:  # Updated signature for Pydantic v2
         if isinstance(v, ObjectId):
             return str(v)
         v = str(v)

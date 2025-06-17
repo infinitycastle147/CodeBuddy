@@ -31,7 +31,7 @@ class BaseRepository(Generic[ModelType]):
 
     async def create(self, model: ModelType) -> ModelType:
         """Create a new document."""
-        document = model.model_dump(exclude_unset=True, by_alias=True)
+        document = model.model_dump(by_alias=True)
         if "_id" in document and document["_id"] is None:
             del document["_id"]
         result = await async_insert_one(self.collection, document)

@@ -42,7 +42,7 @@ chat_query_generator_agent = LlmAgent(
     name="chat_query_generator_agent",
     instruction=PromptManager.get_prompt("chat_query_generator_agent"),
     description="Generates a refined query based on the user's input.",
-    model="gemini-2.0-flash",
+    model="gemini-2.0-flash", # otherwise to define other models use LiteLLm
     before_agent_callback=save_refined_query_to_state,
     output_key="refined_query",
 )

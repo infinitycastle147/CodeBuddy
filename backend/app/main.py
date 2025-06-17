@@ -1,3 +1,10 @@
+"""
+    Main module for CodeBuddy application.
+
+    This module initializes the FastAPI application, configures middleware,
+    includes routers, and sets up exception handling.
+"""
+
 # Standard library imports
 import uvicorn
 
@@ -21,9 +28,10 @@ def create_app() -> FastAPI:
     """
     Factory function to create and configure the FastAPI application.
     """
+
     app = FastAPI(
         title="CodeBuddy",
-        description="CodeBuddy is a tool for developers to help them with their code.",
+        description="CodeBuddy is a tool for developers to help them understand their code by generating diagrams and interacting with AI.",
         swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}},
     )
 

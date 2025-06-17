@@ -1,3 +1,7 @@
+"""
+This module contains the agents responsible for handling the user's request and returning the appropriate response.
+"""
+
 # --- Third-Party Imports ---
 from google.adk.agents import SequentialAgent
 

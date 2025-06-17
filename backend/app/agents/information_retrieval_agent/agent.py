@@ -5,12 +5,12 @@ import os
 from google.adk.agents import LlmAgent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 from google.adk.agents.callback_context import CallbackContext
-from google.adk.models.lite_llm import LiteLlm
 from loguru import logger
 
 # --- Local Application Imports ---
-from ..vector_search_tool import search_similar_code_chunks
+from app.utils.embedder import search_similar_code_chunks
 from ..prompt_manager import PromptManager
+from app.agents.agent_errors import AgentOperationError
 
 
 # --- Callback Functions ---
@@ -70,7 +70,7 @@ def save_refined_query_to_state(callback_context: CallbackContext):
 
 
 # --- Agent Definition ---
-def get_information_retrieval_agent(jira_api_token: str = None, jira_server_url: str = None):
+def get_information_retrieval_agent(jira_api_token: str | None = None, jira_server_url: str | None = None):
     """
     Creates and returns an information retrieval agent that can search for code chunks
     similar to a user query. The agent can filter results by user_id and repo_url.
@@ -140,5 +140,5 @@ def get_information_retrieval_agent(jira_api_token: str = None, jira_server_url:
 
         return information_retrieval_agent
     except Exception as e:
-        print(f"Error: {e}")
-        return None
+        logger.error(f"Error initializing information retrieval agent: {e}")
+        raise AgentOperationError("Failed to initialize information retrieval agent", e)

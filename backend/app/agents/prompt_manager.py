@@ -15,6 +15,7 @@ from .prompts.diagram_agent_prompt import DIAGRAM_AGENT_PROMPT
 from .prompts.diagram_checker_agent_prompt import DIAGRAM_CHECKER_AGENT_PROMPT
 from .prompts.chat_query_generator_agent_prompt import CHAT_QUERY_GENERATOR_AGENT_PROMPT
 from .prompts.security_checker_agent_prompt import SECURITY_CHECKER_AGENT_PROMPT
+from .prompts.diagram_updater_agent_prompt import DIAGRAM_UPDATER_AGENT_PROMPT
 
 class PromptManager:
     """
@@ -31,6 +32,7 @@ class PromptManager:
         "diagram_checker_agent": DIAGRAM_CHECKER_AGENT_PROMPT,
         "chat_query_generator_agent": CHAT_QUERY_GENERATOR_AGENT_PROMPT,
         "security_checker_agent": SECURITY_CHECKER_AGENT_PROMPT, 
+        "diagram_updater_agent": DIAGRAM_UPDATER_AGENT_PROMPT
     }
 
     @classmethod

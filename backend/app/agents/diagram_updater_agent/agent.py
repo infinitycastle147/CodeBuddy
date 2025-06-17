@@ -9,7 +9,6 @@ from google.genai.types import Content
 # Local Application Imports
 from ..prompt_manager import PromptManager
 
-
 def save_user_query_to_state(callback_context: CallbackContext):
     """
     Callback to save the user's initial query text into session state['query'].
@@ -42,12 +41,26 @@ def save_user_query_to_state(callback_context: CallbackContext):
     return None
 
 
-# Define the diagram query generator agent
-diagram_query_generator_agent = LlmAgent(
-    name="diagram_query_generator_agent",
-    instruction=PromptManager.get_prompt("diagram_query_generator"),
-    description="Generates a structured query for an information retrieval agent.",
-    model="gemini-2.0-flash",
-    before_agent_callback=save_user_query_to_state,
-    output_key="refined_query",
-)
+def get_diagram_updater_agent(diagram: str):
+    """
+    Factory function to create a Diagram Updater Agent instance.
+    This function takes the initial diagram as an argument and returns
+    a configured LlmAgent instance for updating the diagram based on user instructions.
+    """
+
+    diagram_updater_agent_prompt = PromptManager.get_prompt("diagram_updater_agent")
+
+    diagram_updater_agent_prompt = diagram_updater_agent_prompt.replace("{{diagram}}", diagram)
+
+    # --- Define the Diagram Updater Agent ---
+    diagram_updater_agent = LlmAgent(
+        name="diagram_updater_agent",
+        instruction=diagram_updater_agent_prompt,
+        description="Updates the diagram based on user instructions.",
+        model="gemini-2.0-flash",
+        before_agent_callback=save_user_query_to_state,
+        output_key="updated_diagram",
+    )
+
+    # Return the agent instance
+    return diagram_updater_agent

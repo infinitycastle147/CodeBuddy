@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.dto.chat_dto import (
     ChatRequest,
-    CreateChatRequest,
     ChatResponse,
+    MessageDTO,
     MessageResponse,
 )
 from google.adk.sessions import InMemorySessionService
@@ -13,13 +13,15 @@ from app.repositories.implementations import ChatRepository
 from app.api.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
 from app.models.chat import Chat
+from settings import settings
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.get("/health")
 def health_check():
-    return create_response(message="Chat router is healthy")
+    """Check if the chat router is operational."""
+    return create_response(message="Chat router is healthy", success=True)
 
 
 @router.get("/{chat_id}")
@@ -38,7 +40,13 @@ async def get_chat(
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        chat = ChatResponse(**chat.model_dump(by_alias=True))
+        chat = ChatResponse(
+            id=str(chat.id),
+            messages=[
+                MessageDTO(**message.model_dump(by_alias=True))
+                for message in chat.messages
+            ],
+        )
 
         return create_response(message="Chat retrieved successfully", data=chat)
     except Exception as e:
@@ -50,28 +58,27 @@ async def get_chat(
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_chat(
-    request: CreateChatRequest, chat_repo: ChatRepository = Depends(get_chat_repository)
-):
+async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
     """
     Create a new chat session.
     """
     try:
         # Create a new chat
-        chat = Chat(title=request.title)
+        chat = Chat(title="New Chat")
 
-        # Add initial message if provided
-        if request.initial_message:
-            chat.add_message(role="user", content=request.initial_message)
+        initial_message = "Hello! I am CodeBuddy. I am here to help you with your coding tasks. How can I assist you today?"
 
-            # Generate AI response to initial message
-            ai_response = await generate_ai_response(request.initial_message)
-            chat.add_message(role="assistant", content=ai_response)
+        chat.add_message(role="assistant", content=initial_message)
 
-        # Save the chat
-        created_chat = await chat_repo.create(chat.dict(by_alias=True))
+        created_chat = await chat_repo.create(chat)
 
-        created_chat = ChatResponse(**created_chat)
+        created_chat = ChatResponse(
+            id=str(created_chat.id),
+            messages=[
+                MessageDTO(**message.model_dump(by_alias=True))
+                for message in created_chat.messages
+            ],
+        )
 
         return create_response(message="Chat created successfully", data=created_chat)
     except Exception as e:
@@ -82,14 +89,14 @@ async def create_chat(
         )
 
 
-@router.post("/{chat_id}/message")
+@router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
 async def add_message(
     chat_id: str,
     request: ChatRequest,
     chat_repo: ChatRepository = Depends(get_chat_repository),
 ):
     """
-    Add a message to an existing chat and get AI response.
+    Add a message to an existing chat session and get AI response.
     """
     try:
         # Get the chat
@@ -102,17 +109,19 @@ async def add_message(
             )
 
         # Add user message
-        user_message = chat.add_message(role="user", content=request.message)
+        chat.add_message(role="user", content=request.message)
 
         # Generate AI response
-        ai_response = await generate_ai_response(request.message, chat)
+        ai_response = await generate_ai_response(request.message)
         assistant_message = chat.add_message(role="assistant", content=ai_response)
 
         # Update the chat
-        await chat_repo.update(chat_id, chat.dict(by_alias=True))
+        await chat_repo.update(chat_id, chat)
 
         assistant_message = MessageResponse(
-            **assistant_message.model_dump(by_alias=True)
+            role=assistant_message.role,
+            content=assistant_message.content,
+            timestamp=assistant_message.timestamp,
         )
 
         return create_response(
@@ -126,40 +135,23 @@ async def add_message(
         )
 
 
-@router.get("/")
-async def list_chats(chat_repo: ChatRepository = Depends(get_chat_repository)):
-    """
-    List all chat sessions.
-    """
-    try:
-        chats = await chat_repo.find_all()
-        if not chats:
-            return create_response(message="No chat sessions found", data=[])
-        chats = [ChatResponse(**chat) for chat in chats]
-        return create_response(message="Chats retrieved successfully", data=chats)
-    except Exception as e:
-        return create_error_response(
-            code="list_chats_error",
-            message=str(e),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-
-async def generate_ai_response(message: str, chat: Chat = None) -> str:
+async def generate_ai_response(message: str) -> str:
     """
     Generate AI response using the chat agent.
     """
     try:
         session_service = InMemorySessionService()
         session = await session_service.create_session(
-            app_name="codebuddy",
+            app_name=settings.application_name,
             user_id="123",
         )
 
         content = types.Content(role="user", parts=[types.Part(text=message)])
 
         runner = Runner(
-            agent=chat_agent, app_name="codebuddy", session_service=session_service
+            agent=chat_agent,
+            app_name=settings.application_name,
+            session_service=session_service,
         )
 
         events = runner.run_async(

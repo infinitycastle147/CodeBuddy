@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException
 from cryptography.fernet import Fernet
-from typing import TypeVar, Optional
+from typing import Optional
 from pydantic import BaseModel
 from settings import settings
 
@@ -39,6 +39,7 @@ async def decrypt_credentials_middleware(request: Request, call_next):
     try:
         # Get the original request body
         body = await request.body()
+
         if body:
             # Parse the request body
             json_body = await request.json()

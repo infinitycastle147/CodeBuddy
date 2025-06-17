@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
 
 class Message(BaseModel):
     """Represents a single message in a chat conversation."""

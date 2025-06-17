@@ -9,7 +9,7 @@ Attributes:
 """
 
 import multiprocessing
-import secrets
+from cryptography.fernet import Fernet
 from pathlib import Path
 from tempfile import gettempdir
 from typing import List, Union
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     """
 
     # Application bind settings
-    application_name: str = Field("contingio-backend", alias="APPLICATION_NAME")
+    application_name: str = Field("CodeBuddy", alias="APPLICATION_NAME")
     host: str = Field("0.0.0.0", alias="APPLICATION_HOST")
     port: int = Field(8000, alias="APPLICATION_PORT")
 
@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     redis_url: str = Field("redis://localhost:6379/0", alias="APPLICATION_REDIS_URL")
     
     # Encryption settings
-    encryption_key: str = Field(secrets.token_urlsafe(32), alias="APPLICATION_ENCRYPTION_KEY")  # Generate a random key on startup
+    encryption_key: str = Field(Fernet.generate_key().decode(), alias="APPLICATION_ENCRYPTION_KEY")  # Generate a 32-byte Fernet key
 
     @property
     def workers_count(self) -> int:

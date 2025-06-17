@@ -7,7 +7,6 @@ import { Download, ImageIcon, Code2, FileText, Database, Sparkles, Settings2, Ch
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 
 function ExportControls() {

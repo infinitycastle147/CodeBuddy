@@ -71,6 +71,7 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async session({ session, user, token }) {
+            console.log('Session Callback Params:', { session, user, token });
             try {
                 if (token) {
                     session.user._id = token.sub;
@@ -86,6 +87,7 @@ export const authOptions: NextAuthOptions = {
             }
         },
         async jwt({ token, user, account, profile, isNewUser }) {
+            console.log('JWT Callback Params:', { token, user, account, profile, isNewUser });
             try {
                 if (user) {
                     token.isVerified = user.isVerified;

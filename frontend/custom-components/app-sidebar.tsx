@@ -1,5 +1,4 @@
-"use client"
-import { Badge } from "@/components/ui/badge"
+"use client";
 import {
   Sidebar,
   SidebarContent,
@@ -7,21 +6,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import {
-  BarChart3,
   Settings,
   Home,
   FileText,
   MessageCircle,
   GitBranchPlus,
   Code2Icon,
-} from "lucide-react"
-import { useRouter, usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
+} from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 interface AppSidebarProps {
-  role: string
+  role: string;
 }
 
 const roleConfig = {
@@ -45,26 +44,50 @@ const roleConfig = {
     icon: "📋",
     name: "Product Manager",
   },
-}
+};
 
 interface NavigationItem {
-  href: string
-  icon: React.ReactNode
-  label: string
-  isActive?: boolean
-  badge?: string
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  isActive?: boolean;
+  badge?: string;
 }
 
 const navigationItems: NavigationItem[] = [
-  { href: "/dashboard", icon: <Home className="w-4 h-4" />, label: "Insights", isActive: true },
-  { href: "/diagrams", icon: <GitBranchPlus className="w-4 h-4" />, label: "Diagrams" },
-  { href: "/explorer", icon: <FileText className="w-4 h-4" />, label: "Files", badge: "12" },
-  { href: "/chat", icon: <MessageCircle className="w-4 h-4" />, label: "Chat", badge: "3" },
-  { href: "/settings", icon: <Settings className="w-4 h-4" />, label: "Settings" },
-]
+  {
+    href: "/dashboard",
+    icon: <Home className="w-4 h-4" />,
+    label: "Insights",
+    isActive: true,
+  },
+  {
+    href: "/diagrams",
+    icon: <GitBranchPlus className="w-4 h-4" />,
+    label: "Diagrams",
+  },
+  {
+    href: "/explorer",
+    icon: <FileText className="w-4 h-4" />,
+    label: "Files",
+    badge: "12",
+  },
+  {
+    href: "/chat",
+    icon: <MessageCircle className="w-4 h-4" />,
+    label: "Chat",
+    badge: "3",
+  },
+  {
+    href: "/settings",
+    icon: <Settings className="w-4 h-4" />,
+    label: "Settings",
+  },
+];
 
 export function AppSidebar({ role }: AppSidebarProps) {
-  const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.backend
+  const config =
+    roleConfig[role as keyof typeof roleConfig] || roleConfig.backend;
   const router = useRouter();
   const pathname = usePathname();
   const [activeHref, setActiveHref] = useState<string>(pathname);
@@ -75,7 +98,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
 
   return (
     <Sidebar className="border-r border-border">
-      <SidebarHeader className="border-b border-border p-6 cursor-pointer" onClick={() => { router.push('/dashboard') }}>
+      <SidebarHeader
+        className="border-b border-border p-6 cursor-pointer"
+        onClick={() => {
+          router.push("/dashboard");
+        }}
+      >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Code2Icon className="w-4 h-4 text-primary-foreground" />
@@ -120,5 +148,5 @@ export function AppSidebar({ role }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

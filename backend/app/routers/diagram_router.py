@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from app.dto.diagram_dto import DiagramRequest, DiagramResponse
+from app.dto.diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest
 from app.models.diagram import Diagram
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
@@ -10,9 +10,11 @@ from app.api.dependencies import get_diagram_repository
 from app.core.responses import create_response, create_error_response
 from settings import settings
 from loguru import logger
+from app.core.logging import setup_logging
 
 router = APIRouter(prefix="/diagram", tags=["diagram"])
 
+setup_logging()
 
 @router.get("/health")
 def health_check():
@@ -140,37 +142,18 @@ async def create_diagram(
 @router.patch("/{diagram_id}")
 async def update_diagram(
     diagram_id: str,
-    request: DiagramRequest,
+    request: DiagramUpdateRequest,
     diagram_repo: DiagramRepository = Depends(get_diagram_repository),
 ):
     """
-    Update an existing diagram based on the user's input.
+    Update an existing diagram based on the updated diagram.
     """
     try:
-        # Check if diagram exists
-        existing_diagram = await diagram_repo.find_by_id(diagram_id)
-        if not existing_diagram:
-            return create_error_response(
-                code="diagram_not_found",
-                message="Diagram not found",
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-
-        # Update diagram fields if provided
-        if request.title:
-            existing_diagram.title = request.title
-        if request.description:
-            existing_diagram.description = request.description
-
-        # If user input is provided, regenerate diagram content
-        if request.user_input:
-            existing_diagram.content = await update_diagram_content(
-                request.user_input,
-                existing_diagram.content,
-            )
+        # Updated diagram
+        updated_diagram_content = request.content
 
         # Update the diagram
-        updated_diagram = await diagram_repo.update(diagram_id, existing_diagram)
+        updated_diagram = await diagram_repo.update(diagram_id, updated_diagram_content)
 
         updated_diagram = DiagramResponse(
             id=updated_diagram.id,

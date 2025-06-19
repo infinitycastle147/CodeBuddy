@@ -7,6 +7,8 @@ class DiagramRequest(BaseModel):
     title: Optional[str] = Field(None, description="Title of the diagram")
     description: Optional[str] = Field(None, description="Description of the diagram")
 
+class DiagramUpdateRequest(BaseModel):
+    content: str = Field(..., description="Updated Content of the diagram in mermaid format")
 class DiagramResponse(BaseModel):
     id: str = Field(..., description="ID of the diagram")
     user_id: str = Field(..., description="ID of the user who owns the diagram")

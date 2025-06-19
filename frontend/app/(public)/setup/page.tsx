@@ -686,7 +686,7 @@ export default function SetupPage() {
                 <Button
                   onClick={handleNext}
                   disabled={currentStep === 1 && !isGitHubValid}
-                  className="relative flex items-center justify-center h-12 px-8 overflow-hidden border-0 rounded-md bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl group"
+                  className="relative flex items-center justify-center h-12 px-8 overflow-hidden rounded-md bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl group"
                 >
                   {/* Main content */}
                   <span className="relative z-10 font-semibold text-white transition-all duration-300 group-hover:text-gray-100">
@@ -695,17 +695,17 @@ export default function SetupPage() {
                   <ArrowRight className="w-4 h-4 text-white transition-all duration-300 relative z-10 group-hover:translate-x-1 group-hover:text-gray-100" />
 
                   {/* Shine sweep */}
-                  <span className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                  <span className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                     <span className="absolute top-0 left-0 w-full h-full translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
                   </span>
 
                   {/* Subtle overlay gradient */}
-                  <span className="absolute inset-0 pointer-events-none z-0">
+                  <span className="absolute inset-0 z-0 pointer-events-none">
                     <span className="block h-full w-0 group-hover:w-full bg-gradient-to-r from-white/20 via-white/10 to-transparent transition-all duration-700 ease-out" />
                   </span>
 
                   {/* Border glow */}
-                  <span className="absolute inset-0 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0" />
+                  <span className="absolute inset-0 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-0 pointer-events-none" />
                 </Button>
               )}
             </div>

@@ -1,72 +1,88 @@
 "use client"
 import type React from "react"
 import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { UserCog, Github, ShieldCheck, Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react"
+import { UserCog, Github, Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react"
 import { signIn } from "next-auth/react"
-
-const roles = [
-	{ label: "Backend Engineer", value: "backend" },
-	{ label: "Frontend Developer", value: "frontend" },
-	{ label: "AI/ML Engineer", value: "ai-ml" },
-	{ label: "Product Manager", value: "pm" },
-]
+import { loginSchema } from "@/app/schemas/loginSchema"
+import { toast } from "sonner"
+import Link from "next/link"
 
 export default function LoginPage() {
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+	
 	const [formData, setFormData] = useState({
 		identifier: "", // can be email or username
 		password: "",
-		role: "",
 	})
 	const [showPassword, setShowPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
-	const validateForm = () => {
-		const newErrors: Record<string, string> = {}
-
-		if (!formData.identifier) {
-			newErrors.identifier = "Email or username is required"
-		}
-
-		if (!formData.password) {
-			newErrors.password = "Password is required"
-		} else if (formData.password.length < 6) {
-			newErrors.password = "Password must be at least 6 characters"
-		}
-
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		if (!validateForm()) return
+		
+		// Validate with Zod schema
+		const validation = loginSchema.safeParse(formData)
+		if (!validation.success) {
+			const newErrors: Record<string, string> = {}
+			validation.error.errors.forEach((error) => {
+				newErrors[error.path[0] as string] = error.message
+			})
+			setErrors(newErrors)
+			return
+		}
+
 		setIsLoading(true)
-		const res = await signIn("credentials", {
-			redirect: false,
-			email: formData.identifier, // send as email for backend
-			password: formData.password,
-		})
-		setIsLoading(false)
-		if (res?.error) {
-			setErrors({ ...errors, form: res.error })
-		} else {
-			window.location.href = "/dashboard"
+		setErrors({})
+
+		try {
+			const result = await signIn("credentials", {
+				identifier: formData.identifier,
+				password: formData.password,
+				redirect: false,
+			})
+
+			if (result?.error) {
+				setErrors({ form: "Invalid credentials. Please try again." })
+				toast.error("Login failed", {
+					description: "Invalid credentials. Please check your email/username and password.",
+				})
+			} else if (result?.ok) {
+				toast.success("Login successful", {
+					description: "Welcome back! Redirecting to your dashboard...",
+				})
+				router.push(callbackUrl)
+			}
+		} catch (error) {
+			console.error("Login error:", error)
+			setErrors({ form: "An unexpected error occurred. Please try again." })
+			toast.error("Login failed", {
+				description: "An unexpected error occurred. Please try again.",
+			})
+		} finally {
+			setIsLoading(false)
 		}
 	}
 
-	const handleSocialLogin = async (provider: string) => {
+	const handleGitHubLogin = async () => {
 		setIsLoading(true)
-		// Simulate social login
-		await new Promise((resolve) => setTimeout(resolve, 1500))
-		setIsLoading(false)
-		console.log(`${provider} login initiated`)
+		try {
+			await signIn("github", { callbackUrl })
+		} catch (error) {
+			console.error("GitHub login error:", error)
+			toast.error("GitHub login failed", {
+				description: "Unable to connect to GitHub. Please try again.",
+			})
+			setIsLoading(false)
+		}
 	}
 
 	const handleInputChange = (field: string, value: string) => {
@@ -156,34 +172,6 @@ export default function LoginPage() {
 								)}
 							</div>
 
-							{/* Role Selection */}
-							<div className="space-y-2">
-								<Label htmlFor="role" className="text-sm font-medium">
-									Your role
-								</Label>
-								<Select
-									value={formData.role}
-									onValueChange={(value) => handleInputChange("role", value)}
-									disabled={isLoading}
-								>
-									<SelectTrigger id="role" className={`h-11 ${errors.role ? "border-red-500 focus:ring-red-500" : ""}`}>
-										<SelectValue placeholder="Select your role" />
-									</SelectTrigger>
-									<SelectContent>
-										{roles.map((role) => (
-											<SelectItem key={role.value} value={role.value}>
-												{role.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								{errors.role && (
-									<p className="text-sm text-red-500 flex items-center gap-1">
-										<AlertCircle className="h-3 w-3" />
-										{errors.role}
-									</p>
-								)}
-							</div>
 
 							{/* Sign In Button */}
 							<Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
@@ -221,45 +209,13 @@ export default function LoginPage() {
 									type="button"
 									variant="outline"
 									className="w-full h-11 font-medium"
-									onClick={() => handleSocialLogin("GitHub")}
+									onClick={handleGitHubLogin}
 									disabled={isLoading}
 								>
 									<Github className="mr-2 h-4 w-4" />
 									Continue with GitHub
 								</Button>
-
-								<Button
-									type="button"
-									variant="outline"
-									className="w-full h-11 font-medium"
-									onClick={() => handleSocialLogin("SSO")}
-									disabled={isLoading}
-								>
-									<ShieldCheck className="mr-2 h-4 w-4" />
-									Continue with SSO
-								</Button>
 							</div>
-
-							{/* Demo Mode */}
-							<div className="relative w-full">
-								<div className="absolute inset-0 flex items-center">
-									<Separator className="w-full" />
-								</div>
-								<div className="relative flex justify-center text-xs uppercase">
-									<span className="bg-background px-2 text-muted-foreground">Or try demo</span>
-								</div>
-							</div>
-
-							<Button
-								type="button"
-								variant="ghost"
-								className="w-full h-11 font-medium text-muted-foreground hover:text-foreground"
-								onClick={() => handleSocialLogin("Demo")}
-								disabled={isLoading}
-							>
-								<Eye className="mr-2 h-4 w-4" />
-								Quick Demo Mode
-							</Button>
 						</CardFooter>
 					</form>
 				</Card>
@@ -268,9 +224,9 @@ export default function LoginPage() {
 				<div className="text-center text-sm text-muted-foreground">
 					<p>
 						Don&apos;t have an account?{" "}
-						<Button variant="link" className="p-0 h-auto font-medium text-primary">
-							Sign up here
-						</Button>
+						<Link href="/register" className="font-medium text-primary hover:underline">
+							Register here
+						</Link>
 					</p>
 				</div>
 			</div>

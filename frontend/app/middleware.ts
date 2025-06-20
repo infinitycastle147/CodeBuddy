@@ -8,8 +8,7 @@ const publicRoutes = [
   '/login',
   '/register',
   '/forgotPassword',
-  '/resetPassword',
-  '/api/auth'
+  '/resetPassword'
 ]
 
 // Define protected routes that require authentication
@@ -25,48 +24,66 @@ const protectedRoutes = [
 
 export async function middleware(request: NextRequest) {
   try {
-    const token = await getToken({ req: request })
     const { pathname } = request.nextUrl
 
-    // Allow public routes and static assets
+    // Allow NextAuth API routes
+    if (pathname.startsWith('/api/auth')) {
+      return NextResponse.next()
+    }
+
+    // Allow static assets and Next.js internals
     if (
-      publicRoutes.some(route => pathname.startsWith(route)) ||
       pathname.startsWith('/_next') ||
-      pathname.startsWith('/api/auth')
+      pathname.startsWith('/favicon.ico') ||
+      pathname.includes('.')
     ) {
-      // Redirect authenticated users trying to access auth pages to dashboard
-      if (token && publicRoutes.some(route => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
       return NextResponse.next()
     }
 
-    // Protect routes that require authentication
-    if (protectedRoutes.some(route => pathname.startsWith(route))) {
-      if (!token) {
-        const loginUrl = new URL('/login', request.url)
-        loginUrl.searchParams.set('callbackUrl', pathname)
-        return NextResponse.redirect(loginUrl)
-      }
-      return NextResponse.next()
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.AUTH_SECRET 
+    })
+
+    // Check if current path is a public route
+    const isPublicRoute = publicRoutes.some(route => 
+      pathname === route || pathname.startsWith(route + '/')
+    )
+
+    // Check if current path is a protected route
+    const isProtectedRoute = protectedRoutes.some(route => 
+      pathname.startsWith(route)
+    )
+
+    // Redirect authenticated users from auth pages to dashboard
+    if (token && isPublicRoute && pathname !== '/') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // Default behavior for unmatched routes
+    // Redirect unauthenticated users from protected routes to login
+    if (!token && isProtectedRoute) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
     return NextResponse.next()
   } catch (error) {
     console.error('Middleware Error:', error)
-    return NextResponse.redirect(new URL('/login', request.url))
+    // Don't redirect on error, just continue
+    return NextResponse.next()
   }
 }
- 
-// See "Matching Paths" below to learn more
+
 export const config = {
-    matcher: [
-        '/forgotPassword',
-        '/resetPassword',
-        '/login',
-        '/register',
-        '/',
-        '/dashboard/:path*',
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }

@@ -1,61 +1,72 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GitHubProvider from "next-auth/providers/github";
-import EmailProvider from "next-auth/providers/email";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { MongoClient } from "mongodb";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/app/model/user";
 
+const client = new MongoClient(process.env.MONGODB_URI!);
+
 export const authOptions: NextAuthOptions = {
+    adapter: MongoDBAdapter(client),
     providers: [
-        EmailProvider({
-            server: process.env.EMAIL_SERVER,
-            from: process.env.EMAIL_FROM
-        }),
         GitHubProvider({
-            clientId: process.env.GITHUB_ID || "",
-            clientSecret: process.env.GITHUB_SECRET || "",
+            clientId: process.env.AUTH_GITHUB_ID!,
+            clientSecret: process.env.AUTH_GITHUB_SECRET!,
         }),
         CredentialsProvider({
             id: "credentials",
             name: "Credentials",
             credentials: {
-                username: { label: "Username", type: "text", placeholder: "Enter your username" },
-                email: { label: "Email", type: "text", placeholder: "Enter your email" },
-                password: { label: "Password", type: "password", placeholder: "Enter your password" }
+                identifier: { 
+                    label: "Email or Username", 
+                    type: "text", 
+                    placeholder: "Enter your email or username" 
+                },
+                password: { 
+                    label: "Password", 
+                    type: "password", 
+                    placeholder: "Enter your password" 
+                }
             },
             async authorize(credentials) {
-
-                if (!credentials) {
-                    throw new Error("Credentials are required for login");
-                }
-
-                await dbConnect();
-
-                // Accept either email or username for login
-                const identifier = credentials.email || credentials.username;
-                if (!identifier || !credentials.password) {
+                if (!credentials?.identifier || !credentials?.password) {
                     throw new Error("Email/Username and password are required");
                 }
 
-                const user = await UserModel.findOne({
-                    $or: [
-                        { email: identifier },
-                        { username: identifier }
-                    ]
-                });
+                try {
+                    await dbConnect();
 
-                if (!user) {
-                    throw new Error("No user found with the provided username/email");
+                    const user = await UserModel.findOne({
+                        $or: [
+                            { email: credentials.identifier },
+                            { username: credentials.identifier }
+                        ]
+                    });
+
+                    if (!user) {
+                        throw new Error("No user found with the provided credentials");
+                    }
+
+                    const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+                    if (!isPasswordValid) {
+                        throw new Error("Invalid password");
+                    }
+
+                    return {
+                        id: user._id.toString(),
+                        email: user.email,
+                        name: user.username,
+                        username: user.username,
+                        isVerified: user.isVerified || false,
+                    };
+                } catch (error) {
+                    console.error("Authorization error:", error);
+                    throw new Error("Authentication failed");
                 }
-
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-                if (!isPasswordValid) {
-                    throw new Error("Invalid password");
-                }
-
-                return user;
             }
         })
     ],
@@ -68,38 +79,23 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET,
     callbacks: {
-        async session({ session, user, token }) {
-            console.log('Session Callback Params:', { session, user, token });
-            try {
-                if (token) {
-                    session.user._id = token.sub;
-                    session.user.name = token.name;
-                    session.user.email = token.email;
-                    session.user.isVerified = token.isVerified;
-                    session.user.username = token.username;
-                }
-                return session;
-            } catch (error) {
-                console.error('Session Callback Error:', error);
-                return session;
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+                token.username = user.username;
+                token.isVerified = user.isVerified;
             }
+            return token;
         },
-        async jwt({ token, user, account, profile, isNewUser }) {
-            console.log('JWT Callback Params:', { token, user, account, profile, isNewUser });
-            try {
-                if (user) {
-                    token.isVerified = user.isVerified;
-                    token.id = user._id?.toString();
-                    token.username = user.username;
-                    token.email = user.email ?? undefined;
-                }
-                return token;
-            } catch (error) {
-                console.error('JWT Callback Error:', error);
-                return token;
+        async session({ session, token }) {
+            if (token) {
+                session.user.id = token.id as string;
+                session.user.username = token.username as string;
+                session.user.isVerified = token.isVerified as boolean;
             }
+            return session;
         }
     },
 }

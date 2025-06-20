@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CodeBuddy Frontend
+
+A Next.js 15 application for code analysis and collaboration with AI chat, code exploration, and diagram generation features.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+ 
+- MongoDB database
+- Git
 
+### Environment Setup
+
+1. Copy environment variables:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Update `.env` with your configuration:
+```bash
+# NextAuth Configuration
+AUTH_SECRET="your-secret-key"  # Generate with: openssl rand -base64 32
+NEXTAUTH_URL="http://localhost:3000"
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Database
+MONGODB_URI="mongodb://localhost:27017/codebuddy"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# GitHub OAuth (optional)
+AUTH_GITHUB_ID="your-github-client-id"
+AUTH_GITHUB_SECRET="your-github-client-secret"
+```
 
-## Learn More
+### Development
 
-To learn more about Next.js, take a look at the following resources:
+1. Install dependencies:
+```bash
+npm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Run the development server:
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-## Deploy on Vercel
+### Build & Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build
+npm start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture
+
+- **Framework**: Next.js 15 with App Router
+- **Authentication**: NextAuth.js v4 with MongoDB adapter
+- **Database**: MongoDB with Mongoose ODM
+- **UI**: Shadcn/ui + Tailwind CSS + Custom animate-ui components
+- **Code Editor**: Monaco Editor
+- **Diagrams**: Mermaid
+
+## Development Guidelines
+
+### Commit Message Format
+
+Follow conventional commits with this structure:
+
+```
+<type>: <description>
+
+<detailed explanation>
+- Bullet points for specific changes
+- Include technical details
+- Reference breaking changes
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code refactoring
+- `docs`: Documentation changes
+- `style`: Formatting changes
+- `test`: Adding tests
+- `chore`: Maintenance tasks
+
+**Example:**
+```
+fix: modernize NextAuth configuration for proper authentication flow
+
+- Update environment variables to use standard NextAuth naming (AUTH_SECRET, AUTH_GITHUB_ID)
+- Add MongoDB adapter for proper session and user data persistence
+- Fix JWT and session callbacks with correct type mapping (user.id vs user._id)
+- Improve credentials provider with single identifier field for email/username
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Code Standards
+
+- Use TypeScript strict mode
+- Follow ESLint configuration
+- Use Prettier for formatting
+- Write descriptive commit messages
+- Include tests for new features
+
+### Project Structure
+
+```
+app/
+├── (public)/          # Unauthenticated routes
+├── (authorised)/      # Protected routes with sidebar
+├── api/              # API routes
+├── context/          # React contexts
+└── types/            # TypeScript declarations
+
+components/
+├── ui/               # Shadcn/ui components
+├── animate-ui/       # Custom animated components
+└── custom-components/ # Project-specific components
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Authentication
+
+The app uses NextAuth.js with:
+- MongoDB adapter for session persistence
+- Credentials provider (email/username + password)
+- GitHub OAuth provider
+- Protected route middleware
+- JWT-based sessions
+
+## Contributing
+
+1. Follow the commit message format above
+2. Ensure TypeScript compilation passes
+3. Run linting before committing
+4. Test authentication flow after changes
+5. Update documentation as needed

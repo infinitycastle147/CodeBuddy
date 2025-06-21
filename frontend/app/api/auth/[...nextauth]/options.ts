@@ -10,11 +10,22 @@ import UserModel from "@/app/model/user";
 const client = new MongoClient(process.env.MONGODB_URI!);
 
 export const authOptions: NextAuthOptions = {
-    adapter: MongoDBAdapter(client),
+    // Remove adapter for JWT strategy to avoid account linking conflicts
+    // adapter: MongoDBAdapter(client),
     providers: [
         GitHubProvider({
             clientId: process.env.AUTH_GITHUB_ID!,
             clientSecret: process.env.AUTH_GITHUB_SECRET!,
+            async profile(profile) {
+                return {
+                    id: profile.id.toString(),
+                    name: profile.name || profile.login,
+                    username: profile.login,
+                    email: profile.email,
+                    image: profile.avatar_url,
+                    isVerified: profile.email ? true : false,
+                };
+            },
         }),
         CredentialsProvider({
             id: "credentials",
@@ -96,6 +107,58 @@ export const authOptions: NextAuthOptions = {
                 session.user.isVerified = token.isVerified as boolean;
             }
             return session;
+        },
+        async signIn({ user, account, profile }) {
+            if (account?.provider === "github") {
+                try {
+                    await dbConnect();
+                    
+                    // Check if user exists by email
+                    const existingUser = await UserModel.findOne({ email: user.email });
+
+                    if (!existingUser) {
+                        // Create new user for GitHub OAuth
+                        const newUser = new UserModel({
+                            username: user.username || user.name?.toLowerCase().replace(/\s+/g, '') || `github_${account.providerAccountId}`,
+                            email: user.email,
+                            image: user.image,
+                            isVerified: true,
+                            accounts: [{
+                                provider: account.provider,
+                                providerAccountId: account.providerAccountId,
+                                type: account.type,
+                            }]
+                        });
+                        await newUser.save();
+                    } else {
+                        // Update existing user with GitHub account info if not already linked
+                        const hasGitHubAccount = existingUser.accounts?.some(
+                            acc => acc.provider === 'github' && acc.providerAccountId === account.providerAccountId
+                        );
+                        
+                        if (!hasGitHubAccount) {
+                            existingUser.accounts = existingUser.accounts || [];
+                            existingUser.accounts.push({
+                                provider: account.provider,
+                                providerAccountId: account.providerAccountId,
+                                type: account.type,
+                            });
+                            
+                            // Update image if not set
+                            if (!existingUser.image && user.image) {
+                                existingUser.image = user.image;
+                            }
+                            
+                            await existingUser.save();
+                        }
+                    }
+                    return true;
+                } catch (error) {
+                    console.error("Error during GitHub sign-in:", error);
+                    return false;
+                }
+            }
+            return true;
         }
     },
 }

@@ -6,8 +6,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Settings,
   Home,
@@ -15,9 +26,14 @@ import {
   MessageCircle,
   GitBranchPlus,
   Code2Icon,
+  LogOut,
+  User,
+  ChevronUp,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useUser } from "@/app/context/UserContext";
+import { signOut } from "next-auth/react";
 
 interface AppSidebarProps {
   role: string;
@@ -91,6 +107,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [activeHref, setActiveHref] = useState<string>(pathname);
+  const { user } = useUser();
 
   useEffect(() => {
     setActiveHref(pathname);
@@ -147,6 +164,25 @@ export function AppSidebar({ role }: AppSidebarProps) {
           ))}
         </SidebarMenu>
       </SidebarContent>
+
+      <SidebarFooter className="p-4 border-t border-border">
+        <div className="flex items-center gap-3 text-sm">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user?.image || undefined} alt={user?.username} />
+            <AvatarFallback className="text-xs">
+              {user?.username?.substring(0, 2).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="font-medium truncate">
+              {user?.name || user?.username}
+            </span>
+            <span className="text-xs text-muted-foreground truncate">
+              @{user?.username}
+            </span>
+          </div>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

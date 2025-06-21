@@ -1,76 +1,92 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Code, AlertCircle, Loader2, Github } from "lucide-react"
-import { registerSchema } from "@/app/schemas/registerSchema"
-import { toast } from "sonner"
-import Link from "next/link"
-import { signIn } from "next-auth/react"
-import { Separator } from "@/components/ui/separator"
+// React and Next.js core
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+// Authentication
+import { signIn } from "next-auth/react";
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+
+// Icons
+import { Eye, EyeOff, Code, AlertCircle, Loader2, Github } from "lucide-react";
+
+// Validation and Notifications
+import { registerSchema } from "@/app/schemas/registerSchema";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
-  })
+  });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const handleGitHubRegister = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await signIn("github", { callbackUrl: "/dashboard" })
+      await signIn("github", { redirectTo: "/dashboard" });
     } catch (error) {
-      console.error("GitHub registration error:", error)
+      console.error("GitHub registration error:", error);
       toast.error("GitHub registration failed", {
         description: "Unable to connect to GitHub. Please try again.",
-      })
-      setIsLoading(false)
+      });
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // Validate with Zod schema
-    const validation = registerSchema.safeParse(formData)
+    const validation = registerSchema.safeParse(formData);
     if (!validation.success) {
-      const newErrors: Record<string, string> = {}
+      const newErrors: Record<string, string> = {};
       validation.error.errors.forEach((error) => {
-        newErrors[error.path[0] as string] = error.message
-      })
-      setErrors(newErrors)
-      return
+        newErrors[error.path[0] as string] = error.message;
+      });
+      setErrors(newErrors);
+      return;
     }
 
     if (!formData.agreeToTerms) {
-      setErrors({ agreeToTerms: "You must agree to the terms and conditions" })
-      return
+      setErrors({ agreeToTerms: "You must agree to the terms and conditions" });
+      return;
     }
 
-    setIsLoading(true)
-    setErrors({})
+    setIsLoading(true);
+    setErrors({});
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -83,41 +99,43 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
         if (response.status === 400) {
-          setErrors({ form: data.message || "Invalid input data" })
+          setErrors({ form: data.message || "Invalid input data" });
         } else if (response.status === 409) {
-          setErrors({ form: "User with this email or username already exists" })
+          setErrors({
+            form: "User with this email or username already exists",
+          });
         } else {
-          setErrors({ form: "Failed to create account. Please try again." })
+          setErrors({ form: "Failed to create account. Please try again." });
         }
         toast.error("Registration failed", {
-          description: data.message || "Please check your information and try again.",
-        })
-        return
+          description:
+            data.message || "Please check your information and try again.",
+        });
+        return;
       }
 
       toast.success("Account created successfully!", {
         description: "You can now log in with your credentials.",
-      })
-      
+      });
+
       // Redirect to login page
-      router.push("/login")
-      
+      router.push("/login");
     } catch (error) {
-      console.error("Registration error:", error)
-      setErrors({ form: "An unexpected error occurred. Please try again." })
+      console.error("Registration error:", error);
+      setErrors({ form: "An unexpected error occurred. Please try again." });
       toast.error("Registration failed", {
         description: "An unexpected error occurred. Please try again.",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
@@ -129,7 +147,9 @@ export default function RegisterPage() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Join CodeBuddy</CardTitle>
-          <CardDescription>Create your account and get your AI-powered teammate</CardDescription>
+          <CardDescription>
+            Create your account and get your AI-powered teammate
+          </CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -143,7 +163,11 @@ export default function RegisterPage() {
                 placeholder="Enter your username"
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
-                className={errors.username ? "border-red-500 focus-visible:ring-red-500" : ""}
+                className={
+                  errors.username
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : ""
+                }
                 disabled={isLoading}
                 required
               />
@@ -164,7 +188,11 @@ export default function RegisterPage() {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                className={
+                  errors.email
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : ""
+                }
                 disabled={isLoading}
                 required
               />
@@ -185,8 +213,14 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a password"
                   value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
-                  className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
+                  className={
+                    errors.password
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
                   disabled={isLoading}
                   required
                 />
@@ -198,7 +232,11 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               {errors.password && (
@@ -218,8 +256,14 @@ export default function RegisterPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                  className={errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  onChange={(e) =>
+                    handleInputChange("confirmPassword", e.target.value)
+                  }
+                  className={
+                    errors.confirmPassword
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
                   disabled={isLoading}
                   required
                 />
@@ -231,7 +275,11 @@ export default function RegisterPage() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={isLoading}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               {errors.confirmPassword && (
@@ -247,16 +295,24 @@ export default function RegisterPage() {
               <Checkbox
                 id="terms"
                 checked={formData.agreeToTerms}
-                onCheckedChange={(checked) => handleInputChange("agreeToTerms", checked as boolean)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("agreeToTerms", checked as boolean)
+                }
                 disabled={isLoading}
               />
               <Label htmlFor="terms" className="text-sm">
                 I agree to the{" "}
-                <Link href="/terms" className="text-primary hover:underline font-medium">
+                <Link
+                  href="/terms"
+                  className="text-primary hover:underline font-medium"
+                >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-primary hover:underline font-medium">
+                <Link
+                  href="/privacy"
+                  className="text-primary hover:underline font-medium"
+                >
                   Privacy Policy
                 </Link>
               </Label>
@@ -298,7 +354,9 @@ export default function RegisterPage() {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
 
@@ -315,7 +373,10 @@ export default function RegisterPage() {
 
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline font-medium">
+              <Link
+                href="/login"
+                className="text-primary hover:underline font-medium"
+              >
                 Login here
               </Link>
             </p>
@@ -323,5 +384,5 @@ export default function RegisterPage() {
         </form>
       </Card>
     </div>
-  )
+  );
 }

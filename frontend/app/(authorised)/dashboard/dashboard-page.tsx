@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useUser } from "@/app/context/UserContext"
 import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
@@ -35,6 +36,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 function TopbarNavigation() {
+  const { user } = useUser();
+  
   return (
     <header className="flex items-center justify-between w-full h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
       <div className="flex items-center gap-4">
@@ -48,7 +51,7 @@ function TopbarNavigation() {
               <div className="min-w-0">
                 <h1 className="text-xl text-black font-bold leading-tight">Dashboard</h1>
                 <p className="text-xs text-muted-foreground leading-tight">
-                  Welcome to your dashboard, where you can manage your projects and view insights.
+                  Welcome back, {user?.name || user?.username}! Here's your project overview.
                 </p>
               </div>
             </BreadcrumbItem>

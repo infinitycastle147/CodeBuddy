@@ -59,6 +59,12 @@ def create_app() -> FastAPI:
     app.include_router(diagram_router)
     app.include_router(user_router)
 
+    # Health check endpoint
+    @app.get("/health")
+    async def health_check():
+        """Health check endpoint for load balancers and monitoring."""
+        return {"status": "healthy", "service": "CodeBuddy Backend"}
+
     # Add exception handlers
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request, exc):

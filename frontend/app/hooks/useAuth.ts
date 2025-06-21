@@ -56,10 +56,10 @@ export function useAuth(): UseAuthReturn {
 
   const user: AuthUser | null = session?.user ? {
     id: session.user.id,
-    username: session.user.username,
-    email: session.user.email,
-    name: session.user.name,
-    image: session.user.image,
+    username: session.user.username || session.user.email || '',
+    email: session.user.email || '',
+    name: session.user.name || undefined,
+    image: session.user.image || undefined,
     isVerified: session.user.isVerified || false,
   } : null;
 

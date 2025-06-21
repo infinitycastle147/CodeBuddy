@@ -45,8 +45,8 @@ export function UserProvider({ children }: UserProviderProps) {
     if (session?.user) {
       const userProfile: UserProfile = {
         id: session.user.id,
-        username: session.user.username,
-        email: session.user.email,
+        username: session.user.username || session.user.email || '',
+        email: session.user.email || '',
         name: session.user.name || session.user.username,
         image: session.user.image || undefined,
         isVerified: session.user.isVerified || false,

@@ -31,6 +31,7 @@
 - **Sentence Transformers** - Vector embeddings for semantic code search
 - **Mermaid** - Diagram generation and visualization
 - **LiteLLM** - Multi-provider LLM integration
+- **Langfuse** - LLM observability and tracing platform
 
 ### **Project Structure**
 
@@ -52,7 +53,11 @@ backend/
 │   ├── celery/
 │   │   └── worker.py             # Background task processing
 │   ├── core/
-│   │   ├── logging.py            # Loguru-based logging setup
+│   │   ├── logging.py            # Unified loguru logging configuration
+│   │   ├── langfuse/             # Langfuse observability integration
+│   │   │   ├── __init__.py       # Langfuse exports
+│   │   │   ├── client.py         # Langfuse client setup
+│   │   │   └── agent_tracing.py  # Multi-agent tracing utilities
 │   │   ├── middleware.py         # Credential decryption middleware
 │   │   └── responses.py          # Custom response handlers
 │   ├── db/
@@ -79,6 +84,7 @@ backend/
 │   ├── utils/                    # Core utilities
 │   │   ├── github_handler.py     # Secure repository cloning
 │   │   ├── embedder.py           # Code processing and embeddings
+│   │   ├── logger.py             # Logger utility for imports
 │   │   └── xml_converter.py      # Robust XML parsing
 │   └── tests/
 │       └── test_tools_router.py  # Unit tests
@@ -178,6 +184,12 @@ APPLICATION_CORS_ALLOW_ORIGINS=*
 APPLICATION_CORS_ALLOW_METHODS=*
 APPLICATION_CORS_ALLOW_HEADERS=*
 
+# Langfuse Configuration (LLM Observability)
+LANGFUSE_SECRET_KEY=sk-lf-your-secret-key-here
+LANGFUSE_PUBLIC_KEY=pk-lf-your-public-key-here
+LANGFUSE_HOST=https://cloud.langfuse.com
+LANGFUSE_ENABLED=true
+
 # Server Configuration
 APPLICATION_UVICORN_WORKERS_COUNT=4
 APPLICATION_UVICORN_TIMEOUT=120
@@ -190,6 +202,19 @@ APPLICATION_UVICORN_KEEP_ALIVE=2
 from cryptography.fernet import Fernet
 print(Fernet.generate_key().decode())
 ```
+
+### **Setup Langfuse (Optional but Recommended)**
+
+1. **Create Account**: Sign up at [cloud.langfuse.com](https://cloud.langfuse.com)
+2. **Get API Keys**: Create a new project and copy your keys
+3. **Configure Environment**: Add the keys to your `.env` file
+4. **Verify Setup**: Check Langfuse dashboard after making API calls
+
+**Benefits of Langfuse Integration:**
+- 🔍 **Debug Multi-Agent Flows**: See exactly where agents succeed/fail
+- 📊 **Performance Analytics**: Track response times and costs  
+- 🎯 **Quality Monitoring**: Score and evaluate agent responses
+- 👥 **User Insights**: Understand user interaction patterns
 
 ---
 
@@ -335,15 +360,26 @@ pytest app/tests/ -v
 ## **📊 Monitoring & Logging**
 
 ### **Logging System**
-- **Framework**: Loguru with standard library integration
-- **Log Files**: Stored in `logs/app.log`
-- **Rotation**: Weekly with monthly retention
+- **Framework**: Unified loguru logging across the entire application
+- **Console Output**: Colored, structured logs for development
+- **Log Files**: 
+  - `logs/app.log` - All application logs (10MB rotation, 1 week retention)
+  - `logs/error.log` - Error-only logs (10MB rotation, 1 month retention)
+- **Compression**: Automatic gzip compression of rotated logs
 - **Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+### **LLM Observability with Langfuse**
+- **Multi-Agent Tracing**: Individual agent execution tracking
+- **Performance Metrics**: Response times, token usage, costs
+- **Error Monitoring**: Agent failure detection and debugging
+- **User Analytics**: Session tracking and conversation flows
+- **Custom Evaluations**: Quality scoring and feedback loops
 
 ### **Monitoring**
 - **Health Checks**: Available on all router endpoints
 - **Task Status**: Real-time Celery task monitoring
 - **Error Tracking**: Comprehensive exception handling
+- **Agent Observability**: Full multi-agent system visibility via Langfuse
 
 ---
 
@@ -559,6 +595,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Celery** - Distributed task queue
 - **Sentence Transformers** - Text embeddings
 - **Mermaid** - Diagram generation
+- **Langfuse** - LLM observability and tracing
+- **Loguru** - Elegant logging framework
 
 ---
 

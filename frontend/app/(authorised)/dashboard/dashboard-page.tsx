@@ -51,7 +51,7 @@ function TopbarNavigation() {
               <div className="min-w-0">
                 <h1 className="text-xl text-black font-bold leading-tight">Dashboard</h1>
                 <p className="text-xs text-muted-foreground leading-tight">
-                  Welcome back, {user?.name || user?.username}! Here's your project overview.
+                  Welcome back, {user?.name || user?.username}! Here&apos;s your project overview.
                 </p>
               </div>
             </BreadcrumbItem>

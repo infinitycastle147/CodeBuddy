@@ -28,7 +28,6 @@ import {
   Shield,
   Rocket,
 } from "lucide-react";
-import { ToggleGroup } from "@/components/animate-ui/radix/toggle-group";
 
 export default function LandingPage() {
   return (

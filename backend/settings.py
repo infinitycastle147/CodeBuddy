@@ -85,6 +85,12 @@ class Settings(BaseSettings):
     # Encryption settings
     encryption_key: str = Field(Fernet.generate_key().decode(), alias="APPLICATION_ENCRYPTION_KEY")  # Generate a 32-byte Fernet key
 
+    # Langfuse settings
+    langfuse_secret_key: str = Field("", alias="LANGFUSE_SECRET_KEY")
+    langfuse_public_key: str = Field("", alias="LANGFUSE_PUBLIC_KEY")
+    langfuse_host: str = Field("https://cloud.langfuse.com", alias="LANGFUSE_HOST")
+    langfuse_enabled: bool = Field(True, alias="LANGFUSE_ENABLED")
+
     @property
     def workers_count(self) -> int:
         """

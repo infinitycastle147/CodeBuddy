@@ -5,6 +5,7 @@ from app.dto.chat_dto import (
     MessageDTO,
     MessageResponse,
 )
+from app.models import user
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -13,6 +14,7 @@ from app.repositories.implementations import ChatRepository
 from app.api.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
 from app.models.chat import Chat
+from app.core.langfuse import trace_agent_execution, create_trace, flush_langfuse
 from settings import settings
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -64,7 +66,7 @@ async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
     """
     try:
         # Create a new chat
-        chat = Chat(title="New Chat")
+        chat = Chat(title="New Chat", user_id="123")
 
         initial_message = "Hello! I am CodeBuddy. I am here to help you with your coding tasks. How can I assist you today?"
 
@@ -73,7 +75,9 @@ async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
         created_chat = await chat_repo.create(chat)
 
         created_chat = ChatResponse(
+            title=created_chat.title,
             id=str(created_chat.id),
+            user_id=str(created_chat.user_id),
             messages=[
                 MessageDTO(**message.model_dump(by_alias=True))
                 for message in created_chat.messages
@@ -90,6 +94,7 @@ async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
 
 
 @router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
+@trace_agent_execution("chat_message_endpoint")
 async def add_message(
     chat_id: str,
     request: ChatRequest,
@@ -111,12 +116,22 @@ async def add_message(
         # Add user message
         chat.add_message(role="user", content=request.message)
 
-        # Generate AI response
+        # Generate AI response with tracing
+        trace = create_trace(
+            name="chat_conversation",
+            user_id="123",  # Replace with actual user ID
+            session_id=chat_id,
+            metadata={"message": request.message}
+        )
+        
         ai_response = await generate_ai_response(request.message)
         assistant_message = chat.add_message(role="assistant", content=ai_response)
 
         # Update the chat
         await chat_repo.update(chat_id, chat)
+        
+        # Flush Langfuse events
+        flush_langfuse()
 
         assistant_message = MessageResponse(
             role=assistant_message.role,
@@ -135,6 +150,7 @@ async def add_message(
         )
 
 
+@trace_agent_execution("generate_ai_response")
 async def generate_ai_response(message: str) -> str:
     """
     Generate AI response using the chat agent.

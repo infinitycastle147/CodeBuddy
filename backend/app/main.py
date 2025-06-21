@@ -8,6 +8,9 @@
 # Standard library imports
 import uvicorn
 
+# Configure logging first
+from app.core.logging import setup_logging
+
 # Third-party imports
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,13 +25,15 @@ from app.routers.diagram_router import router as diagram_router
 from app.routers.user_router import router as user_router
 from app.core.middleware import decrypt_credentials_middleware
 from settings import settings
+from loguru import logger
 
 
 def create_app() -> FastAPI:
     """
     Factory function to create and configure the FastAPI application.
     """
-
+    logger.info("Initializing CodeBuddy FastAPI application")
+    
     app = FastAPI(
         title="CodeBuddy",
         description="CodeBuddy is a tool for developers to help them understand their code by generating diagrams and interacting with AI.",
@@ -48,6 +53,7 @@ def create_app() -> FastAPI:
     app.middleware("http")(decrypt_credentials_middleware)
 
     # Include application routers
+    logger.info("Including application routers")
     app.include_router(tools_router)
     app.include_router(chat_router)
     app.include_router(diagram_router)
@@ -56,12 +62,15 @@ def create_app() -> FastAPI:
     # Add exception handlers
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request, exc):
+        logger.error(f"HTTP Exception: {exc.detail} - Status: {exc.status_code}")
         return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request, exc):
+        logger.error(f"Validation Error: {exc.errors()}")
         return JSONResponse({"detail": exc.errors()}, status_code=422)
 
+    logger.info("FastAPI application initialized successfully")
     return app
 
 app = create_app()

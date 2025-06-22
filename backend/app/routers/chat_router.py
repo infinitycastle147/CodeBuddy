@@ -44,6 +44,8 @@ async def get_chat(
 
         chat = ChatResponse(
             id=str(chat.id),
+            title=chat.title,
+            user_id=str(chat.user_id),
             messages=[
                 MessageDTO(**message.model_dump(by_alias=True))
                 for message in chat.messages

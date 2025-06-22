@@ -50,6 +50,13 @@ backend/
 │   │   └── constants/            # General and Mermaid instructions
 │   ├── api/
 │   │   └── dependencies.py       # FastAPI dependency injection
+│   ├── auth/                      # NextAuth JWT authentication system
+│   │   ├── __init__.py           # Auth module exports
+│   │   ├── jwt_handler.py        # JWT/session token verification
+│   │   ├── middleware.py         # Authentication middleware
+│   │   ├── dependencies.py      # Auth dependencies for routes
+│   │   ├── token_utils.py        # Token extraction utilities
+│   │   └── utils.py              # User data processing utilities
 │   ├── celery/
 │   │   └── worker.py             # Background task processing
 │   ├── core/
@@ -301,6 +308,147 @@ graph TD
     I --> J[Diagram Checker]
     H --> K[Final Response]
     J --> K
+```
+
+---
+
+## **🔐 Authentication System**
+
+### **NextAuth Integration with JWT Verification**
+
+CodeBuddy implements secure user authentication that integrates with NextAuth frontend sessions and supports both JWT tokens and session cookies from a shared MongoDB database.
+
+### **Authentication Flow**
+
+```mermaid
+graph TD
+    A[Frontend Request] --> B{Request Type}
+    B -->|With JWT Token| C[Authorization Header]
+    B -->|With Session Cookie| D[NextAuth Session Cookie]
+    
+    C --> E[Auth Middleware]
+    D --> E
+    
+    E --> F{Path Check}
+    F -->|Public Path| G[Skip Authentication]
+    F -->|Protected Path| H[Verify Token/Session]
+    
+    H --> I{JWT Token?}
+    I -->|Yes| J[Verify JWT with PyJWT]
+    I -->|No| K[Verify Session in MongoDB]
+    
+    J --> L{Valid?}
+    K --> L
+    
+    L -->|No| M[Return 401 Unauthorized]
+    L -->|Yes| N[Extract User Data]
+    
+    N --> O[Store in request.state]
+    O --> P[Continue to Route Handler]
+    
+    P --> Q[Get User from Database]
+    Q --> R[Route Handler Logic]
+    
+    G --> S[Route Handler Logic]
+    
+    style A fill:#e1f5fe
+    style E fill:#f3e5f5
+    style H fill:#fff3e0
+    style M fill:#ffebee
+    style R fill:#e8f5e8
+    style S fill:#e8f5e8
+```
+
+### **Authentication Architecture**
+
+#### **Dual Authentication Support**
+- **JWT Tokens**: Bearer tokens in Authorization header
+- **Session Cookies**: NextAuth session tokens from shared MongoDB
+
+#### **Middleware-Based Protection**
+- **Global Authentication**: Applied at application level via middleware
+- **Path-Based Access Control**: Configurable public/protected routes
+- **Automatic User Sync**: NextAuth users automatically created/updated in app database
+
+#### **Security Features**
+- ✅ **Token Verification**: Cryptographic verification using PyJWT
+- ✅ **Expiration Checking**: Automatic token/session expiration validation  
+- ✅ **User Synchronization**: Seamless user data sync between NextAuth and application
+- ✅ **Flexible Authentication**: Supports both JWT and session-based authentication
+- ✅ **Type Safety**: Full TypeScript/Python type support for user objects
+
+### **Public vs Protected Routes**
+
+#### **Public Routes** (No Authentication Required)
+```python
+PUBLIC_PATHS = {
+    "/docs", "/redoc", "/openapi.json",
+    "/health", 
+    "/user/health", "/chat/health", "/tools/health", "/diagram/health",
+}
+
+PUBLIC_POST_PATHS = {
+    "/user/",  # User registration
+}
+```
+
+#### **Protected Routes** (Authentication Required)
+```python
+PROTECTED_PATH_PREFIXES = {
+    "/chat",    # All chat endpoints
+    "/tools",   # All tools endpoints  
+    "/diagram", # All diagram endpoints
+    "/user",    # All user endpoints except POST /user/
+}
+```
+
+### **Usage in Route Handlers**
+
+```python
+from fastapi import Depends
+from app.api.dependencies import get_current_user
+from app.models.user import User
+
+@router.get("/my-endpoint")
+async def my_endpoint(current_user: User = Depends(get_current_user)):
+    return {
+        "message": f"Hello {current_user.name}!",
+        "user_id": current_user.id,
+        "email": current_user.email
+    }
+```
+
+### **Frontend Integration**
+
+#### **Using Session Cookies (Automatic)**
+```javascript
+// Cookies automatically sent with requests
+const response = await fetch('/api/chat/', {
+    credentials: 'include'
+});
+```
+
+#### **Using JWT Tokens (Manual)**
+```javascript
+// With Authorization header
+const session = await getSession();
+const response = await fetch('/api/chat/', {
+    headers: {
+        'Authorization': `Bearer ${session.accessToken}`
+    }
+});
+```
+
+### **Environment Configuration**
+
+Add to your `.env` file:
+```env
+# NextAuth Secret (must match frontend)
+NEXTAUTH_SECRET=your-nextauth-secret-here
+
+# Shared MongoDB (same as NextAuth)
+APPLICATION_MONGO_URI=mongodb://localhost:27017
+APPLICATION_MONGO_DB=your-database-name
 ```
 
 ---

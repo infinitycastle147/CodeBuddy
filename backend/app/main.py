@@ -24,6 +24,7 @@ from app.routers.chat_router import router as chat_router
 from app.routers.diagram_router import router as diagram_router
 from app.routers.user_router import router as user_router
 from app.core.middleware import decrypt_credentials_middleware
+from app.auth.middleware import auth_middleware
 from settings import settings
 from loguru import logger
 
@@ -51,6 +52,9 @@ def create_app() -> FastAPI:
 
     # Add credential decryption middleware
     app.middleware("http")(decrypt_credentials_middleware)
+    
+    # Add authentication middleware
+    app.middleware("http")(auth_middleware)
 
     # Include application routers
     logger.info("Including application routers")

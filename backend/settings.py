@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     langfuse_public_key: str = Field("", alias="LANGFUSE_PUBLIC_KEY")
     langfuse_host: str = Field("https://cloud.langfuse.com", alias="LANGFUSE_HOST")
     langfuse_enabled: bool = Field(True, alias="LANGFUSE_ENABLED")
+    
+    # NextAuth settings
+    nextauth_secret: str = Field("", alias="NEXTAUTH_SECRET")
 
     @property
     def workers_count(self) -> int:

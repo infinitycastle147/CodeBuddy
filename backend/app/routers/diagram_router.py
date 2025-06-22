@@ -151,8 +151,25 @@ async def update_diagram(
         # Updated diagram
         updated_diagram_content = request.content
 
+        existing_diagram = await diagram_repo.find_by_id(diagram_id)
+
+        if not existing_diagram:
+            return create_error_response(
+                code="diagram_not_found",
+                message="Diagram not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        updated_diagram = Diagram(
+            id = existing_diagram.id,
+            user_id = existing_diagram.user_id,
+            title = existing_diagram.title,
+            description = existing_diagram.description,
+            content = updated_diagram_content,
+        )
+
         # Update the diagram
-        updated_diagram = await diagram_repo.update(diagram_id, updated_diagram_content)
+        updated_diagram = await diagram_repo.update(diagram_id, updated_diagram)
 
         updated_diagram = DiagramResponse(
             id=updated_diagram.id,

@@ -1,47 +1,43 @@
-from pydantic import EmailStr, Field, BaseModel
-from typing import Optional
+from pydantic import EmailStr, Field, ConfigDict
+from typing import Optional, List, Any
 from .base import BaseModelWithId
 from datetime import datetime
 
+
 class User(BaseModelWithId):
+    """Core User model for database operations with flexible field handling"""
+
     email: EmailStr = Field(..., description="The user's email address")
     username: str = Field(..., description="The user's username")
-    password: Optional[str] = Field(None, min_length=8, description="The user's password (optional for OAuth users)")
+    password: Optional[str] = Field(
+        None, min_length=8, description="The user's password (optional for OAuth users)"
+    )
     name: Optional[str] = Field(None, description="The user's full name")
     image: Optional[str] = Field(None, description="The user's profile image URL")
-    provider: Optional[str] = Field(None, description="OAuth provider (e.g., 'google', 'github')")
+    provider: Optional[str] = Field(
+        None, description="OAuth provider (e.g., 'google', 'github')"
+    )
     provider_id: Optional[str] = Field(None, description="OAuth provider user ID")
-    email_verified: Optional[datetime] = Field(None, description="Email verification timestamp")
-    is_active: bool = Field(True, description="Whether the user account is active")
+    email_verified: Optional[datetime] = Field(
+        None, description="Email verification timestamp", alias="emailVerified"
+    )
+    is_verified: Optional[bool] = Field(
+        None, description="Whether email is verified", alias="isVerified"
+    )
+    is_active: bool = Field(
+        True, description="Whether the user account is active", alias="isActive"
+    )
+    accounts: Optional[List[Any]] = Field(
+        None, description="OAuth accounts associated with user"
+    )
 
-class UserResponse(BaseModel):
-    id: str
-    email: EmailStr
-    username: str
-    name: Optional[str] = None
-    image: Optional[str] = None
-    provider: Optional[str] = None
-    email_verified: Optional[datetime] = None
-    is_active: bool
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    
-    class Config:
-        orm_mode = True
+    # MongoDB version field
+    version: Optional[int] = Field(None, alias="__v")
 
-class UserCreate(BaseModel):
-    email: EmailStr
-    username: str
-    password: Optional[str] = None
-    name: Optional[str] = None
-    image: Optional[str] = None
-    provider: Optional[str] = None
-    provider_id: Optional[str] = None
-
-class NextAuthUser(BaseModel):
-    """User model compatible with NextAuth session"""
-    id: str
-    email: EmailStr
-    name: Optional[str] = None
-    image: Optional[str] = None
-    username: str
+    # Override config to allow extra fields from database
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        extra="ignore",  # Ignore extra fields instead of forbidding them
+        json_encoders={datetime: lambda v: v.isoformat()},
+    )

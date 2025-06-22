@@ -2,7 +2,7 @@ from .base import BaseModelWithId
 from .chat import Chat
 from .message import Message
 from .diagram import Diagram, DiagramResponse
-from .user import User, UserResponse
+from .user import User
 
 __all__ = [
     "BaseModelWithId",
@@ -11,5 +11,4 @@ __all__ = [
     "Diagram",
     "DiagramResponse",
     "User",
-    "UserResponse"
 ]

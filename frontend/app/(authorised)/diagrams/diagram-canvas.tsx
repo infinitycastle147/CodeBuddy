@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast"
 interface DiagramCanvasProps {
   initialDiagram?: string
   onSave?: (diagram: string) => void
+  onChange?: (diagram: string) => void
 }
 
 const GRID_BG_STYLE = {
@@ -30,8 +31,14 @@ function DiagramCanvas({
     C --> E[End]
     D --> E`,
   onSave,
+  onChange,
 }: DiagramCanvasProps) {
   const [mermaidCode, setMermaidCode] = useState(initialDiagram)
+
+  // Update mermaidCode when initialDiagram changes
+  useEffect(() => {
+    setMermaidCode(initialDiagram)
+  }, [initialDiagram])
   const [isEditMode, setIsEditMode] = useState(false)
   const [svg, setSvg] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +69,16 @@ function DiagramCanvas({
 
     renderDiagram()
   }, [mermaidCode])
+
+  // Call onChange when mermaidCode changes (excluding initial load)
+  const isInitializedRef = useRef(false)
+  useEffect(() => {
+    if (isInitializedRef.current) {
+      onChange?.(mermaidCode)
+    } else {
+      isInitializedRef.current = true
+    }
+  }, [mermaidCode, onChange])
 
   const handleEditorDidMount = useCallback((editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor

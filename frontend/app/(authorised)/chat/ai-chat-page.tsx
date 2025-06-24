@@ -1,19 +1,39 @@
 "use client";
 
-import { useState } from "react";
+// External Dependencies and React Core
+import { useState, useEffect, useMemo } from "react";
+import { MessageCircle, Settings, Plus, Loader2, Activity } from "lucide-react";
+
+// Local Components
 import ChatHistory from "@/app/(authorised)/chat/components/ChatHistory";
 import ContextPanel from "@/app/(authorised)/chat/components/ContextPanel";
 import ChatInputArea from "@/app/(authorised)/chat/components/ChatInputArea";
 import { type Message } from "@/app/(authorised)/chat/components/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Settings, AlertCircle } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
+// Custom Hooks
+import { useCreateChat, useAddMessage, useChat } from "@/hooks/api-hooks";
+import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { Card } from "@/components/ui/card";
+
 export default function AiChatPage() {
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // React Query hooks - using our built infrastructure
+  const createChatMutation = useCreateChat();
+  const addMessageMutation = useAddMessage();
+  const {
+    data: chatData,
+    isLoading: chatLoading,
+    error: chatError,
+  } = useChat(currentChatId || "", !!currentChatId);
+
+  const isTyping = addMessageMutation.isPending;
 
   const handleFeedback = (
     messageId: string,
@@ -31,104 +51,206 @@ export default function AiChatPage() {
     );
   };
 
-  const addMessage = async (content: string) => {
-    setError(null);
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    setIsTyping(true);
-    try {
-      const response = await fetch("http://localhost:8000/tools/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_input: content }),
+  // Convert API messages to component format
+  const formattedMessages = useMemo(() => {
+    if (!chatData?.messages) return [];
+
+    return chatData.messages.map(
+      (msg): Message => ({
+        id: msg.id,
+        type: msg.role === "user" ? "user" : "assistant",
+        content: msg.content,
+        timestamp: new Date(msg.timestamp),
+        context: msg.role === "assistant" ? ["ai"] : undefined,
+      })
+    );
+  }, [chatData?.messages]);
+
+  // Update local messages when chat data changes
+  useEffect(() => {
+    setMessages(formattedMessages);
+  }, [formattedMessages]);
+
+  // Handle chat errors
+  useEffect(() => {
+    if (chatError) {
+      toast({
+        variant: "destructive",
+        title: "Chat Error",
+        description: "Failed to load chat messages. Please try refreshing.",
       });
-      if (!response.ok)
-        throw new Error("Failed to get response from AI assistant.");
-      const data = await response.json();
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content: data || "Sorry, I couldn't understand that.",
-        timestamp: new Date(),
-        context: ["ai"],
-      };
-      setMessages((prev) => [...prev, aiResponse]);
-    } catch (err) {
-      console.error(err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 2).toString(),
-          type: "assistant",
-          content: "Sorry, something went wrong. Please try again later.",
-          timestamp: new Date(),
-          context: ["error"],
+    }
+  }, [chatError, toast]);
+
+  const createNewChat = () => {
+    console.log('Creating new chat...');
+    createChatMutation.mutate(undefined, {
+      onSuccess: (newChat) => {
+        console.log('New chat created:', newChat);
+        setCurrentChatId(newChat.id);
+        setMessages([]); // Clear messages for new chat
+      },
+      onError: (error) => {
+        console.error('Failed to create new chat:', error);
+      }
+    });
+  };
+
+  const addMessage = (content: string) => {
+    console.log('addMessage called with:', { content, currentChatId });
+    
+    // If no current chat, create one first
+    if (!currentChatId) {
+      createChatMutation.mutate(undefined, {
+        onSuccess: (newChat) => {
+          console.log('Chat created successfully:', newChat);
+          setCurrentChatId(newChat.id);
+          // Then send the message
+          addMessageMutation.mutate({
+            chatId: newChat.id,
+            message: content,
+          });
         },
-      ]);
-      setError("Failed to get response from AI assistant.");
-    } finally {
-      setIsTyping(false);
+        onError: (error) => {
+          console.error('Failed to create chat:', error);
+        }
+      });
+    } else {
+      // Send message to existing chat
+      console.log('Sending message to existing chat:', currentChatId);
+      addMessageMutation.mutate({
+        chatId: currentChatId,
+        message: content,
+      });
     }
   };
 
   return (
-    <div className="flex flex-col bg-background text-foreground">
-      {/* Header */}
-      <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
-        <div className="flex items-center justify-between h-16 px-6">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger />
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-primary-foreground" />
+    <div className="flex flex-col h-screen bg-background">
+      {/* Enhanced Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="px-6 mx-auto py-4 w-full">
+          <div className="flex items-center justify-between">
+            {/* Left Section - Branding */}
+            <div className="flex items-center gap-4">
+              <div className="flex gap-2">
+                <SidebarTrigger />
+                <Separator orientation="vertical" className="h-6" />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-sm">
+                    <MessageCircle className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-background border-2 border-background rounded-full flex items-center justify-center">
+                    <Activity className="w-2 h-2 text-green-500" />
+                  </div>
+                </div>
+                <div className="space-y-0.5">
+                  <h1 className="text-lg font-semibold tracking-tight">
+                    AI Assistant
+                  </h1>
+                  <p className="text-xs text-muted-foreground">
+                    Intelligent code and project assistant
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">AI Assistant</h1>
-              <p className="text-xs text-muted-foreground">
-                Intelligent code and project assistant
-              </p>
+
+            {/* Right Section - Actions */}
+            <div className="flex items-center gap-3">
+              <Badge
+                variant={currentChatId ? "default" : "secondary"}
+                className="gap-2 px-3 py-1"
+              >
+                {chatLoading ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      currentChatId
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-muted-foreground"
+                    }`}
+                  />
+                )}
+                <span className="text-xs font-medium">
+                  {currentChatId ? "Connected" : "Ready"}
+                </span>
+              </Badge>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={createNewChat}
+                  disabled={createChatMutation.isPending}
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                >
+                  {createChatMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  New Chat
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </Button>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              Online
-            </Badge>
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-1" />
-              Settings
-            </Button>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex gap-6 p-6 min-h-0">
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col gap-4 min-w-0">
+            <div className="flex-1 overflow-hidden">
+              <ChatHistory
+                messages={messages}
+                isTyping={isTyping}
+                onFeedback={handleFeedback}
+                hasActiveChat={!!currentChatId}
+              />
+            </div>
+            <ChatInputArea
+              onSendMessage={addMessage}
+              disabled={createChatMutation.isPending || addMessageMutation.isPending}
+            />
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex gap-4 p-6 overflow-scroll min-h-0">
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col gap-4 min-w-0">
-          <ChatHistory
-            messages={messages}
-            isTyping={isTyping}
-            onFeedback={handleFeedback}
-          />
-          <ChatInputArea onSendMessage={addMessage} />
+          {/* Context Sidebar */}
+          <aside className="w-80 flex-shrink-0">
+            <ContextPanel
+              currentChatId={currentChatId}
+              messageCount={messages.length}
+              isConnected={!!currentChatId}
+            />
+          </aside>
         </div>
+      </main>
 
-        {/* Context Sidebar */}
-        <div className="w-80 flex-shrink-0">
-          <ContextPanel />
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg shadow-lg flex items-center">
-          <AlertCircle className="w-4 h-4 mr-2" />
-          {error}
+      {/* Enhanced Loading Toast */}
+      {createChatMutation.isPending && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Card className="p-4 shadow-lg border-primary/20 bg-primary/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Creating new chat</p>
+                <p className="text-xs text-muted-foreground">
+                  Setting up your conversation...
+                </p>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
     </div>

@@ -11,9 +11,10 @@ interface ChatHistoryProps {
   messages: Message[]
   isTyping: boolean
   onFeedback: (messageId: string, feedbackType: "positive" | "negative") => void
+  hasActiveChat?: boolean
 }
 
-export default function ChatHistory({ messages, isTyping, onFeedback }: ChatHistoryProps) {
+export default function ChatHistory({ messages, isTyping, onFeedback, hasActiveChat = false }: ChatHistoryProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -31,9 +32,14 @@ export default function ChatHistory({ messages, isTyping, onFeedback }: ChatHist
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Start a conversation</h3>
+                  <h3 className="text-lg font-semibold">
+                    {hasActiveChat ? "Ready to chat!" : "Create a new chat to start"}
+                  </h3>
                   <p className="text-muted-foreground">
-                    Ask me anything about your code, project structure, or development workflow.
+                    {hasActiveChat 
+                      ? "Ask me anything about your code, project structure, or development workflow."
+                      : "Click 'New Chat' above or start typing to create your first chat session."
+                    }
                   </p>
                 </div>
               </div>

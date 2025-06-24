@@ -1,8 +1,26 @@
-import { Info, Code, GitBranch, Ticket, FileText } from "lucide-react"
+import { Info, Code, GitBranch, Ticket, FileText, MessageSquare, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function ContextPanel() {
+interface ContextPanelProps {
+  currentChatId?: string | null
+  messageCount?: number
+  isConnected?: boolean
+}
+
+export default function ContextPanel({ currentChatId, messageCount = 0 }: ContextPanelProps) {
   const contextItems = [
+    {
+      icon: <MessageSquare className="w-4 h-4" />,
+      label: "Chat Session",
+      status: currentChatId ? "active" : "inactive",
+      detail: currentChatId ? `ID: ${currentChatId.slice(0, 8)}...` : "No session",
+    },
+    {
+      icon: <Clock className="w-4 h-4" />,
+      label: "Messages",
+      status: messageCount > 0 ? "active" : "inactive",
+      detail: `${messageCount} messages`,
+    },
     {
       icon: <Code className="w-4 h-4" />,
       label: "Code Analysis",

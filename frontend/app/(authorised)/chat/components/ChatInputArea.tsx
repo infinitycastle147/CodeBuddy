@@ -11,9 +11,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface ChatInputAreaProps {
   onSendMessage: (message: string) => void
+  disabled?: boolean
 }
 
-export default function ChatInputArea({ onSendMessage }: ChatInputAreaProps) {
+export default function ChatInputArea({ onSendMessage, disabled = false }: ChatInputAreaProps) {
   const [message, setMessage] = useState("")
   const [isRecording, setIsRecording] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -57,9 +58,10 @@ export default function ChatInputArea({ onSendMessage }: ChatInputAreaProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a question about your code, project, or workflow..."
-              className="min-h-[60px] max-h-[120px] resize-none pr-24 text-sm"
+              placeholder={disabled ? "Creating new chat..." : "Ask a question about your code, project, or workflow..."}
+              className="min-h-[60px] max-h-[120px] resize-none pr-24 text-sm border-dashed"
               rows={1}
+              disabled={disabled}
             />
             <div className="absolute bottom-2 right-2 flex items-center gap-1">
               <TooltipProvider>
@@ -97,9 +99,9 @@ export default function ChatInputArea({ onSendMessage }: ChatInputAreaProps) {
               <Clock className="w-3 h-3" />
               <span>Press Enter to send, Shift+Enter for new line</span>
             </div>
-            <Button type="submit" disabled={!message.trim()} className="h-9">
+            <Button type="submit" disabled={disabled || !message.trim()} className="h-9">
               <Send className="w-4 h-4 mr-1" />
-              Send
+              {disabled ? 'Please wait...' : 'Send'}
             </Button>
           </div>
         </form>

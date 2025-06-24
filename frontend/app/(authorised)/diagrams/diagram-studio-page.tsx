@@ -1,13 +1,17 @@
 "use client";
 
 import type React from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Settings,
+  Save,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useDiagrams, useCreateDiagram, useUpdateDiagram } from "@/hooks/api-hooks";
 import DiagramTypeSelector from "./diagram-type-selector";
 import Toolbar from "./toolbar";
 import ExportControls from "./export-controls";
@@ -15,6 +19,14 @@ import PropertiesPanel from "./properties-panel";
 import DiagramCanvas from "./diagram-canvas";
 
 export default function DiagramStudioPage() {
+  const [currentDiagramId, setCurrentDiagramId] = useState<string | null>(null);
+  const [currentDiagramContent, setCurrentDiagramContent] = useState<string>('');
+  const [isNewDiagram, setIsNewDiagram] = useState(true);
+
+  // React Query hooks
+  const { data: diagrams } = useDiagrams();
+  const createDiagramMutation = useCreateDiagram();
+  const updateDiagramMutation = useUpdateDiagram();
 
   const initialDiagram = `graph TD
     subgraph Level 0: Context Diagram
@@ -49,24 +61,61 @@ export default function DiagramStudioPage() {
         F -->|Coordinates| C
 
         B --> E
-    end`
+    end`;
+
+  // Initialize with default diagram on mount only
+  useEffect(() => {
+    setCurrentDiagramContent(initialDiagram);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to run only once - initialDiagram is constant
 
   const handleSave = async (diagram: string) => {
-    // Mock API call to save the diagram to backend
-    // Replace this with your actual API call
-    try {
-      // await fetch('/api/save-diagram', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ diagram }),
-      // })
-
-      console.log("Saving diagram to backend:", diagram)
-    } catch (error) {
-      console.error("Error saving to backend:", error)
-      throw error
+    if (isNewDiagram) {
+      // Create new diagram
+      createDiagramMutation.mutate(
+        {
+          user_input: "Create diagram from studio",
+          title: "Studio Diagram",
+          description: "Diagram created in the studio",
+        },
+        {
+          onSuccess: (newDiagram) => {
+            setCurrentDiagramId(newDiagram.id);
+            setIsNewDiagram(false);
+            // Update the diagram content
+            updateDiagramMutation.mutate({
+              diagramId: newDiagram.id,
+              content: diagram,
+            });
+          },
+        }
+      );
+    } else if (currentDiagramId) {
+      // Update existing diagram
+      updateDiagramMutation.mutate({
+        diagramId: currentDiagramId,
+        content: diagram,
+      });
     }
-  }
+  };
+
+  const handleNewDiagram = () => {
+    setCurrentDiagramId(null);
+    setIsNewDiagram(true);
+    setCurrentDiagramContent(initialDiagram);
+  };
+
+  // Function to load a diagram (can be used by PropertiesPanel or other components)
+  const handleLoadDiagram = (diagramId: string) => {
+    const diagram = diagrams?.find(d => d.id === diagramId);
+    if (diagram) {
+      setCurrentDiagramId(diagramId);
+      setCurrentDiagramContent(diagram.content);
+      setIsNewDiagram(false);
+    }
+  };
+
+  const isSaving = createDiagramMutation.isPending || updateDiagramMutation.isPending;
 
 
   return (
@@ -89,7 +138,29 @@ export default function DiagramStudioPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Badge variant="secondary">Beta</Badge>
+            <Badge variant="secondary">
+              {diagrams?.length || 0} diagrams
+            </Badge>
+            <Button
+              onClick={handleNewDiagram}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New</span>
+            </Button>
+            <Button
+              onClick={() => handleSave(currentDiagramContent)}
+              disabled={isSaving}
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {isSaving ? 'Saving...' : 'Save'}
+              </span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -114,12 +185,20 @@ export default function DiagramStudioPage() {
         <div className="flex-1 flex gap-4 min-h-0">
           {/* Canvas Area */}
           <div className="flex-1 flex flex-col min-w-0">
-            <DiagramCanvas initialDiagram={initialDiagram} onSave={handleSave} />
+            <DiagramCanvas 
+              initialDiagram={currentDiagramContent} 
+              onSave={handleSave}
+              onChange={setCurrentDiagramContent}
+            />
           </div>
 
           {/* Properties Panel */}
           <div className="shrink-0">
-            <PropertiesPanel />
+            <PropertiesPanel 
+              diagrams={diagrams || []}
+              onLoadDiagram={handleLoadDiagram}
+              currentDiagramId={currentDiagramId}
+            />
           </div>
         </div>
 

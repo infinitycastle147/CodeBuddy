@@ -20,7 +20,7 @@ function ExportControls() {
       name: "PNG",
       icon: <ImageIcon className="w-5 h-5" />,
       description: "High quality raster",
-      gradient: "from-gray-900 to-black",
+      gradient: "from-blue-500 to-cyan-500",
       popular: true,
     },
     {
@@ -28,7 +28,7 @@ function ExportControls() {
       name: "SVG",
       icon: <Code2 className="w-5 h-5" />,
       description: "Scalable vector",
-      gradient: "from-gray-800 to-gray-900",
+      gradient: "from-green-500 to-emerald-500",
       popular: false,
     },
     {
@@ -36,7 +36,7 @@ function ExportControls() {
       name: "PDF",
       icon: <FileText className="w-5 h-5" />,
       description: "Print ready",
-      gradient: "from-black to-gray-800",
+      gradient: "from-red-500 to-pink-500",
       popular: true,
     },
     {
@@ -44,7 +44,7 @@ function ExportControls() {
       name: "JSON",
       icon: <Database className="w-5 h-5" />,
       description: "Raw data",
-      gradient: "from-gray-700 to-gray-900",
+      gradient: "from-purple-500 to-violet-500",
       popular: false,
     },
   ]
@@ -78,8 +78,8 @@ function ExportControls() {
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-black/10 to-gray-800/10 dark:from-gray-200/10 dark:to-white/10 rounded-full blur-2xl" />
 
       <CardHeader className="pb-6 relative">
-        <CardTitle className="text-xl flex items-center gap-3 font-semibold bg-gradient-to-r from-gray-900 to-black dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-gray-100 dark:to-white text-white dark:text-black shadow-lg">
+        <CardTitle className="text-xl flex items-center gap-3 font-semibold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
             <Download className="w-5 h-5" />
           </div>
           Export Your Creation
@@ -91,7 +91,7 @@ function ExportControls() {
         {/* Format Selection */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <Sparkles className="w-4 h-4 text-amber-500"/>
             <Label className="text-sm font-medium">Export Format</Label>
           </div>
 

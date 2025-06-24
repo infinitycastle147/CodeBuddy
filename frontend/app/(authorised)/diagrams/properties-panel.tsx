@@ -11,17 +11,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { Diagram } from "@/lib/api-endpoints";
 
-function PropertiesPanel() {
+interface PropertiesPanelProps {
+  diagrams: Diagram[];
+  onLoadDiagram: (diagramId: string) => void;
+  currentDiagramId: string | null;
+}
+
+export function PropertiesPanel({ diagrams, onLoadDiagram, currentDiagramId }: PropertiesPanelProps) {
+  const currentDiagram = diagrams.find((diagram) => diagram.id === currentDiagramId);
+
   return (
     <Card className="w-80">
+
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Settings className="w-5 h-5" />
           Properties
         </CardTitle>
       </CardHeader>
+      
       <CardContent className="space-y-6">
+        
         {/* Element Properties */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Element</Label>

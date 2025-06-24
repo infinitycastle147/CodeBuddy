@@ -10,9 +10,9 @@ import mermaid from "mermaid"
 import { toast } from "@/hooks/use-toast"
 
 interface DiagramCanvasProps {
-  initialDiagram?: string
-  onSave?: (diagram: string) => void
-  onChange?: (diagram: string) => void
+  diagram?: string;
+  onSave?: (diagram: string) => void;
+  onChange?: (diagram: string) => void;
 }
 
 const GRID_BG_STYLE = {
@@ -23,37 +23,13 @@ const GRID_BG_STYLE = {
   backgroundSize: "20px 20px",
 }
 
-const DEFAULT_DIAGRAM = `graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Process 1]
-    B -->|No| D[Process 2]
-    C --> E[End]
-    D --> E
-    
-    style A fill:#e1f5fe
-    style E fill:#f3e5f5
-    style B fill:#fff3e0`
+function DiagramCanvas({ diagram, onSave, onChange }: DiagramCanvasProps) {
 
-function DiagramCanvas({
-  initialDiagram,
-  onSave,
-  onChange,
-}: DiagramCanvasProps) {
-  const [mermaidCode, setMermaidCode] = useState(initialDiagram || DEFAULT_DIAGRAM)
-
-  // Update mermaidCode when initialDiagram changes
-  useEffect(() => {
-    if (initialDiagram && initialDiagram.trim()) {
-      setMermaidCode(initialDiagram)
-    } else if (!mermaidCode || !mermaidCode.trim()) {
-      setMermaidCode(DEFAULT_DIAGRAM)
-    }
-  }, [initialDiagram, mermaidCode])
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [svg, setSvg] = useState<string>("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [svg, setSvg] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     mermaid.initialize({
@@ -91,12 +67,12 @@ function DiagramCanvas({
         cScaleLabel6: "#ffffff",
         cScaleLabel7: "#ffffff",
         cScaleLabel8: "#ffffff",
-        cScaleLabel9: "#ffffff"
-      }
-    })
+        cScaleLabel9: "#ffffff",
+      },
+    });
 
     // Add global CSS for mermaid diagrams
-    const style = document.createElement('style')
+    const style = document.createElement("style");
     style.textContent = `
       .diagram-content svg {
         max-width: 100% !important;
@@ -136,181 +112,209 @@ function DiagramCanvas({
         font-weight: 600 !important;
         fill: #1f2937 !important;
       }
-    `
-    document.head.appendChild(style)
+    `;
+    document.head.appendChild(style);
 
     const renderDiagram = async () => {
-      setLoading(true)
-      setError(null)
-      
+      setLoading(true);
+      setError(null);
+
       try {
         // Basic syntax validation before rendering
-        if (!mermaidCode || !mermaidCode.trim()) {
-          console.log('Diagram code is empty, skipping render')
-          setSvg("")
-          setError(null)
-          return
+        if (!diagram || !diagram.trim()) {
+          console.log("Diagram code is empty, skipping render");
+          setSvg("");
+          setError(null);
+          return;
         }
-        
+
         // Check for basic mermaid syntax
-        const hasValidStart = /^\s*(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie|gitgraph|mindmap|timeline|sankey|block)/i.test(mermaidCode)
+        const hasValidStart =
+          /^\s*(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie|gitgraph|mindmap|timeline|sankey|block)/i.test(
+            diagram
+          );
         if (!hasValidStart) {
-          throw new Error('Diagram must start with a valid Mermaid diagram type (graph, flowchart, sequenceDiagram, etc.)')
+          throw new Error(
+            "Diagram must start with a valid Mermaid diagram type (graph, flowchart, sequenceDiagram, etc.)"
+          );
         }
-        
+
         // Generate unique ID to avoid conflicts
-        const diagramId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-        const { svg } = await mermaid.render(diagramId, mermaidCode)
-        setSvg(svg)
-        setError(null)
-        
+        const diagramId = `mermaid-${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+        const { svg } = await mermaid.render(diagramId, diagram);
+        setSvg(svg);
+        setError(null);
       } catch (error: unknown) {
-        console.error('Mermaid rendering error:', error)
-        setSvg("")
-        
-        let errorMessage = 'Error rendering diagram. Please check your Mermaid syntax.'
-        
+        console.error("Mermaid rendering error:", error);
+        setSvg("");
+
+        let errorMessage =
+          "Error rendering diagram. Please check your Mermaid syntax.";
+
         try {
-          if (error && typeof error === 'object' && 'message' in error) {
-            const errorMessage_ = (error as Error).message
+          if (error && typeof error === "object" && "message" in error) {
+            const errorMessage_ = (error as Error).message;
             // Extract meaningful error messages
-            if (errorMessage_.includes('Parse error')) {
-              errorMessage = 'Syntax Error: Invalid Mermaid syntax. Check your diagram structure.'
-            } else if (errorMessage_.includes('Lexical error')) {
-              errorMessage = 'Syntax Error: Unexpected character or token in your diagram.'
-            } else if (errorMessage_.includes('subgraph')) {
-              errorMessage = 'Subgraph Error: Check your subgraph syntax and nesting.'
-            } else if (errorMessage_.includes('node')) {
-              errorMessage = 'Node Error: Check your node definitions and connections.'
-            } else if (errorMessage_.toLowerCase().includes('empty')) {
-              errorMessage = 'Empty Diagram: Please add some content to your diagram.'
+            if (errorMessage_.includes("Parse error")) {
+              errorMessage =
+                "Syntax Error: Invalid Mermaid syntax. Check your diagram structure.";
+            } else if (errorMessage_.includes("Lexical error")) {
+              errorMessage =
+                "Syntax Error: Unexpected character or token in your diagram.";
+            } else if (errorMessage_.includes("subgraph")) {
+              errorMessage =
+                "Subgraph Error: Check your subgraph syntax and nesting.";
+            } else if (errorMessage_.includes("node")) {
+              errorMessage =
+                "Node Error: Check your node definitions and connections.";
+            } else if (errorMessage_.toLowerCase().includes("empty")) {
+              errorMessage =
+                "Empty Diagram: Please add some content to your diagram.";
             } else {
-              errorMessage = `Error: ${errorMessage_}`
+              errorMessage = `Error: ${errorMessage_}`;
             }
           }
         } catch {
           // Fallback if error processing fails
-          errorMessage = 'Error rendering diagram. Please check your Mermaid syntax.'
+          errorMessage =
+            "Error rendering diagram. Please check your Mermaid syntax.";
         }
-        
-        setError(errorMessage)
-        
+
+        setError(errorMessage);
+
         // Show toast notification for errors - wrapped in try-catch
         try {
           toast({
             title: "Diagram Rendering Failed",
             description: errorMessage,
             variant: "destructive",
-          })
+          });
         } catch (toastError) {
-          console.error('Toast error:', toastError)
+          console.error("Toast error:", toastError);
         }
-        
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    renderDiagram()
+    renderDiagram();
 
     return () => {
       if (document.head.contains(style)) {
-        document.head.removeChild(style)
+        document.head.removeChild(style);
       }
-    }
-  }, [mermaidCode])
+    };
+  }, [diagram]);
 
-  // Call onChange when mermaidCode changes (excluding initial load)
-  const isInitializedRef = useRef(false)
-  useEffect(() => {
-    if (isInitializedRef.current) {
-      onChange?.(mermaidCode)
-    } else {
-      isInitializedRef.current = true
-    }
-  }, [mermaidCode, onChange])
-
-  const handleEditorDidMount = useCallback((editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
-    editorRef.current = editor
-    monaco.languages.register({ id: "mermaid" })
-    monaco.languages.setMonarchTokensProvider("mermaid", {
-      tokenizer: {
-        root: [
-          [/graph|subgraph|end|flowchart|sequenceDiagram|classDiagram/, "keyword"],
-          [/-->|---|==>|-.->/, "arrow"],
-          [/\[|\]|$$|$$|<|>|\{|\}/, "bracket"],
-          [/".*?"/, "string"],
-          [/\d+/, "number"],
-          [/\w+/, "identifier"],
-        ],
-      },
-    })
-    editor.updateOptions({
-      minimap: { enabled: false },
-      lineNumbers: "on",
-      scrollBeyondLastLine: false,
-      wordWrap: "on",
-      wrappingIndent: "same",
-      automaticLayout: true,
-      fontSize: 14,
-      tabSize: 2,
-    })
-  }, [])
+  const handleEditorDidMount = useCallback(
+    (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+      editorRef.current = editor;
+      monaco.languages.register({ id: "mermaid" });
+      monaco.languages.setMonarchTokensProvider("mermaid", {
+        tokenizer: {
+          root: [
+            [
+              /graph|subgraph|end|flowchart|sequenceDiagram|classDiagram/,
+              "keyword",
+            ],
+            [/-->|---|==>|-.->/, "arrow"],
+            [/\[|\]|$$|$$|<|>|\{|\}/, "bracket"],
+            [/".*?"/, "string"],
+            [/\d+/, "number"],
+            [/\w+/, "identifier"],
+          ],
+        },
+      });
+      editor.updateOptions({
+        minimap: { enabled: false },
+        lineNumbers: "on",
+        scrollBeyondLastLine: false,
+        wordWrap: "on",
+        wrappingIndent: "same",
+        automaticLayout: true,
+        fontSize: 14,
+        tabSize: 2,
+      });
+    },
+    []
+  );
 
   const handleSave = useCallback(async () => {
+
+    if (!diagram) {
+      toast({
+        title: "No Diagram to Save",
+        description: "Please create or load a diagram before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      onSave?.(mermaidCode)
+      onSave?.(diagram);
       toast({
         title: "Diagram saved",
         description: "Your diagram has been saved successfully.",
-      })
+      });
     } catch {
       toast({
         title: "Error saving diagram",
         description: "There was an error saving your diagram.",
         variant: "destructive",
-      })
+      });
     }
-  }, [mermaidCode, onSave])
+  }, [diagram, onSave]);
 
   const handleImport = useCallback(() => {
-    const input = document.createElement("input")
-    input.type = "file"
-    input.accept = ".mmd,.txt"
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".mmd,.txt";
     input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = (e) => {
-          const content = e.target?.result as string
-          setMermaidCode(content)
+          const content = e.target?.result as string;
+          onChange?.(content);
           toast({
             title: "Diagram imported",
             description: "Your diagram has been imported successfully.",
-          })
-        }
-        reader.readAsText(file)
+          });
+        };
+        reader.readAsText(file);
       }
       // Clean up input element
-      setTimeout(() => input.remove(), 0)
-    }
-    document.body.appendChild(input)
-    input.click()
-  }, [])
+      setTimeout(() => input.remove(), 0);
+    };
+    document.body.appendChild(input);
+    input.click();
+  }, []);
 
   const handleExport = useCallback(() => {
-    const blob = new Blob([mermaidCode], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "diagram.mmd"
-    a.click()
-    URL.revokeObjectURL(url)
+
+    if (!diagram) {
+      toast({
+        title: "No Diagram to Export",
+        description: "Please create or load a diagram before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const blob = new Blob([diagram], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "diagram.mmd";
+    a.click();
+    URL.revokeObjectURL(url);
     toast({
       title: "Diagram exported",
       description: "Your diagram has been exported successfully.",
-    })
-  }, [mermaidCode])
+    });
+  }, [diagram]);
 
   // Error boundary wrapper
   if (error && !svg && !loading) {
@@ -323,7 +327,9 @@ function DiagramCanvas({
                 <Code className="w-8 h-8 text-destructive" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-destructive">Diagram Error</h3>
+                <h3 className="text-lg font-semibold text-destructive">
+                  Diagram Error
+                </h3>
                 <p className="text-sm text-muted-foreground">{error}</p>
               </div>
               <div className="flex gap-2 justify-center">
@@ -340,7 +346,7 @@ function DiagramCanvas({
                 </Button>
                 <Button
                   onClick={() => {
-                    setMermaidCode(DEFAULT_DIAGRAM);
+                    onChange?.("");
                     setError(null);
                   }}
                   variant="default"
@@ -353,7 +359,7 @@ function DiagramCanvas({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -373,8 +379,8 @@ function DiagramCanvas({
                 <Editor
                   height="100%"
                   language="mermaid"
-                  value={mermaidCode}
-                  onChange={(value) => setMermaidCode(value || "")}
+                  value={diagram}
+                  onChange={(value) => onChange?.(value || "")}
                   onMount={handleEditorDidMount}
                   theme="vs-light"
                   options={{
@@ -397,7 +403,9 @@ function DiagramCanvas({
                       <Code className="w-8 h-8 text-destructive" />
                     </div>
                     <div className="space-y-2 max-w-md">
-                      <h3 className="text-lg font-semibold text-destructive">Syntax Error</h3>
+                      <h3 className="text-lg font-semibold text-destructive">
+                        Syntax Error
+                      </h3>
                       <p className="text-muted-foreground">{error}</p>
                     </div>
                     <Button
@@ -413,7 +421,9 @@ function DiagramCanvas({
                 ) : loading ? (
                   <div className="flex flex-col items-center justify-center w-full h-full">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4" />
-                    <span className="text-muted-foreground">Rendering diagram...</span>
+                    <span className="text-muted-foreground">
+                      Rendering diagram...
+                    </span>
                   </div>
                 ) : svg ? (
                   <div className="w-full h-full p-6 overflow-auto">
@@ -424,8 +434,8 @@ function DiagramCanvas({
                         role="img"
                         aria-label="Rendered Mermaid Diagram"
                         style={{
-                          filter: 'drop-shadow(0 4px 6px rgb(0 0 0 / 0.1))',
-                          minWidth: 'fit-content'
+                          filter: "drop-shadow(0 4px 6px rgb(0 0 0 / 0.1))",
+                          minWidth: "fit-content",
                         }}
                       />
                     </div>
@@ -438,7 +448,8 @@ function DiagramCanvas({
                     <div className="space-y-2 max-w-md">
                       <h3 className="text-lg font-semibold">Start Creating</h3>
                       <p className="text-muted-foreground">
-                        Create beautiful diagrams using Mermaid syntax. Switch to edit mode to start coding your diagram.
+                        Create beautiful diagrams using Mermaid syntax. Switch
+                        to edit mode to start coding your diagram.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-3 justify-center">
@@ -475,10 +486,16 @@ function DiagramCanvas({
               size="sm"
               onClick={() => setIsEditMode((prev) => !prev)}
               title={isEditMode ? "Preview Mode" : "Edit Mode"}
-              aria-label={isEditMode ? "Switch to Preview Mode" : "Switch to Edit Mode"}
+              aria-label={
+                isEditMode ? "Switch to Preview Mode" : "Switch to Edit Mode"
+              }
               disabled={loading}
             >
-              {isEditMode ? <Eye className="w-4 h-4" /> : <Code className="w-4 h-4" />}
+              {isEditMode ? (
+                <Eye className="w-4 h-4" />
+              ) : (
+                <Code className="w-4 h-4" />
+              )}
             </Button>
             <Button
               variant="secondary"
@@ -504,7 +521,7 @@ function DiagramCanvas({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default DiagramCanvas

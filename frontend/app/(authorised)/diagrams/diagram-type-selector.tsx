@@ -1,12 +1,17 @@
 "use client";
 
+// React and state management
 import type React from "react";
 import { useState } from "react";
+
+// UI components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+
+// Icons
 import {
   BarChart,
   Database,
@@ -19,14 +24,16 @@ import {
   Palette,
   Code,
 } from "lucide-react";
+import { Settings } from "@/components/animate-ui/icons/settings";
+import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
+
+// Tabs component
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/animate-ui/radix/tabs";
-import { Settings } from "@/components/animate-ui/icons/settings";
-import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
 
 interface DiagramType {
   id: string;

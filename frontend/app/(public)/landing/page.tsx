@@ -30,6 +30,9 @@ import {
 } from "lucide-react";
 
 export default function LandingPage() {
+
+  console.log(process.env.AUTH_SECRET);
+  
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navigation */}

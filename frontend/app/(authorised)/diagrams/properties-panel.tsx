@@ -1,4 +1,7 @@
+// React and core libraries
 import React from "react";
+
+// UI components
 import {
   Card,
   CardContent,
@@ -6,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Move, Trash2, Settings, FileText, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -14,6 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+
+// Icons
+import { Copy, Move, Trash2, Settings, FileText, Clock } from "lucide-react";
+
+// Types and utilities
 import { type Diagram } from "@/lib/api-endpoints";
 
 interface PropertiesPanelProps {

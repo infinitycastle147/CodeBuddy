@@ -1,6 +1,9 @@
 "use client"
 
+// React imports
 import { useRef } from "react"
+
+// Monaco Editor imports
 import Editor, { type Monaco } from "@monaco-editor/react"
 import type { editor } from "monaco-editor"
 

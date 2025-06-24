@@ -1,17 +1,26 @@
 "use client";
 
+// React and State Management
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+// Icons
 import {
   BarChart,
   Settings,
   Save,
   Plus,
 } from "lucide-react";
+
+// UI Components
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+
+// API Hooks
 import { useDiagrams, useCreateDiagram, useUpdateDiagram } from "@/hooks/api-hooks";
+
+// Diagram Studio Components
 import DiagramTypeSelector from "./diagram-type-selector";
 import Toolbar from "./toolbar";
 import ExportControls from "./export-controls";
@@ -28,23 +37,6 @@ export default function DiagramStudioPage() {
   const { data: diagrams } = useDiagrams();
   const createDiagramMutation = useCreateDiagram();
   const updateDiagramMutation = useUpdateDiagram();
-
-  const initialDiagram = `graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Process 1]
-    B -->|No| D[Process 2]
-    C --> E[End]
-    D --> E
-    
-    style A fill:#e1f5fe
-    style E fill:#f3e5f5
-    style B fill:#fff3e0`;
-
-  // Initialize with default diagram on mount only
-  useEffect(() => {
-    setCurrentDiagramContent(initialDiagram);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run only once - initialDiagram is constant
 
   const handleSave = async (diagram: string) => {
     if (isNewDiagram) {
@@ -79,7 +71,6 @@ export default function DiagramStudioPage() {
   const handleNewDiagram = () => {
     setCurrentDiagramId(null);
     setIsNewDiagram(true);
-    setCurrentDiagramContent(initialDiagram);
   };
 
   // Function to load a diagram (can be used by PropertiesPanel or other components)
@@ -173,7 +164,7 @@ export default function DiagramStudioPage() {
           {/* Canvas Area */}
           <div className="flex-1 min-h-0">
             <DiagramCanvas 
-              initialDiagram={currentDiagramContent} 
+              diagram={currentDiagramContent} 
               onSave={handleSave}
               onChange={(content) => {
                 setCurrentDiagramContent(content);

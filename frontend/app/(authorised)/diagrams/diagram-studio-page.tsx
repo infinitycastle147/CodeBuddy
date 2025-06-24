@@ -22,6 +22,7 @@ export default function DiagramStudioPage() {
   const [currentDiagramId, setCurrentDiagramId] = useState<string | null>(null);
   const [currentDiagramContent, setCurrentDiagramContent] = useState<string>('');
   const [isNewDiagram, setIsNewDiagram] = useState(true);
+  const [currentSvg, setCurrentSvg] = useState<string>('');
 
   // React Query hooks
   const { data: diagrams } = useDiagrams();
@@ -29,39 +30,15 @@ export default function DiagramStudioPage() {
   const updateDiagramMutation = useUpdateDiagram();
 
   const initialDiagram = `graph TD
-    subgraph Level 0: Context Diagram
-        User((User))
-        WarehouseAPI[Warehouse API]
-        NominatimAPI((Nominatim API))
-        WarehouseDataStore((Warehouse Pincode Data Store))
-
-        User --> WarehouseAPI
-        WarehouseAPI --> NominatimAPI
-        WarehouseAPI --> WarehouseDataStore
-    end
-
-    subgraph Level 1: Data Flow Diagram
-        A[User]
-        B(Find Nearest Warehouse)
-        C(Calculate Distance)
-        D(Get Coordinates)
-        E((Warehouse Pincode Data Store))
-        F[Nominatim API]
-
-        A -->|Pincode, Warehouse Pincode List| B
-        B -->|Nearest Warehouse Pincode| A
-
-        A -->|Source Pincode, Destination Pincode| C
-        C -->|Distance| A
-
-        B -->|Pincode| D
-        C -->|Pincode| D
-        D --> F
-        F -->|Coordinates| B
-        F -->|Coordinates| C
-
-        B --> E
-    end`;
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process 1]
+    B -->|No| D[Process 2]
+    C --> E[End]
+    D --> E
+    
+    style A fill:#e1f5fe
+    style E fill:#f3e5f5
+    style B fill:#fff3e0`;
 
   // Initialize with default diagram on mount only
   useEffect(() => {
@@ -119,17 +96,17 @@ export default function DiagramStudioPage() {
 
 
   return (
-    <div className="flex flex-col overflow-scroll bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground">
       {/* Header */}
       <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between h-16 px-6">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <SidebarTrigger />
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
               <BarChart className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-xl font-bold leading-tight">
+            <div className="min-w-0 hidden sm:block">
+              <h1 className="text-lg lg:text-xl font-bold leading-tight">
                 Diagram Studio
               </h1>
               <p className="text-xs text-muted-foreground leading-tight">
@@ -138,7 +115,7 @@ export default function DiagramStudioPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="hidden md:inline-flex">
               {diagrams?.length || 0} diagrams
             </Badge>
             <Button
@@ -157,54 +134,108 @@ export default function DiagramStudioPage() {
               className="flex items-center gap-1"
             >
               <Save className="w-4 h-4" />
-              <span className="hidden sm:inline">
+              <span className="hidden lg:inline">
                 {isSaving ? 'Saving...' : 'Save'}
               </span>
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center gap-1"
+              className="hidden md:flex items-center gap-1"
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="hidden lg:inline">Settings</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col gap-4 p-6 min-h-0 overflow-hidden">
-        {/* Top Controls */}
-        <div className="shrink-0 space-y-4">
-          <DiagramTypeSelector />
-          <Toolbar />
-        </div>
-
-        {/* Canvas and Properties Grid */}
-        <div className="flex-1 flex gap-4 min-h-0">
-          {/* Canvas Area */}
-          <div className="flex-1 flex flex-col min-w-0">
-            <DiagramCanvas 
-              initialDiagram={currentDiagramContent} 
-              onSave={handleSave}
-              onChange={setCurrentDiagramContent}
+      <main className="flex-1 flex flex-col lg:flex-row gap-4 p-4 lg:p-6 min-h-0 overflow-hidden">
+        {/* Left Column - Controls and Canvas */}
+        <div className="flex-1 flex flex-col gap-4 min-w-0">
+          {/* Top Controls - Responsive Stack */}
+          <div className="shrink-0 space-y-4">
+            <div className="block lg:hidden">
+              <DiagramTypeSelector />
+            </div>
+            <Toolbar 
+              onToolChange={(tool) => console.log('Tool changed:', tool)}
+              onZoomChange={(zoom) => console.log('Zoom changed:', zoom)}
+              onGridToggle={(show) => console.log('Grid toggled:', show)}
+              onUndo={() => console.log('Undo action')}
+              onSave={() => handleSave(currentDiagramContent)}
+              onShare={() => console.log('Share action')}
+              disabled={isSaving}
             />
           </div>
 
+          {/* Canvas Area */}
+          <div className="flex-1 min-h-0">
+            <DiagramCanvas 
+              initialDiagram={currentDiagramContent} 
+              onSave={handleSave}
+              onChange={(content) => {
+                setCurrentDiagramContent(content);
+                // Extract SVG when content changes
+                setTimeout(() => {
+                  const svgElement = document.querySelector('.diagram-content svg');
+                  if (svgElement) {
+                    setCurrentSvg(svgElement.outerHTML);
+                  }
+                }, 500);
+              }}
+            />
+          </div>
+
+          {/* Bottom Controls - Export (Mobile) */}
+          <div className="shrink-0 block lg:hidden">
+            <ExportControls 
+              diagramSvg={currentSvg}
+              diagramCode={currentDiagramContent}
+              fileName={`diagram-${currentDiagramId || 'new'}`}
+            />
+          </div>
+        </div>
+
+        {/* Right Column - Desktop Sidebar */}
+        <div className="hidden lg:flex lg:flex-col lg:w-80 xl:w-96 gap-4 shrink-0">
+          {/* Diagram Type Selector */}
+          <div className="flex-1 min-h-0">
+            <DiagramTypeSelector />
+          </div>
+          
           {/* Properties Panel */}
-          <div className="shrink-0">
+          <div className="flex-1 min-h-0">
             <PropertiesPanel 
               diagrams={diagrams || []}
               onLoadDiagram={handleLoadDiagram}
               currentDiagramId={currentDiagramId}
             />
           </div>
+          
+          {/* Export Controls */}
+          <div className="shrink-0">
+            <ExportControls 
+              diagramSvg={currentSvg}
+              diagramCode={currentDiagramContent}
+              fileName={`diagram-${currentDiagramId || 'new'}`}
+            />
+          </div>
         </div>
 
-        {/* Bottom Controls */}
-        <div className="shrink-0">
-          <ExportControls />
+        {/* Mobile Properties Modal Trigger */}
+        <div className="fixed bottom-4 right-4 lg:hidden">
+          <Button
+            size="sm"
+            className="rounded-full w-12 h-12 shadow-lg"
+            onClick={() => {
+              // This would open a modal/sheet with properties on mobile
+              console.log('Open mobile properties panel');
+            }}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
         </div>
       </main>
     </div>

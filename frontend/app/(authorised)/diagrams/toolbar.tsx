@@ -35,6 +35,16 @@ interface Tool {
   shortcut?: string;
 }
 
+interface ToolbarProps {
+  onToolChange?: (tool: string) => void;
+  onZoomChange?: (zoom: number) => void;
+  onGridToggle?: (show: boolean) => void;
+  onUndo?: () => void;
+  onSave?: () => void;
+  onShare?: () => void;
+  disabled?: boolean;
+}
+
 const tools: Tool[] = [
   {
     id: "select",
@@ -74,7 +84,15 @@ const tools: Tool[] = [
   },
 ];
 
-function Toolbar() {
+function Toolbar({ 
+  onToolChange, 
+  onZoomChange, 
+  onGridToggle, 
+  onUndo, 
+  onSave, 
+  onShare,
+  disabled = false 
+}: ToolbarProps) {
   const [activeTool, setActiveTool] = useState("select");
   const [showGrid, setShowGrid] = useState(true);
   const [zoom, setZoom] = useState([100]);
@@ -89,9 +107,13 @@ function Toolbar() {
               <Toggle
                 key={tool.id}
                 pressed={activeTool === tool.id}
-                onPressedChange={() => setActiveTool(tool.id)}
+                onPressedChange={() => {
+                  setActiveTool(tool.id);
+                  onToolChange?.(tool.id);
+                }}
                 className="h-9 w-9 p-0"
                 title={`${tool.name} (${tool.shortcut})`}
+                disabled={disabled}
               >
                 {tool.icon}
               </Toggle>
@@ -104,27 +126,53 @@ function Toolbar() {
           <div className="flex items-center gap-2">
             <Toggle
               pressed={showGrid}
-              onPressedChange={setShowGrid}
+              onPressedChange={(pressed) => {
+                setShowGrid(pressed);
+                onGridToggle?.(pressed);
+              }}
               className="h-9 w-9 p-0"
               title="Toggle Grid"
+              disabled={disabled}
             >
               <Grid className="w-4 h-4" />
             </Toggle>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                const newZoom = Math.max(25, zoom[0] - 25);
+                setZoom([newZoom]);
+                onZoomChange?.(newZoom);
+              }}
+              disabled={disabled || zoom[0] <= 25}
+            >
               <ZoomOut className="w-4 h-4" />
             </Button>
             <div className="flex items-center gap-2 min-w-[120px]">
               <Slider
                 value={zoom}
-                onValueChange={setZoom}
+                onValueChange={(value) => {
+                  setZoom(value);
+                  onZoomChange?.(value[0]);
+                }}
                 max={200}
                 min={25}
                 step={25}
                 className="flex-1"
+                disabled={disabled}
               />
               <span className="text-xs font-medium w-10">{zoom[0]}%</span>
             </div>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                const newZoom = Math.min(200, zoom[0] + 25);
+                setZoom([newZoom]);
+                onZoomChange?.(newZoom);
+              }}
+              disabled={disabled || zoom[0] >= 200}
+            >
               <ZoomIn className="w-4 h-4" />
             </Button>
           </div>
@@ -133,33 +181,60 @@ function Toolbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onUndo}
+              disabled={disabled}
+            >
               <RotateCcw className="w-4 h-4 mr-1" />
               Undo
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onSave}
+              disabled={disabled}
+            >
               <Save className="w-4 h-4 mr-1" />
               Save
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" disabled={disabled}>
                   <Share className="w-4 h-4 mr-1" />
                   Share
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.href)}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy Link
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={onShare}>
                   <Download className="w-4 h-4 mr-2" />
                   Download
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => document.getElementById('file-upload')?.click()}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".mmd,.txt"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          // Handle file upload - would need to be passed from parent
+                          console.log('File content:', event.target?.result);
+                        };
+                        reader.readAsText(file);
+                      }
+                    }}
+                  />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

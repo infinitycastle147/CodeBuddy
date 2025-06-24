@@ -217,18 +217,18 @@ export function useSetupRepo() {
 }
 
 export function useTaskStatus(taskId: string, enabled = true) {
-  return useQuery({
+  const query = useQuery({
     queryKey: queryKeys.taskStatus(taskId),
     queryFn: () => api.getTaskStatus(taskId),
     enabled: enabled && !!taskId,
-    refetchInterval: (data) => {
-      // Stop polling when task is completed or failed
-      if (data?.status === 'success' || data?.status === 'failure') {
-        return false
-      }
-      return 2000 // Poll every 2 seconds
-    },
   })
+
+  // Stop polling when task is completed or failed
+  if (query.data?.status === 'success' || query.data?.status === 'failure') {
+    query.remove() // Clean up the query when done
+  }
+
+  return query
 }
 
 // Generic hooks for custom queries

@@ -6,13 +6,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Move, Trash2, Settings } from "lucide-react";
+import { Copy, Move, Trash2, Settings, FileText, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { type Diagram } from "@/lib/api-endpoints";
 
-function PropertiesPanel() {
+interface PropertiesPanelProps {
+  diagrams: Diagram[];
+  onLoadDiagram: (diagramId: string) => void;
+  currentDiagramId?: string | null;
+}
+
+function PropertiesPanel({ diagrams, onLoadDiagram, currentDiagramId }: PropertiesPanelProps) {
+  // Placeholder state for future element editing functionality
+  // These will be connected to actual diagram elements in future iterations
   return (
     <Card className="w-80">
       <CardHeader className="pb-3">
@@ -21,7 +33,52 @@ function PropertiesPanel() {
           Properties
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 max-h-[calc(100vh-200px)] overflow-auto">
+        {/* Saved Diagrams Section */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Saved Diagrams ({diagrams.length})
+          </Label>
+          <ScrollArea className="h-32 border rounded-md">
+            <div className="p-2 space-y-2">
+              {diagrams.length > 0 ? (
+                diagrams.map((diagram) => (
+                  <div
+                    key={diagram.id}
+                    className={`p-2 rounded-md border cursor-pointer transition-colors ${
+                      currentDiagramId === diagram.id
+                        ? "bg-primary/10 border-primary"
+                        : "hover:bg-muted/50"
+                    }`}
+                    onClick={() => onLoadDiagram(diagram.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium truncate">{diagram.title || 'Untitled Diagram'}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Clock className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(diagram.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      {currentDiagramId === diagram.id && (
+                        <Badge variant="secondary" className="text-xs">Current</Badge>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No saved diagrams yet
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
+        <Separator />
         {/* Element Properties */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Element</Label>

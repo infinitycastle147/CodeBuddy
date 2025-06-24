@@ -17,7 +17,7 @@ function QueryErrorFallback({ error }: QueryErrorFallbackProps) {
     let errorMessage = 'An unexpected error occurred'
     
     if (error instanceof ApiError) {
-      errorMessage = error.data?.message || error.message || `Error ${error.status}: ${error.statusText}`
+      errorMessage = error.data?.error?.message || `Error ${error.status}: ${error.statusText}`
     } else if (error instanceof Error) {
       errorMessage = error.message
     }

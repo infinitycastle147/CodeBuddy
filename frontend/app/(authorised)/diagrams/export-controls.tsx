@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, ImageIcon, Code2, FileText, Database, Sparkles, Settings2, CheckCircle2 } from "lucide-react"
@@ -8,8 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
+import { toast } from "@/hooks/use-toast"
 
-function ExportControls() {
+interface ExportControlsProps {
+  diagramSvg?: string;
+  diagramCode?: string;
+  fileName?: string;
+}
+
+function ExportControls({ diagramSvg, diagramCode, fileName = "diagram" }: ExportControlsProps) {
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState(0)
@@ -49,26 +56,189 @@ function ExportControls() {
     },
   ]
 
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [quality, setQuality] = useState("high")
+  const [scale, setScale] = useState("2x")
+
+  const getScaleValue = () => {
+    switch (scale) {
+      case "1x": return 1
+      case "2x": return 2
+      case "3x": return 3
+      default: return 2
+    }
+  }
+
+  const getQualityValue = () => {
+    switch (quality) {
+      case "low": return 0.6
+      case "medium": return 0.8
+      case "high": return 1.0
+      default: return 1.0
+    }
+  }
+
+  const svgToPng = (svgElement: SVGElement, scale: number, quality: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const svgData = new XMLSerializer().serializeToString(svgElement)
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
+      const url = URL.createObjectURL(svgBlob)
+      
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'))
+          return
+        }
+        
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        
+        ctx.scale(scale, scale)
+        ctx.drawImage(img, 0, 0)
+        
+        const dataUrl = canvas.toDataURL('image/png', quality)
+        URL.revokeObjectURL(url)
+        resolve(dataUrl)
+      }
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        reject(new Error('Failed to load SVG image'))
+      }
+      
+      img.src = url
+    })
+  }
+
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const downloadDataUrl = (dataUrl: string, filename: string) => {
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   const handleExport = async () => {
-    if (!selectedFormat) return
+    if (!selectedFormat) {
+      toast({
+        title: "No format selected",
+        description: "Please select an export format first.",
+        variant: "destructive"
+      })
+      return
+    }
 
     setIsExporting(true)
     setExportProgress(0)
 
-    // Simulate export progress
-    const interval = setInterval(() => {
-      setExportProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setTimeout(() => {
-            setIsExporting(false)
-            setExportProgress(0)
-          }, 500)
-          return 100
-        }
-        return prev + 10
+    try {
+      const scaleValue = getScaleValue()
+      const qualityValue = getQualityValue()
+      
+      // Progress simulation
+      const progressInterval = setInterval(() => {
+        setExportProgress(prev => Math.min(prev + 20, 80))
+      }, 100)
+
+      switch (selectedFormat) {
+        case 'png':
+          if (!diagramSvg) {
+            throw new Error('No diagram to export')
+          }
+          
+          // Parse SVG from string
+          const parser = new DOMParser()
+          const svgDoc = parser.parseFromString(diagramSvg, 'image/svg+xml')
+          const svgElement = svgDoc.documentElement as unknown as SVGElement
+          
+          const pngDataUrl = await svgToPng(svgElement, scaleValue, qualityValue)
+          downloadDataUrl(pngDataUrl, `${fileName}.png`)
+          break
+          
+        case 'svg':
+          if (!diagramSvg) {
+            throw new Error('No diagram to export')
+          }
+          downloadFile(diagramSvg, `${fileName}.svg`, 'image/svg+xml')
+          break
+          
+        case 'json':
+          if (!diagramCode) {
+            throw new Error('No diagram code to export')
+          }
+          const jsonData = {
+            type: 'mermaid',
+            content: diagramCode,
+            exported_at: new Date().toISOString(),
+            metadata: {
+              format: 'mermaid',
+              version: '1.0'
+            }
+          }
+          downloadFile(JSON.stringify(jsonData, null, 2), `${fileName}.json`, 'application/json')
+          break
+          
+        case 'pdf':
+          // For PDF, we'll convert SVG to canvas and then use basic PDF generation
+          if (!diagramSvg) {
+            throw new Error('No diagram to export')
+          }
+          
+          // For now, we'll just download the SVG with .pdf extension as a placeholder
+          // In a real implementation, you'd use a library like jsPDF
+          downloadFile(diagramSvg, `${fileName}.svg`, 'image/svg+xml')
+          
+          toast({
+            title: "PDF Export Note",
+            description: "PDF export downloaded as SVG. For proper PDF conversion, consider using the browser's print-to-PDF feature.",
+          })
+          break
+          
+        default:
+          throw new Error('Unsupported export format')
+      }
+      
+      clearInterval(progressInterval)
+      setExportProgress(100)
+      
+      toast({
+        title: "Export successful",
+        description: `Your diagram has been exported as ${selectedFormat.toUpperCase()}.`,
       })
-    }, 200)
+      
+      setTimeout(() => {
+        setIsExporting(false)
+        setExportProgress(0)
+      }, 1000)
+      
+    } catch (error) {
+      console.error('Export error:', error)
+      setIsExporting(false)
+      setExportProgress(0)
+      
+      toast({
+        title: "Export failed",
+        description: error instanceof Error ? error.message : "An error occurred during export.",
+        variant: "destructive"
+      })
+    }
   }
 
   return (
@@ -159,7 +329,7 @@ function ExportControls() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Quality</Label>
-              <Select defaultValue="high">
+              <Select value={quality} onValueChange={setQuality}>
                 <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-gray-100/20">
                   <SelectValue />
                 </SelectTrigger>
@@ -173,7 +343,7 @@ function ExportControls() {
 
             <div className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Scale</Label>
-              <Select defaultValue="2x">
+              <Select value={scale} onValueChange={setScale}>
                 <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-gray-100/20">
                   <SelectValue />
                 </SelectTrigger>
@@ -185,6 +355,9 @@ function ExportControls() {
               </Select>
             </div>
           </div>
+
+        {/* Hidden canvas for image processing */}
+        <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
 
         {/* Export Progress */}

@@ -91,6 +91,12 @@ class Settings(BaseSettings):
     langfuse_host: str = Field("https://cloud.langfuse.com", alias="LANGFUSE_HOST")
     langfuse_enabled: bool = Field(True, alias="LANGFUSE_ENABLED")
     
+    # Optimized Langfuse tracing settings
+    langfuse_tracing_level: str = Field("essential", alias="LANGFUSE_TRACING_LEVEL")  # essential, detailed, debug, disabled
+    langfuse_sample_rate: float = Field(1.0, alias="LANGFUSE_SAMPLE_RATE")  # 0.0 to 1.0
+    langfuse_track_costs: bool = Field(True, alias="LANGFUSE_TRACK_COSTS")
+    langfuse_track_tokens: bool = Field(True, alias="LANGFUSE_TRACK_TOKENS")
+    
     # NextAuth settings
     nextauth_secret: str = Field("", alias="NEXTAUTH_SECRET")
 

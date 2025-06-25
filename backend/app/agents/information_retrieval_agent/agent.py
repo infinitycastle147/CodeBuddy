@@ -8,7 +8,7 @@ from google.adk.agents.callback_context import CallbackContext
 from loguru import logger
 
 # --- Local Application Imports ---
-from app.utils.embedder import search_similar_code_chunks
+from app.utils.reranker import search_and_rerank_code_chunks
 from ..prompt_manager import PromptManager
 from app.agents.agent_errors import AgentOperationError
 
@@ -133,7 +133,7 @@ def get_information_retrieval_agent(jira_api_token: str | None = None, jira_serv
             description="Handles user requests and returns appropriate responses.",
             model="gemini-2.0-flash",
             # tools=[jira_tools, github_tools, search_similar_code_chunks],
-            tools=[search_similar_code_chunks],
+            tools=[search_and_rerank_code_chunks],
             output_key="information",
             before_agent_callback=save_refined_query_to_state,
         )

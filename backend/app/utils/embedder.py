@@ -11,7 +11,7 @@ import git
 from dotenv import load_dotenv
 from loguru import logger
 from pymongo.errors import OperationFailure
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 
 # Local application imports
 from app.utils.github_handler import clone_repo

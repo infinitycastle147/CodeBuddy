@@ -8,7 +8,8 @@ from app.agents import diagram_agent, get_diagram_updater_agent
 from app.repositories.implementations import DiagramRepository
 from app.api.dependencies import get_diagram_repository
 from app.core.responses import create_response, create_error_response
-from app.core.langfuse import trace_agent_execution, create_trace, flush_langfuse
+from app.core.langfuse.client import flush_langfuse
+from langfuse import observe
 from settings import settings
 from loguru import logger
 
@@ -92,7 +93,7 @@ async def list_diagrams(
 
 # Diagram Generation Endpoint
 @router.post("/", status_code=status.HTTP_201_CREATED)
-@trace_agent_execution("create_diagram_endpoint")
+@observe(name="diagram_creation")
 async def create_diagram(
     request: DiagramRequest,
     diagram_repo: DiagramRepository = Depends(get_diagram_repository),
@@ -192,7 +193,7 @@ async def update_diagram(
         )
 
 
-@trace_agent_execution("generate_diagram_content")
+@observe(name="diagram_content_generation")
 async def generate_diagram_content(user_input: str) -> str:
     """
     Generate diagram content using the diagram agent.

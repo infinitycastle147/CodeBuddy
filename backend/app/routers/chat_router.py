@@ -5,7 +5,6 @@ from app.dto.chat_dto import (
     MessageDTO,
     MessageResponse,
 )
-from app.models import user
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
@@ -14,7 +13,8 @@ from app.repositories.implementations import ChatRepository
 from app.api.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
 from app.models.chat import Chat
-from app.core.langfuse import trace_agent_execution, create_trace, flush_langfuse
+from app.core.langfuse.client import flush_langfuse
+from langfuse import observe
 from settings import settings
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -96,7 +96,7 @@ async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
 
 
 @router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
-@trace_agent_execution("chat_message_endpoint")
+@observe(name="chat_message_processing")
 async def add_message(
     chat_id: str,
     request: ChatRequest,
@@ -118,14 +118,7 @@ async def add_message(
         # Add user message
         chat.add_message(role="user", content=request.message)
 
-        # Generate AI response with tracing
-        trace = create_trace(
-            name="chat_conversation",
-            user_id="123",  # Replace with actual user ID
-            session_id=chat_id,
-            metadata={"message": request.message}
-        )
-        
+        # Generate AI response
         ai_response = await generate_ai_response(request.message)
         assistant_message = chat.add_message(role="assistant", content=ai_response)
 
@@ -152,7 +145,7 @@ async def add_message(
         )
 
 
-@trace_agent_execution("generate_ai_response")
+@observe(name="ai_response_generation")
 async def generate_ai_response(message: str) -> str:
     """
     Generate AI response using the chat agent.

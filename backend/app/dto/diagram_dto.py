@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from app.dto.connection_dto import BaseMCPConnectionRequest
 
-class DiagramRequest(BaseModel):
+class DiagramRequest(BaseMCPConnectionRequest):
     user_input: str = Field(..., description="User input for generating the diagram")
     title: Optional[str] = Field(None, description="Title of the diagram")
     description: Optional[str] = Field(None, description="Description of the diagram")

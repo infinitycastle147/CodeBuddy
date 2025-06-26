@@ -2,12 +2,14 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+from app.dto.connection_dto import BaseMCPConnectionRequest
+
 class MessageDTO(BaseModel):
     role: str = Field(..., description="Role of the message sender (e.g., user, assistant, system)")
     content: str = Field(..., description="Content of the message")
     timestamp: Optional[datetime] = Field(None, description="Timestamp when the message was created")
 
-class ChatRequest(BaseModel):
+class ChatRequest(BaseMCPConnectionRequest):
     message: str = Field(..., description="The message content from the user")
 
 class ChatResponse(BaseModel):

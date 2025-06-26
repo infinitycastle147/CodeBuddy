@@ -8,7 +8,7 @@ from app.dto.chat_dto import (
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
-from app.agents import chat_agent
+from app.agents import get_chat_agent
 from app.repositories.implementations import ChatRepository
 from app.api.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
@@ -119,7 +119,7 @@ async def add_message(
         chat.add_message(role="user", content=request.message)
 
         # Generate AI response
-        ai_response = await generate_ai_response(request.message)
+        ai_response = await generate_ai_response(request)
         assistant_message = chat.add_message(role="assistant", content=ai_response)
 
         # Update the chat
@@ -146,9 +146,9 @@ async def add_message(
 
 
 @observe(name="ai_response_generation")
-async def generate_ai_response(message: str) -> str:
+async def generate_ai_response(request: ChatRequest) -> str:
     """
-    Generate AI response using the chat agent.
+    Generate AI response using the chat agent with MCP connection parameters.
     """
     try:
         session_service = InMemorySessionService()
@@ -157,10 +157,10 @@ async def generate_ai_response(message: str) -> str:
             user_id="123",
         )
 
-        content = types.Content(role="user", parts=[types.Part(text=message)])
+        content = types.Content(role="user", parts=[types.Part(text=request.message)])
 
         runner = Runner(
-            agent=chat_agent,
+            agent=get_chat_agent(request),
             app_name=settings.application_name,
             session_service=session_service,
         )

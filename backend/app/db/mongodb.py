@@ -41,7 +41,7 @@ def create_mongo_client() -> MongoClient:
         
         # Test the connection
         client.admin.command('ping')
-        logger.debug(f"Successfully connected to MongoDB at: {settings.mongo_uri}")
+        logger.info(f"Successfully connected to MongoDB at: {settings.mongo_uri}")
         return client
     except (ConnectionFailure, ServerSelectionTimeoutError) as e:
         logger.error(f"Failed to connect to MongoDB: {e}")

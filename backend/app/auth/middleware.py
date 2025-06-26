@@ -104,6 +104,8 @@ async def auth_middleware(request: Request, call_next):
         )
     
     # Add user data to request state for use in route handlers
+    # For demo purposes, override user_id to "123"
+    user_data["user_id"] = "123"
     request.state.user = user_data
     request.state.auth_method = auth_method
     

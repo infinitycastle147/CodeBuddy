@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Annotated
 from app.dto.chat_dto import (
     ChatRequest,
     ChatResponse,
@@ -13,7 +14,10 @@ from app.repositories.implementations import ChatRepository
 from app.api.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
 from app.models.chat import Chat
+from app.models.user import User
 from app.core.langfuse.client import flush_langfuse
+from app.auth.dependencies import get_current_user
+from app.auth.authorization import require_chat_ownership, get_user_chats
 from langfuse import observe
 from settings import settings
 
@@ -26,23 +30,49 @@ def health_check():
     return create_response(message="Chat router is healthy", success=True)
 
 
+@router.get("/")
+async def list_chats(
+    user_chats: Annotated[list[Chat], Depends(get_user_chats)]
+):
+    """
+    List all chats belonging to the current user.
+    """
+    try:
+        if not user_chats:
+            return create_response(message="No chats found", data=[])
+
+        chats_response = [
+            ChatResponse(
+                id=str(chat.id),
+                title=chat.title,
+                user_id=str(chat.user_id),
+                messages=[
+                    MessageDTO(**message.model_dump(by_alias=True))
+                    for message in chat.messages
+                ],
+            )
+            for chat in user_chats
+        ]
+
+        return create_response(message="Chats retrieved successfully", data=chats_response)
+    except Exception as e:
+        return create_error_response(
+            code="list_chats_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 @router.get("/{chat_id}")
 async def get_chat(
-    chat_id: str, chat_repo: ChatRepository = Depends(get_chat_repository)
+    chat: Annotated[Chat, Depends(require_chat_ownership)]
 ):
     """
     Retrieve a chat session by its ID.
+    Only returns chat if the current user owns it.
     """
     try:
-        chat = await chat_repo.find_by_id(chat_id)
-        if not chat:
-            return create_error_response(
-                code="chat_not_found",
-                message="Chat session not found",
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-
-        chat = ChatResponse(
+        chat_response = ChatResponse(
             id=str(chat.id),
             title=chat.title,
             user_id=str(chat.user_id),
@@ -52,7 +82,7 @@ async def get_chat(
             ],
         )
 
-        return create_response(message="Chat retrieved successfully", data=chat)
+        return create_response(message="Chat retrieved successfully", data=chat_response)
     except Exception as e:
         return create_error_response(
             code="get_chat_error",
@@ -62,13 +92,16 @@ async def get_chat(
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
+async def create_chat(
+    current_user: Annotated[User, Depends(get_current_user)],
+    chat_repo: ChatRepository = Depends(get_chat_repository)
+):
     """
-    Create a new chat session.
+    Create a new chat session for the current user.
     """
     try:
-        # Create a new chat
-        chat = Chat(title="New Chat", user_id="123")
+        # Create a new chat for the authenticated user
+        chat = Chat(title="New Chat", user_id=str(current_user.id))
 
         initial_message = "Hello! I am CodeBuddy. I am here to help you with your coding tasks. How can I assist you today?"
 
@@ -98,23 +131,15 @@ async def create_chat(chat_repo: ChatRepository = Depends(get_chat_repository)):
 @router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
 @observe(name="chat_message_processing")
 async def add_message(
-    chat_id: str,
     request: ChatRequest,
+    chat: Annotated[Chat, Depends(require_chat_ownership)],
     chat_repo: ChatRepository = Depends(get_chat_repository),
 ):
     """
     Add a message to an existing chat session and get AI response.
+    Only works if the current user owns the chat.
     """
     try:
-        # Get the chat
-        chat = await chat_repo.find_by_id(chat_id)
-        if not chat:
-            return create_error_response(
-                code="chat_not_found",
-                message="Chat session not found",
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-
         # Add user message
         chat.add_message(role="user", content=request.message)
 
@@ -123,7 +148,7 @@ async def add_message(
         assistant_message = chat.add_message(role="assistant", content=ai_response)
 
         # Update the chat
-        await chat_repo.update(chat_id, chat)
+        await chat_repo.update(str(chat.id), chat)
         
         # Flush Langfuse events
         flush_langfuse()

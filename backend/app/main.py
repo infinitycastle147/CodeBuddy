@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
     app.middleware("http")(decrypt_credentials_middleware)
     
     # Add authentication middleware
-    # app.middleware("http")(auth_middleware)
+    app.middleware("http")(auth_middleware)
 
     # Include application routers
     logger.info("Including application routers")

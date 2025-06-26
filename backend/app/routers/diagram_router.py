@@ -4,7 +4,7 @@ from app.models.diagram import Diagram
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
-from app.agents import diagram_agent, get_diagram_updater_agent
+from app.agents import get_diagram_agent, get_diagram_updater_agent
 from app.repositories.implementations import DiagramRepository
 from app.api.dependencies import get_diagram_repository
 from app.core.responses import create_response, create_error_response
@@ -103,7 +103,7 @@ async def create_diagram(
     """
     try:
         # Generate diagram content using AI
-        diagram_content = await generate_diagram_content(request.user_input)
+        diagram_content = await generate_diagram_content(request)
 
         logger.info(f"Diagram content: {diagram_content}")
 
@@ -194,9 +194,9 @@ async def update_diagram(
 
 
 @observe(name="diagram_content_generation")
-async def generate_diagram_content(user_input: str) -> str:
+async def generate_diagram_content(request: DiagramRequest) -> str:
     """
-    Generate diagram content using the diagram agent.
+    Generate diagram content using the diagram agent with MCP connection parameters.
     """
     try:
         session_service = InMemorySessionService()
@@ -206,10 +206,10 @@ async def generate_diagram_content(user_input: str) -> str:
             user_id="123",
         )
 
-        content = types.Content(role="user", parts=[types.Part(text=user_input)])
+        content = types.Content(role="user", parts=[types.Part(text=request.user_input)])
 
         runner = Runner(
-            agent=diagram_agent,
+            agent=get_diagram_agent(request),
             app_name=settings.application_name,
             session_service=session_service,
         )

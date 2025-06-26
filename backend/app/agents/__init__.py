@@ -2,7 +2,7 @@
 from .prompt_manager import PromptManager
 
 # Importing agent modules
-from .agent import chat_agent, diagram_agent
+from .agent import get_chat_agent, get_diagram_agent
 from .diagram_query_generator_agent import diagram_query_generator_agent
 from .information_retrieval_agent import get_information_retrieval_agent
 from .response_formatter_agent import response_formatter_agent
@@ -16,8 +16,8 @@ from .agent_errors import AgentOperationError, handle_agent_error
 # Defining the public API of the module
 __all__ = [
     "PromptManager",
-    "chat_agent",
-    "diagram_agent",
+    "get_chat_agent",
+    "get_diagram_agent",
     "get_information_retrieval_agent",
     "response_formatter_agent",
     "diagram_generation_agent",

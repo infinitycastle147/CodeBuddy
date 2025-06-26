@@ -67,7 +67,7 @@ class CodeReranker:
         final_k: int = 5,     # Return fewer after re-ranking
         user_id: Optional[str] = None,
         repo_url: Optional[str] = None,
-        rerank_threshold: float = 0.0  # Minimum score to include in results
+        rerank_threshold: float = -15.0  # Minimum score to include in results
     ) -> List[RerankResult]:
         """
         Perform two-stage retrieval: initial search + cross-encoder re-ranking.

@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, status, Path
+from typing import Annotated, List
 from app.models.user import User
 from app.dto.user_dto import UserDto, UserResponseDto, UserCreateDto
 from app.repositories.implementations import UserRepository
 from app.api.dependencies import get_user_repository
 from app.core.responses import create_response, create_error_response
+from app.auth.dependencies import get_current_user
+from app.auth.authorization import require_same_user
 from pydantic import EmailStr
-from typing import List
 
 router = APIRouter(
     prefix="/user",
@@ -82,42 +84,34 @@ async def create_user(
 @router.get(
     "/{user_id}",
     summary="Get User",
-    description="Get a user by their ID.",
+    description="Get a user by their ID. Users can only access their own data.",
     responses={
         200: {"description": "User retrieved successfully"},
+        403: {"description": "Access denied"},
         404: {"description": "User not found"},
         500: {"description": "Internal server error"},
     },
 )
 async def get_user(
+    current_user: Annotated[User, Depends(require_same_user)],
     user_id: str = Path(..., description="The ID of the user to retrieve"),
-    user_repo: UserRepository = Depends(get_user_repository),
 ):
     """
-    Get a user by their ID.
+    Get a user by their ID. Users can only access their own data.
 
     Parameters:
         user_id (str): The ID of the user to retrieve.
-        user_repo (UserRepository): The user repository dependency.
+        current_user (User): The authenticated user (validated for ownership).
 
     Returns:
         UserResponse: The user data.
 
     Raises:
-        HTTPException: If user is not found or if there's a server error.
+        HTTPException: If access denied or server error.
     """
     try:
-        user = await user_repo.find_by_id(user_id)
-        if not user:
-            return create_error_response(
-                code="user_not_found",
-                message="User not found",
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-
-        user = UserResponseDto(**user.model_dump())
-
-        return create_response(message="User retrieved successfully", data=user)
+        user_response = UserResponseDto(**current_user.model_dump())
+        return create_response(message="User retrieved successfully", data=user_response)
     except Exception as e:
         return create_error_response(
             code="get_user_error",

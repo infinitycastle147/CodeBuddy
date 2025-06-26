@@ -1,9 +1,12 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends
+from typing import Annotated
 from app.core.responses import create_error_response, create_response
 from celery.result import AsyncResult
 from app.dto.tools_dto import RepoRequest
 from app.utils.embedder import process_repository
 from app.celery.worker import celery_app
+from app.models.user import User
+from app.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -15,13 +18,15 @@ def health_check():
 
 
 @router.post("/setup", summary="Setup Repository", tags=["tools"])
-async def setup_repo(request: RepoRequest):
+async def setup_repo(
+    request: RepoRequest,
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     """
-    Initiate repository processing as a background Celery task.
+    Initiate repository processing as a background Celery task for the current user.
     """
-    user_id = "123"  # Replace with actual user identification logic
     try:
-        task = process_repository.delay(user_id, request.repo_url, request.access_token)
+        task = process_repository.delay(str(current_user.id), request.repo_url, request.access_token)
         return create_response(
             message="Repository setup started", data={"task_id": task.id}, success=True
         )

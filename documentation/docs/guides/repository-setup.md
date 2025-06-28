@@ -459,7 +459,7 @@ After successful repository setup:
 
 1. **[Start Chatting](./chat)** - Ask questions about your code
 2. **[Generate Diagrams](./diagrams)** - Visualize your architecture
-3. **[Explore Advanced Features](./advanced)** - Power user capabilities
+
 4. **[API Integration](../api/tools)** - Programmatic access
 
 ---

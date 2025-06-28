@@ -434,7 +434,7 @@ sudo chown -R $USER:$USER ./data/
 
 ### Getting Help
 
-- Check the [troubleshooting guide](../troubleshooting)
+- Check the [troubleshooting guide](./troubleshooting.md)
 - Review logs with `docker-compose logs`
 - Visit our [GitHub Issues](https://github.com/your-org/codebuddy/issues)
 

@@ -258,7 +258,7 @@ redis-cli ping
 
 - **Documentation**: Check our comprehensive guides
 - **GitHub Issues**: Report bugs or request features
-- **Troubleshooting**: See our [troubleshooting guide](../deployment/troubleshooting.md)
+- **Troubleshooting**: See our [troubleshooting guide](./troubleshooting.md)
 
 ---
 

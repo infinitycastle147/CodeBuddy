@@ -1181,10 +1181,7 @@ curl -X POST http://localhost:8000/diagram/ \
 ## 🔄 What's Next?
 
 - **[Tools API](./tools.md)** - Repository processing and analysis
-- **[User Management](./users.md)** - User operations and permissions
-- **[Advanced Features](../guides/advanced-features.md)** - Power user capabilities
-- **[Authentication Guide](./authentication.md)** - Security best practices
 
 ---
 
-**Ready to visualize your code?** Try the interactive examples or explore our [Diagram Guide](../guides/diagram-guide.md)! 📊
+**Ready to visualize your code?** Try the interactive examples or explore our [Diagram Guide](../guides/diagrams.md)! 📊

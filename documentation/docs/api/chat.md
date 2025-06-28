@@ -703,9 +703,7 @@ curl -X POST http://localhost:8000/chat/chatid/message \
 
 - **[Diagram API](./diagrams.md)** - Generate code visualizations
 - **[Tools API](./tools.md)** - Repository processing
-- **[Advanced Features](../guides/advanced-features.md)** - Power user capabilities
-- **[Authentication Guide](./authentication.md)** - Security best practices
 
 ---
 
-**Ready to start chatting with your code?** Try the interactive examples or explore our [Chat Guide](../guides/chat-guide.md)! 💬
+**Ready to start chatting with your code?** Try the interactive examples or explore our [Chat Guide](../guides/chat.md)! 💬

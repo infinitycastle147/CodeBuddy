@@ -288,8 +288,7 @@ Explore specific API endpoints:
 - **[Chat API](./chat.md)** - Conversational code analysis
 - **[Diagram API](./diagrams.md)** - Code visualization
 - **[Tools API](./tools.md)** - Repository processing
-- **[User API](./users.md)** - User management
-- **[Authentication](./authentication.md)** - Security details
+
 
 ## 🤝 SDK & Libraries
 

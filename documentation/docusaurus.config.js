@@ -58,21 +58,7 @@ const config = {
           editUrl:
             'https://github.com/infinitycastle147/CodeBuddy/tree/main/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/infinitycastle147/CodeBuddy/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -98,7 +84,7 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
+          
           {
             href: 'https://github.com/infinitycastle147/CodeBuddy',
             label: 'GitHub',
@@ -131,15 +117,7 @@ const config = {
               },
             ],
           },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
-            ],
-          },
+          
         ],
         copyright: `Copyright © ${new Date().getFullYear()} CodeBuddy. Built with Docusaurus.`,
       },

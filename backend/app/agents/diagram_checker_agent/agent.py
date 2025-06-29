@@ -4,11 +4,11 @@
 # Third-Party Imports
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
-from google.adk.models.lite_llm import LiteLlm
 
 # Local Application Imports
 from ..prompt_manager import PromptManager
 from ..constants import MERMAID_INSTRUCTIONS
+from ..schemas import DiagramValidationOutput
 
 
 def save_information_retrieval_query_to_state(callback_context: CallbackContext):
@@ -33,5 +33,7 @@ diagram_checker_agent = LlmAgent(
     instruction=PromptManager.get_prompt("diagram_checker_agent"),
     description="Handles user requests related to diagram checking and provides appropriate responses.",
     model="gemini-2.0-flash",
+    output_schema=DiagramValidationOutput,
+    output_key="diagram_validation_result",
     before_agent_callback=save_information_retrieval_query_to_state,
 )

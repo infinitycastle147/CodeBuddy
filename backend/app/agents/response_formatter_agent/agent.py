@@ -8,6 +8,7 @@ from google.adk.models.lite_llm import LiteLlm
 
 # Local Application Imports
 from ..prompt_manager import PromptManager
+from ..schemas import FormattedResponse
 
 
 def save_refined_query_to_state(callback_context: CallbackContext):
@@ -48,5 +49,7 @@ response_formatter_agent = LlmAgent(
         "based on the provided instructions."
     ),
     model="gemini-2.0-flash",
+    output_schema=FormattedResponse,
+    output_key="formatted_chat_response",
     before_agent_callback=save_refined_query_to_state,
 )

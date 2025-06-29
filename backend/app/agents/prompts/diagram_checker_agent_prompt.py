@@ -18,13 +18,21 @@ If the diagram is empty, malformed, or unrelated to Mermaid, describe the issue 
 Here is the Mermaid diagram to analyze:
 {{diagram}}
 
-Return your response in the following format:
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+  "is_valid": boolean,
+  "corrected_diagram": string or null,
+  "validation_status": "valid" | "corrected" | "invalid",
+  "syntax_errors": array of strings,
+  "logical_issues": array of strings,
+  "best_practice_suggestions": array of strings,
+  "explanation": string
+}
 
-<mermaid_diagram>
-[Your updated Mermaid diagram code here. If no changes are needed, return the original diagram.]
-</mermaid_diagram>
+Field Guidelines:
+- corrected_diagram: Should contain the corrected Mermaid code if changes were made, OR the original diagram if valid and no changes needed. Only set to null if the diagram is completely invalid.
+- validation_status: "valid" if no changes needed, "corrected" if fixes were applied, "invalid" if cannot be fixed
+- If diagram is valid (no corrections needed), still include the original diagram in corrected_diagram field
 
-<explanation>
-[Summarize your analysis and explain any changes or confirm correctness.]
-</explanation>
+Generate a valid JSON response without any additional text or formatting.
 """

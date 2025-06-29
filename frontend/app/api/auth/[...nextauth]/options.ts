@@ -67,9 +67,11 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user._id.toString(),
             email: user.email,
-            name: user.username,
+            name: user.name,
             username: user.username,
+            image: user.image,
             isVerified: user.isVerified || false,
+            role: user.role || 'user', 
           };
         } catch (error) {
           console.error("Authorization error:", error);
@@ -80,7 +82,7 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: "/login",
-    signOut: "/logout",
+    signOut: "/logout", 
     error: "/login",
   },
   session: {
@@ -89,12 +91,24 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.AUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
+        token.email = user.email;
+        token.sub = user.id; 
+        token.picture = user.image;
         token.username = user.username;
         token.isVerified = user.isVerified;
+        token.id = user.id; // Keep this for backwards compatibility
+        token.name = user.name;
+        token.role = user.role || 'user'; // 🔥 ADD THIS - Store role in JWT
       }
+
+      if (account) {
+        token.accessToken = account.access_token;
+        token.provider = account.provider;
+        token.expires_at = account.expires_at;
+      }
+      
       return token;
     },
     async session({ session, token }) {
@@ -102,6 +116,15 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
         session.user.isVerified = token.isVerified as boolean;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.image = token.picture as string;
+        session.user.role = token.role as string; // 🔥 ADD THIS - Include role in session
+        
+        // OAuth tokens (optional - for calling external APIs)
+        session.accessToken = token.accessToken as string;
+        session.provider = token.provider as string;
+        session.expires_at = token.expires_at as number;
       }
       return session;
     },
@@ -111,7 +134,7 @@ export const authOptions: NextAuthOptions = {
           await dbConnect();
 
           // Check if user exists by email
-          const existingUser = await UserModel.findOne({ email: user.email });
+          let existingUser = await UserModel.findOne({ email: user.email });
 
           if (!existingUser) {
             // Create new user for GitHub OAuth
@@ -121,8 +144,10 @@ export const authOptions: NextAuthOptions = {
                 user.name?.toLowerCase().replace(/\s+/g, "") ||
                 `github_${account.providerAccountId}`,
               email: user.email,
+              name: user.name,
               image: user.image,
               isVerified: true,
+              role: 'user',
               accounts: [
                 {
                   provider: account.provider,
@@ -131,7 +156,14 @@ export const authOptions: NextAuthOptions = {
                 },
               ],
             });
-            await newUser.save();
+            
+            const savedUser = await newUser.save();
+            
+            // Update user object with database data
+            user.id = savedUser._id.toString();
+            user.role = savedUser.role;
+            user.name = savedUser.name;
+            
           } else {
             // Update existing user with GitHub account info if not already linked
             const hasGitHubAccount = existingUser.accounts?.some(
@@ -155,6 +187,13 @@ export const authOptions: NextAuthOptions = {
 
               await existingUser.save();
             }
+            
+            // Update user object with existing database data
+            user.id = existingUser._id.toString();
+            user.role = existingUser.role || 'user';
+            user.name = existingUser.name;
+            user.username = existingUser.username;
+            user.isVerified = existingUser.isVerified;
           }
           return true;
         } catch (error) {

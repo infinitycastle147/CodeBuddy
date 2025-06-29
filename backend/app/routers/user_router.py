@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, Path
-from typing import Annotated, List
+from typing import Annotated
 from app.models.user import User
-from app.dto.user_dto import UserDto, UserResponseDto, UserCreateDto
+from app.dto.user_dto import UserResponseDto
 from app.repositories.implementations import UserRepository
 from app.api.dependencies import get_user_repository
 from app.core.responses import create_response, create_error_response
@@ -20,7 +20,7 @@ router = APIRouter(
     summary="Health Check",
     description="Check if the user router is healthy and responding.",
 )
-def health_check():
+def health_check() -> dict:
     """
     Perform a health check on the user router.
 
@@ -42,8 +42,9 @@ def health_check():
     },
 )
 async def create_user(
-    user: User, user_repo: UserRepository = Depends(get_user_repository)
-):
+    user: User, 
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)]
+) -> dict:
     """
     Create a new user in the system.
 
@@ -95,7 +96,7 @@ async def create_user(
 async def get_user(
     current_user: Annotated[User, Depends(require_same_user)],
     user_id: str = Path(..., description="The ID of the user to retrieve"),
-):
+) -> dict:
     """
     Get a user by their ID. Users can only access their own data.
 
@@ -129,7 +130,9 @@ async def get_user(
         500: {"description": "Internal server error"},
     },
 )
-async def list_users(user_repo: UserRepository = Depends(get_user_repository)):
+async def list_users(
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)]
+) -> dict:
     """
     Get a list of all users in the system.
 
@@ -169,11 +172,11 @@ async def list_users(user_repo: UserRepository = Depends(get_user_repository)):
     },
 )
 async def get_user_by_email(
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
     email: EmailStr = Path(
         ..., description="The email address of the user to retrieve"
     ),
-    user_repo: UserRepository = Depends(get_user_repository),
-):
+) -> dict:
     """
     Get a user by their email address.
 

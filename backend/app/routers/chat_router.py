@@ -25,7 +25,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.get("/health")
-def health_check():
+def health_check() -> dict:
     """Check if the chat router is operational."""
     return create_response(message="Chat router is healthy", success=True)
 

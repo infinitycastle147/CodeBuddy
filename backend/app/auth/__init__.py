@@ -1,4 +1,4 @@
-# Authentication and Authorization module for NextAuth JWT verification and resource access control
+# Authentication and Authorization module for NextAuth session validation and resource access control
 
 from .dependencies import get_current_user, get_current_active_user
 from .authorization import (

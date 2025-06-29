@@ -12,7 +12,7 @@ router = APIRouter(prefix="/tools", tags=["tools"])
 
 
 @router.get("/health", summary="Health Check", tags=["tools"])
-def health_check():
+def health_check() -> dict:
     """Check if the tools router is operational."""
     return create_response(message="Tools router is healthy", success=True)
 
@@ -21,7 +21,7 @@ def health_check():
 async def setup_repo(
     request: RepoRequest,
     current_user: Annotated[User, Depends(get_current_user)]
-):
+) -> dict:
     """
     Initiate repository processing as a background Celery task for the current user.
     """
@@ -39,7 +39,7 @@ async def setup_repo(
         )
 
 @router.get("/task-status/{task_id}", summary="Get Task Status", tags=["tools"])
-def get_task_status(task_id: str):
+def get_task_status(task_id: str) -> dict:
     """
     Retrieve the status of a Celery background task.
     """

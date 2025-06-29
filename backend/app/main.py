@@ -1,22 +1,21 @@
 """
-    Main module for CodeBuddy application.
+Main module for CodeBuddy application.
 
-    This module initializes the FastAPI application, configures middleware,
-    includes routers, and sets up exception handling.
+This module initializes the FastAPI application, configures middleware,
+includes routers, and sets up exception handling.
 """
 
 # Standard library imports
 import uvicorn
-
-# Configure logging first
-from app.core.logging import setup_logging
+from typing import Dict, Any
 
 # Third-party imports
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from loguru import logger
 
 # Local application imports
 from app.routers.tools_router import router as tools_router
@@ -26,7 +25,6 @@ from app.routers.user_router import router as user_router
 from app.core.middleware import decrypt_credentials_middleware
 from app.auth.middleware import auth_middleware
 from settings import settings
-from loguru import logger
 
 
 def create_app() -> FastAPI:
@@ -65,18 +63,20 @@ def create_app() -> FastAPI:
 
     # Health check endpoint
     @app.get("/health")
-    async def health_check():
+    async def health_check() -> Dict[str, str]:
         """Health check endpoint for load balancers and monitoring."""
         return {"status": "healthy", "service": "CodeBuddy Backend"}
 
     # Add exception handlers
     @app.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(request, exc):
+    async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+        """Handle HTTP exceptions with proper logging."""
         logger.error(f"HTTP Exception: {exc.detail} - Status: {exc.status_code}")
         return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request, exc):
+    async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+        """Handle request validation errors with detailed logging."""
         logger.error(f"Validation Error: {exc.errors()}")
         return JSONResponse({"detail": exc.errors()}, status_code=422)
 

@@ -1,105 +1,99 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with this repository.
 
 ## Development Commands
 
-### Running the Application
 ```bash
 # Development server
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# Production with workers
+# Production
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
-# Using Docker Compose (recommended for full stack)
+# Docker Compose (recommended)
 docker-compose up --build
-```
 
-### Background Tasks
-```bash
-# Start Celery worker for background processing
+# Background tasks
 celery -A app.celery.worker.celery_app worker --loglevel=info
-
-# Start Redis (required for Celery)
 docker run -p 6379:6379 redis
-```
 
-### Testing
-```bash
-# Run tests
+# Testing
 pytest app/tests/
 
-# Run specific test file
-pytest app/tests/test_tools_router.py
-```
-
-### Dependencies
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# For development with virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# or venv\Scripts\activate  # Windows
+# Dependencies
 pip install -r requirements.txt
 ```
 
-## Architecture Overview
+## Architecture
 
-### Core Application Structure
-- **FastAPI Application**: Main application in `app/main.py` with factory pattern
-- **Settings**: Centralized configuration in `settings.py` using Pydantic
-- **Agent-Based Processing**: Multi-agent system using Google ADK for AI-powered features
-- **Async Task Queue**: Celery with Redis for background processing
-- **Database**: MongoDB with Motor for async operations
+**Core Stack**: FastAPI + MongoDB + Redis + Celery + Google ADK
 
 ### Key Components
+- **API Layer** (`app/routers/`): Tools, Chat, Diagram, User endpoints
+- **Agent System** (`app/agents/`): Multi-agent AI workflows for chat and diagram generation
+- **Data Layer** (`app/models/`, `app/repositories/`): Pydantic models with repository pattern
+- **Authentication** (`app/auth/`): NextAuth session validation with resource ownership
+- **Utilities** (`app/utils/`): GitHub integration, embeddings, XML processing
 
-#### Agent System (`app/agents/`)
-The application uses a sequential agent architecture:
-- **Chat Agent**: Handles conversational queries with security checking, query generation, information retrieval, and response formatting
-- **Diagram Agent**: Generates Mermaid diagrams with query generation, information retrieval, diagram creation, and validation
-- **Security Agent**: Validates and filters user inputs for security
-- **Information Retrieval Agent**: Searches and retrieves relevant code information using vector embeddings
+### Technology Stack
+- **FastAPI**: Web framework with OpenAPI docs
+- **Google ADK**: Agent Development Kit for AI workflows
+- **MongoDB + Motor**: Async NoSQL database
+- **Celery + Redis**: Background task processing
+- **Sentence Transformers**: Code search embeddings
+- **NextAuth**: Session-based authentication
 
-#### Data Layer (`app/models/`, `app/repositories/`)
-- **Base Model**: Shared Pydantic models in `app/models/base.py`
-- **Domain Models**: User, Chat, Message, Diagram models with MongoDB integration
-- **Repository Pattern**: Abstracted data access with implementations in `app/repositories/`
+## Environment Variables
 
-#### API Layer (`app/routers/`)
-- **Tools Router**: GitHub integration, repository processing, code analysis
-- **Chat Router**: Conversational AI endpoints
-- **Diagram Router**: Mermaid diagram generation and management
-- **User Router**: User management and authentication
+```bash
+# Database
+APPLICATION_MONGO_URI=mongodb://localhost:27017
+APPLICATION_MONGO_DB=codebuddy
 
-#### Utilities (`app/utils/`)
-- **GitHub Handler**: Repository cloning, processing, and analysis
-- **Embedder**: Vector embeddings for code search using sentence-transformers
-- **XML Converter**: Code structure analysis and conversion
+# Redis & Security
+APPLICATION_REDIS_URL=redis://localhost:6379
+APPLICATION_ENCRYPTION_KEY=your-key
 
-### Key Technologies
-- **FastAPI**: Web framework with automatic OpenAPI documentation
-- **Google ADK**: Agent Development Kit for multi-agent AI workflows
-- **Celery + Redis**: Distributed task queue for background processing
-- **MongoDB + Motor**: Async NoSQL database operations
-- **Sentence Transformers**: Vector embeddings for semantic code search
-- **Mermaid**: Diagram generation and visualization
-- **LiteLLM**: Multi-provider LLM integration
+# Server
+APPLICATION_HOST=0.0.0.0
+APPLICATION_PORT=8000
+APPLICATION_CORS_ALLOW_ORIGINS=http://localhost:3000
 
-### Environment Configuration
-Required environment variables (see `.env` example in README):
-- Database: `APPLICATION_MONGO_URI`, `APPLICATION_MONGO_DB`
-- Redis: `APPLICATION_REDIS_URL`
-- Security: `APPLICATION_ENCRYPTION_KEY`
-- CORS: `APPLICATION_CORS_ALLOW_ORIGINS`
-- Server: `APPLICATION_HOST`, `APPLICATION_PORT`, `APPLICATION_UVICORN_WORKERS_COUNT`
+# Authentication
+NEXTAUTH_SECRET=your-secret
+NEXTAUTH_URL=http://localhost:3000
+```
 
-### Development Notes
-- The application uses middleware for credential decryption (`app/core/middleware.py`)
-- Logging is configured in `app/core/logging.py` with file output to `logs/`
-- Repository cloning and processing happens in `clones/` directory
-- Tests are located in `app/tests/` with pytest configuration
-- Docker support with multi-service setup (app, Redis, MongoDB)
+## Authentication Flow
+
+1. **Frontend**: NextAuth manages login/sessions
+2. **Backend**: Validates sessions via NextAuth API (`/api/auth/session`)
+3. **Database**: Auto-creates/syncs users from session data
+4. **Authorization**: Role-based access + resource ownership checks
+
+## Directory Structure
+
+```
+app/
+├── main.py              # FastAPI application
+├── settings.py          # Configuration
+├── api/                 # Dependencies
+├── auth/                # Authentication & authorization
+├── routers/             # API endpoints
+├── agents/              # AI agent system
+├── models/              # Pydantic models
+├── repositories/        # Data access layer
+├── utils/               # GitHub, embeddings, XML
+├── core/                # Middleware, responses, logging
+├── celery/              # Background tasks
+└── tests/               # Test suite
+```
+
+## Development Notes
+
+- MongoDB Atlas with local fallback
+- Logs output to `logs/` directory
+- Repository cloning in `clones/` directory
+- All routers use type hints and consistent error handling
+- Resource ownership enforced via middleware

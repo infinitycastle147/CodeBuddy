@@ -27,6 +27,9 @@ class User(BaseModelWithId):
     is_active: bool = Field(
         True, description="Whether the user account is active", alias="isActive"
     )
+    role: str = Field(
+        "user", description="User role for authorization (user, admin, moderator)"
+    )
     accounts: Optional[List[Any]] = Field(
         None, description="OAuth accounts associated with user"
     )

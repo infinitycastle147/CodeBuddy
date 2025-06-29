@@ -20,7 +20,7 @@ from loguru import logger
 router = APIRouter(prefix="/diagram", tags=["diagram"])
 
 @router.get("/health")
-def health_check():
+def health_check() -> dict:
     return create_response(message="Diagram router is healthy", success=True)
 
 
@@ -86,8 +86,8 @@ async def list_diagrams(
 async def create_diagram(
     request: DiagramRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    diagram_repo: DiagramRepository = Depends(get_diagram_repository),
-):
+    diagram_repo: Annotated[DiagramRepository, Depends(get_diagram_repository)],
+) -> dict:
     """
     Generate a diagram based on user input using the diagram agent.
     """
@@ -143,11 +143,11 @@ async def update_diagram(
         updated_diagram_content = request.content
 
         updated_diagram = Diagram(
-            id = diagram.id,
-            user_id = diagram.user_id,
-            title = diagram.title,
-            description = diagram.description,
-            content = updated_diagram_content,
+            id=diagram.id,
+            user_id=diagram.user_id,
+            title=diagram.title,
+            description=diagram.description,
+            content=updated_diagram_content,
         )
 
         # Update the diagram
@@ -219,45 +219,3 @@ async def generate_diagram_content(request: DiagramRequest) -> str:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def update_diagram_content(user_input: str, diagram: str) -> str:
-    """
-    Generate diagram content using the diagram agent.
-    """
-    try:
-        session_service = InMemorySessionService()
-
-        session = await session_service.create_session(
-            app_name=settings.application_name,
-            user_id="123",
-        )
-
-        content = types.Content(role="user", parts=[types.Part(text=user_input)])
-
-        runner = Runner(
-            agent=get_diagram_updater_agent(diagram),
-            app_name=settings.application_name,
-            session_service=session_service,
-        )
-
-        events = runner.run_async(
-            user_id=session.user_id, session_id=session.id, new_message=content
-        )
-
-        last_final_response = None
-
-        async for event in events:
-            if event.is_final_response() and event.content and event.content.parts:
-                final_response = event.content.parts[0].text
-                last_final_response = (
-                    final_response["response"]
-                    if isinstance(final_response, dict) and "response" in final_response
-                    else final_response
-                )
-
-        if last_final_response is not None:
-            return last_final_response
-
-        return "No diagram content could be generated."
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

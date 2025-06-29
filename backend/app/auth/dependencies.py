@@ -1,6 +1,8 @@
 """
-FastAPI dependencies for NextAuth authentication
-These work with the auth middleware that handles token verification
+FastAPI dependencies for NextAuth authentication.
+
+These dependencies work with the auth middleware that validates NextAuth sessions
+and puts user data in request.state.user
 """
 from typing import Annotated
 from fastapi import Depends, HTTPException, status, Request
@@ -15,17 +17,13 @@ async def get_current_user(
     user_repo: Annotated[UserRepository, Depends(get_user_repository)]
 ) -> User:
     """
-    Get current authenticated user from request state and database.
+    Get current authenticated user from database.
     
-    This dependency assumes the user is already authenticated by middleware.
-    The middleware puts user data in request.state.user
+    This dependency requires the user to be authenticated by auth_middleware first.
+    The middleware validates the NextAuth session and sets request.state.user
     
-    Args:
-        request: FastAPI request object with user data in state
-        user_repo: User repository for database operations
-        
     Returns:
-        User: Full user object from database
+        User: Full user object from database (auto-created if needed)
         
     Raises:
         HTTPException: If no authenticated user found

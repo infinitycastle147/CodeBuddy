@@ -38,7 +38,7 @@ class BaseRepository(Generic[ModelType]):
         return await self.find_by_id(str(result.inserted_id))
 
     async def update(self, id: str, model: ModelType) -> Optional[ModelType]:
-        """Update an existing document."""
+        """Update an existing document with a full model."""
         if not ObjectId.is_valid(id):
             return None
         document = model.model_dump(exclude_unset=True, by_alias=True)
@@ -48,6 +48,25 @@ class BaseRepository(Generic[ModelType]):
             self.collection,
             {"_id": ObjectId(id)},
             {"$set": document}
+        )
+        if result.modified_count == 0:
+            return None
+        return await self.find_by_id(id)
+    
+    async def update_fields(self, id: str, updates: dict) -> Optional[ModelType]:
+        """Update specific fields of an existing document."""
+        if not ObjectId.is_valid(id):
+            return None
+        
+        # Remove _id if present
+        updates_copy = updates.copy()
+        if "_id" in updates_copy:
+            del updates_copy["_id"]
+            
+        result = await async_update_one(
+            self.collection,
+            {"_id": ObjectId(id)},
+            {"$set": updates_copy}
         )
         if result.modified_count == 0:
             return None

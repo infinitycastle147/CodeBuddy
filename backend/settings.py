@@ -99,6 +99,7 @@ class Settings(BaseSettings):
     
     # NextAuth settings
     nextauth_secret: str = Field("", alias="NEXTAUTH_SECRET")
+    nextauth_url: str = Field("http://localhost:3000", alias="NEXTAUTH_URL")
 
     @property
     def workers_count(self) -> int:

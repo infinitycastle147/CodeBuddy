@@ -3,18 +3,10 @@ Authentication middleware for NextAuth integration
 """
 from fastapi import Request, HTTPException, status
 from fastapi.responses import JSONResponse
-import logging
+from loguru import logger
 
-from .jwt_handler import jwt_handler
-from .token_utils import (
-    get_token_from_cookie, 
-    get_token_from_header,
-    extract_user_data_from_jwt,
-    extract_user_data_from_session
-)
-from app.db.mongodb import get_mongo_client
-
-logger = logging.getLogger(__name__)
+from .jwt_handler import session_handler
+from .token_utils import extract_user_data_from_session
 
 # Paths that don't require authentication
 PUBLIC_PATHS = {
@@ -38,6 +30,11 @@ PROTECTED_PATH_PREFIXES = {
 
 def is_public_path(path: str, method: str = "GET") -> bool:
     """Check if the path is public (doesn't require authentication)"""
+    
+    # Skip authentication for OPTIONS requests (CORS preflight)
+    if method == "OPTIONS":
+        return True
+        
     # Exact match for public paths
     if path in PUBLIC_PATHS:
         return True
@@ -55,45 +52,47 @@ def is_public_path(path: str, method: str = "GET") -> bool:
 
 async def auth_middleware(request: Request, call_next):
     """
-    Authentication middleware that checks for valid NextAuth tokens
+    Authentication middleware that validates NextAuth sessions.
+    
+    For protected routes, this middleware:
+    1. Calls NextAuth API to validate session cookies
+    2. Extracts user data from session
+    3. Sets request.state.user for downstream dependencies
+    4. Returns 401 if authentication fails
     """
     path = request.url.path
     method = request.method
     
+    logger.info(f"Auth middleware: {method} {path}")
+    logger.debug(f"Request cookies: {list(request.cookies.keys())}")
+    
     # Skip authentication for public paths
     if is_public_path(path, method):
+        logger.info(f"Public path, skipping auth: {path}")
         return await call_next(request)
     
-    # Try to authenticate the request
+    # Authenticate user by validating NextAuth session
     user_data = None
     auth_method = None
     
-    # Try JWT token first
-    jwt_token = get_token_from_header(request)
-    if jwt_token:
-        try:
-            jwt_payload = jwt_handler.verify_jwt_token(jwt_token)
-            if 'sub' in jwt_payload or 'email' in jwt_payload:
-                user_data = extract_user_data_from_jwt(jwt_payload)
-                auth_method = "jwt"
-        except HTTPException:
-            pass  # Continue to try session token
-    
-    # Try session token from cookies if JWT failed
-    if not user_data:
-        session_token = get_token_from_cookie(request)
-        if session_token:
-            try:
-                mongo_client = get_mongo_client()
-                session_data = jwt_handler.verify_session_token(session_token, mongo_client)
-                nextauth_user = session_data['user']
-                user_data = extract_user_data_from_session(nextauth_user)
-                auth_method = "session"
-            except HTTPException:
-                pass
-    
+    try:
+        # Call NextAuth API to validate session
+        session_data = await session_handler.validate_session(request)
+        nextauth_user = session_data.get('user', {})
+        
+        # Extract standardized user data from NextAuth session
+        user_data = extract_user_data_from_session(nextauth_user)
+        auth_method = "nextauth_session"
+        logger.info(f"User authenticated: {user_data.get('email', 'unknown')}")
+        
+    except HTTPException as e:
+        logger.error(f"Session validation failed: {e.detail}")
+    except Exception as e:
+        logger.error(f"Unexpected error during session validation: {str(e)}")
+                
     # If no valid authentication found, return 401
     if not user_data:
+        logger.warning(f"Authentication failed for {method} {path}")
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={
@@ -104,11 +103,11 @@ async def auth_middleware(request: Request, call_next):
         )
     
     # Add user data to request state for use in route handlers
-    # For demo purposes, override user_id to "123"
-    user_data["user_id"] = "123"
     request.state.user = user_data
     request.state.auth_method = auth_method
+    logger.info(f"Authentication successful, proceeding with request")
     
     # Continue with the request
     response = await call_next(request)
+    logger.debug(f"Request completed with status: {response.status_code}")
     return response

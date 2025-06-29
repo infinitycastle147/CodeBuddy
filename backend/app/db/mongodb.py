@@ -21,31 +21,84 @@ CONNECTION_TIMEOUT = 5000  # milliseconds
 def create_mongo_client() -> MongoClient:
     """
     Create a new MongoDB client with proper configuration.
+    Tries Atlas first, then falls back to local MongoDB if configured.
     
     Returns:
         MongoClient: Configured MongoDB client instance
     """
+    # Check if it's a MongoDB Atlas connection (has .mongodb.net)
+    is_atlas = ".mongodb.net" in settings.mongo_uri
+    
+    # Try primary connection (Atlas or configured URI)
     try:
-        # Configure client with proper timeouts and connection pooling
-        client = MongoClient(
-            settings.mongo_uri,
-            serverSelectionTimeoutMS=CONNECTION_TIMEOUT,
-            connectTimeoutMS=CONNECTION_TIMEOUT,
-            socketTimeoutMS=CONNECTION_TIMEOUT * 2,
-            maxPoolSize=10,
-            minPoolSize=1,
-            maxIdleTimeMS=60000,  # 1 minute
-            retryWrites=True,
-            retryReads=True
-        )
+        logger.info(f"Attempting to connect to MongoDB: {'Atlas' if is_atlas else 'Primary'}")
+        client = _create_client_with_config(settings.mongo_uri, is_atlas)
         
         # Test the connection
         client.admin.command('ping')
-        logger.info(f"Successfully connected to MongoDB at: {settings.mongo_uri}")
+        logger.info(f"✅ Successfully connected to MongoDB ({'Atlas' if is_atlas else 'Primary'})")
         return client
+        
     except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-        logger.error(f"Failed to connect to MongoDB: {e}")
-        raise
+        logger.error(f"❌ Primary MongoDB connection failed: {e}")
+        
+        # If Atlas fails, try fallback to local
+        if is_atlas:
+            logger.warning("🔄 Atlas connection failed, trying local fallback...")
+            try:
+                local_uri = "mongodb://localhost:27017"
+                local_client = _create_client_with_config(local_uri, is_atlas=False)
+                
+                # Test local connection
+                local_client.admin.command('ping')
+                logger.info("✅ Successfully connected to local MongoDB fallback")
+                return local_client
+                
+            except (ConnectionFailure, ServerSelectionTimeoutError) as local_e:
+                logger.error(f"❌ Local MongoDB fallback also failed: {local_e}")
+                logger.error("💡 Make sure you have MongoDB running locally:")
+                logger.error("   - macOS: brew services start mongodb/brew/mongodb-community")
+                logger.error("   - Docker: docker run -d -p 27017:27017 mongo")
+                logger.error("   - Or fix your Atlas connection")
+                raise local_e
+        
+        # If not Atlas or no fallback available, re-raise original error
+        if is_atlas:
+            logger.error("🔧 MongoDB Atlas connection tips:")
+            logger.error("   1. Check username/password in connection string")
+            logger.error("   2. Whitelist your IP in Atlas Network Access")
+            logger.error("   3. Ensure cluster is running (not paused)")
+            logger.error("   4. Try: pip install --upgrade pymongo")
+        
+        raise e
+
+
+def _create_client_with_config(uri: str, is_atlas: bool) -> MongoClient:
+    """Helper function to create MongoDB client with appropriate config"""
+    
+    # Base configuration
+    client_config = {
+        "serverSelectionTimeoutMS": CONNECTION_TIMEOUT,
+        "connectTimeoutMS": CONNECTION_TIMEOUT,
+        "socketTimeoutMS": CONNECTION_TIMEOUT * 2,
+        "maxPoolSize": 10,
+        "minPoolSize": 1,
+        "maxIdleTimeMS": 60000,  # 1 minute
+        "retryWrites": True,
+        "retryReads": True
+    }
+    
+    # Add SSL/TLS configuration for MongoDB Atlas
+    if is_atlas:
+        client_config.update({
+            "tls": True,
+            "tlsAllowInvalidCertificates": False,
+            "tlsAllowInvalidHostnames": False,
+            "directConnection": False,
+            "serverSelectionTimeoutMS": 10000,  # Longer timeout for Atlas
+        })
+    
+    return MongoClient(uri, **client_config)
 
 
 # Singleton client for application-wide use

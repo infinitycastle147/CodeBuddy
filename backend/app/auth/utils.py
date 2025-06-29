@@ -60,7 +60,7 @@ async def get_user_from_repository(
             update_needed = True
         
         if update_needed:
-            await user_repo.update(existing_user.id, updates)
+            await user_repo.update_fields(existing_user.id, updates)
             # Refresh user data
             existing_user = await user_repo.find_by_email(user_data["email"])
         
@@ -69,18 +69,19 @@ async def get_user_from_repository(
         # Create new user from NextAuth data
         username = user_data["email"].split("@")[0]
         
-        new_user_data = {
-            "email": user_data["email"],
-            "username": username,
-            "name": user_data.get("name"),
-            "image": user_data.get("image"),
-            "provider": "nextauth",
-            "provider_id": user_data.get("user_id"),
-            "is_active": True
-        }
+        # Create User model instance
+        new_user = User(
+            email=user_data["email"],
+            username=username,
+            name=user_data.get("name"),
+            image=user_data.get("image"),
+            provider="nextauth",
+            provider_id=user_data.get("user_id"),
+            is_active=True
+        )
         
-        created_user = await user_repo.create(new_user_data)
-        return User(**created_user)
+        created_user = await user_repo.create(new_user)
+        return created_user
 
 def get_auth_method(request: Request) -> Optional[str]:
     """

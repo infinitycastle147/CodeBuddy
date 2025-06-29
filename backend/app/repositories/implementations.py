@@ -27,6 +27,11 @@ class ChatRepository(BaseRepository[Chat]):
         """Find all chats by title."""
         documents = await async_find(self.collection, {"title": title})
         return [Chat(**doc) for doc in documents]
+    
+    async def find_by_user_id(self, user_id: str) -> list[Chat]:
+        """Find all chats by user ID."""
+        documents = await async_find(self.collection, {"user_id": user_id})
+        return [Chat(**doc) for doc in documents]
         
     async def add_message_to_chat(self, chat_id: str, role: str, content: str) -> Chat:
         """Add a message to an existing chat."""
@@ -38,10 +43,10 @@ class ChatRepository(BaseRepository[Chat]):
         # Add the message
         chat.add_message(role, content)
         
-        # Update the chat in the database
-        await self.update(chat_id, chat.dict(by_alias=True))
+        # Update the chat in the database using the model instance
+        updated_chat = await self.update(chat_id, chat)
         
-        return chat
+        return updated_chat
 
 class DiagramRepository(BaseRepository[Diagram]):
     def __init__(self, mongo_client: MongoClient):

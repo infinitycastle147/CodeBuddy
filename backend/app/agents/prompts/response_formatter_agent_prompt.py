@@ -24,28 +24,7 @@ Important Guidelines:
 
 IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
 {
-  "formatted_content": "string - Main markdown-formatted response content",
-  "code_snippets": [
-    {
-      "file_path": "string - Full path to source file",
-      "code": "string - The actual code content", 
-      "language": "string - Programming language for syntax highlighting",
-      "start_line": number or null,
-      "end_line": number or null
-    }
-  ],
-  "mermaid_diagrams": ["array of mermaid diagram code strings"],
-  "key_insights": ["array of bullet points with main findings"],
-  "relevant_files": ["array of file paths referenced"],
-  "confidence_score": number between 0.0 and 1.0,
-  "response_type": "string like 'code_explanation', 'tutorial', 'troubleshooting', etc.",
-  "sources": [
-    {
-      "file_path": "string - Path to source file",
-      "relevance_score": number between 0.0 and 1.0,
-      "chunk_id": "string or null - Chunk identifier"
-    }
-  ]
+  "formatted_content": "string - Main markdown-formatted response content"
 }
 
 Generate a valid JSON response without any additional text or formatting.

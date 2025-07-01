@@ -66,39 +66,3 @@ class FormattedResponse(BaseModel):
     formatted_content: str = Field(
         description="Main markdown-formatted response content"
     )
-    
-    code_snippets: List[CodeSnippet] = Field(
-        default_factory=list,
-        description="List of code snippets with metadata for rendering"
-    )
-    
-    mermaid_diagrams: List[str] = Field(
-        default_factory=list,
-        description="List of Mermaid diagram codes for visualization"
-    )
-    
-    key_insights: List[str] = Field(
-        default_factory=list,
-        description="Bullet points highlighting main findings or insights"
-    )
-    
-    relevant_files: List[str] = Field(
-        default_factory=list,
-        description="List of file paths referenced in the response"
-    )
-    
-    confidence_score: float = Field(
-        default=0.8,
-        ge=0.0,
-        le=1.0,
-        description="Confidence score (0.0-1.0) in response accuracy"
-    )
-    
-    response_type: str = Field(
-        description="Type of response: 'code_explanation', 'tutorial', 'troubleshooting', 'api_docs', etc."
-    )
-    
-    sources: List[Source] = Field(
-        default_factory=list,
-        description="List of sources used to generate the response with metadata"
-    )

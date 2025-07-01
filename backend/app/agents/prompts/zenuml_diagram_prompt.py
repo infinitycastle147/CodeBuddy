@@ -1,6 +1,13 @@
 ZENUML_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid ZenUML sequence diagrams. Follow these instructions precisely to generate syntactically correct ZenUML diagrams that effectively visualize system interactions using programming-like syntax.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a ZenUML diagram that accurately represents the system interactions using programming-like syntax. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

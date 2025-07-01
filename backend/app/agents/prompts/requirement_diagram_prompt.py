@@ -1,6 +1,13 @@
 REQUIREMENT_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid requirement diagrams. Follow these instructions precisely to generate syntactically correct requirement diagrams that effectively visualize system requirements, their relationships, and traceability using SysML standards.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a requirement diagram that accurately represents the system requirements, relationships, and traceability. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

@@ -1,6 +1,13 @@
 USER_JOURNEY_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid User Journey diagrams. Follow these instructions precisely to generate syntactically correct user journey maps that effectively visualize user experiences, identify pain points, and highlight satisfaction levels across different touchpoints and phases of user interaction.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a user journey diagram that accurately represents the user experiences, touchpoints, and interaction phases. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

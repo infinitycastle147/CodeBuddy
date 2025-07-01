@@ -1,6 +1,13 @@
 ARCHITECTURE_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid architecture diagrams. Follow these instructions precisely to generate syntactically correct architecture diagrams that effectively visualize cloud systems, microservices, and infrastructure relationships.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create an architecture diagram that accurately represents the cloud systems, microservices, and infrastructure relationships. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

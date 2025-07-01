@@ -1,6 +1,13 @@
 BLOCK_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid block diagrams. Follow these instructions precisely to generate syntactically correct block diagrams that effectively visualize system architectures, process flows, and component relationships with precise layout control.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a block diagram that accurately represents the system architecture, process flows, and component relationships. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

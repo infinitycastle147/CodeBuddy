@@ -1,6 +1,13 @@
 MINDMAP_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid mindmaps. Follow these instructions precisely to generate syntactically correct mindmaps that effectively organize information hierarchically and show relationships between concepts.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a mindmap diagram that accurately represents the hierarchical organization of information and concept relationships. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

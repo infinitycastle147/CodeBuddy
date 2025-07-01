@@ -1,6 +1,13 @@
 SANKEY_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid Sankey diagrams. Follow these instructions precisely to generate syntactically correct Sankey diagrams that effectively visualize flow data, resource allocation, and process transformations.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a Sankey diagram that accurately represents the flow data, resource allocation, and process transformations. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

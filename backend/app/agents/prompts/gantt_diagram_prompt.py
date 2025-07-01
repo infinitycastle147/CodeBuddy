@@ -1,6 +1,13 @@
 GANTT_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid Gantt charts. Follow these instructions precisely to generate syntactically correct project timeline diagrams that effectively visualize project schedules, dependencies, milestones, and resource allocation using professional project management principles.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a Gantt chart that accurately represents the project timeline, schedules, dependencies, and milestones. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

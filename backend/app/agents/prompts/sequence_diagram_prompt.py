@@ -1,6 +1,13 @@
 SEQUENCE_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid sequence diagrams. Follow these instructions precisely to generate syntactically correct and visually effective sequence diagrams that clearly show interactions between participants over time.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a sequence diagram that accurately represents the interactions, API calls, or communication flows described. Use the information to understand the specific system components and their interactions.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

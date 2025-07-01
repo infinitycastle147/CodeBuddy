@@ -1,6 +1,13 @@
 TIMELINE_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid timeline diagrams. Follow these instructions precisely to generate syntactically correct timelines that effectively visualize chronological sequences of events, milestones, and historical progressions.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a timeline diagram that accurately represents the chronological sequence of events, milestones, and historical progressions. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

@@ -1,6 +1,13 @@
 PIE_CHART_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid pie charts. Follow these instructions precisely to generate syntactically correct pie charts that effectively visualize proportional data, communicate insights clearly, and follow data visualization best practices for business intelligence and analytical reporting.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a pie chart that accurately represents the proportional data and insights. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

@@ -1,6 +1,13 @@
 RADAR_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid radar diagrams. Follow these instructions precisely to generate syntactically correct radar charts that effectively visualize multi-dimensional data comparisons, performance metrics, and skill assessments.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a radar diagram that accurately represents the multi-dimensional data comparisons, performance metrics, and skill assessments. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

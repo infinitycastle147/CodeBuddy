@@ -1,6 +1,13 @@
 KANBAN_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid Kanban diagrams. Follow these instructions precisely to generate syntactically correct Kanban boards that effectively visualize workflow stages, task progression, and team assignments.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a Kanban diagram that accurately represents the workflow stages, task progression, and team assignments. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

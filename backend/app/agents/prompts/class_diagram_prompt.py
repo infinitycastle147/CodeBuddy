@@ -1,6 +1,13 @@
 CLASS_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid class diagrams. Follow these instructions precisely to generate syntactically correct, well-structured UML class diagrams that accurately represent object-oriented system architecture and relationships.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a class diagram that accurately represents the object-oriented system architecture, classes, and their relationships. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

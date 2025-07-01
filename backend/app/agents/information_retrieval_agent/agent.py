@@ -30,10 +30,13 @@ def save_user_query_to_state(callback_context: CallbackContext):
     return None
 
 
-def create_callback_with_mcp_connection(mcp_connection: BaseMCPConnectionRequest | None = None):
+def create_callback_with_mcp_connection(
+    mcp_connection: BaseMCPConnectionRequest | None = None,
+):
     """
     Factory function to create a callback with MCP connection parameters.
     """
+
     def save_refined_query_to_state(callback_context: CallbackContext):
         """
         Callback to save the refined query text and MCP connection info into session state.
@@ -51,52 +54,66 @@ def create_callback_with_mcp_connection(mcp_connection: BaseMCPConnectionRequest
         )
 
         if refined_query is None:
-            logger.debug("[Callback] No refined query found in state, checking user content...")
-            
+            logger.debug(
+                "[Callback] No refined query found in state, checking user content..."
+            )
+
             # Safely access user_content.parts
             user_content = getattr(callback_context, "user_content", None)
             parts = getattr(user_content, "parts", []) if user_content else []
-            
+
             refined_query = (
-                parts[0].text
-                if parts and hasattr(parts[0], "text")
-                else "N/A"
+                parts[0].text if parts and hasattr(parts[0], "text") else "N/A"
             )
 
         # Store all relevant information in state
         callback_context.state["refined_query"] = refined_query
         callback_context.state["user_id"] = user_id
         callback_context.state["repo_url"] = repo_url
-        
+
         # Store MCP connection info for template variables
         if mcp_connection:
-            callback_context.state["github_username"] = mcp_connection.github_username or "N/A"
-            callback_context.state["jira_project_name"] = mcp_connection.jira_project_name or "N/A"
+            callback_context.state["github_username"] = (
+                mcp_connection.github_username or "N/A"
+            )
+            callback_context.state["jira_project_name"] = (
+                mcp_connection.jira_project_name or "N/A"
+            )
             callback_context.state["jira_url"] = mcp_connection.jira_url or "N/A"
         else:
             callback_context.state["github_username"] = "N/A"
             callback_context.state["jira_project_name"] = "N/A"
             callback_context.state["jira_url"] = "N/A"
 
-        logger.info(f"[Callback] Saved query '{refined_query}' and filters (user_id={user_id}, repo_url={repo_url}) to state")
+        logger.info(
+            f"[Callback] Saved query '{refined_query}' and filters (user_id={user_id}, repo_url={repo_url}) to state"
+        )
 
         # Return None to allow the agent's normal execution to proceed
         return None
-    
+
     return save_refined_query_to_state
 
 
 # --- Agent Definition ---
-def get_information_retrieval_agent(mcp_connection: BaseMCPConnectionRequest | None = None):
+def get_information_retrieval_agent(
+    mcp_connection: BaseMCPConnectionRequest | None = None,
+):
     """
     Creates and returns an information retrieval agent that can search for code chunks
     similar to a user query. The agent can filter results by user_id and repo_url.
     Uses MCP connection parameters for GitHub and Jira tool authentication.
     """
+
     try:
         # Configure Jira tools if connection parameters are provided
         jira_tools = None
-        if mcp_connection and mcp_connection.jira_url and mcp_connection.jira_username and mcp_connection.jira_apiToken:
+        if (
+            mcp_connection
+            and mcp_connection.jira_url
+            and mcp_connection.jira_username
+            and mcp_connection.jira_apiToken
+        ):
             jira_tools = MCPToolset(
                 connection_params=StdioServerParameters(
                     command="docker",
@@ -113,7 +130,9 @@ def get_information_retrieval_agent(mcp_connection: BaseMCPConnectionRequest | N
                         "ghcr.io/sooperset/mcp-atlassian:latest",
                     ],
                     env={
-                        "ENABLED_TOOLS": os.getenv("ENABLED_TOOLS", "jira-issues,jira-projects"),
+                        "ENABLED_TOOLS": os.getenv(
+                            "ENABLED_TOOLS", "jira-issues,jira-projects"
+                        ),
                         "JIRA_URL": mcp_connection.jira_url,
                         "JIRA_USERNAME": mcp_connection.jira_username,
                         "JIRA_API_TOKEN": mcp_connection.jira_apiToken,
@@ -135,16 +154,11 @@ def get_information_retrieval_agent(mcp_connection: BaseMCPConnectionRequest | N
                         "GITHUB_PERSONAL_ACCESS_TOKEN",
                         "ghcr.io/github/github-mcp-server",
                     ],
-                    env={
-                        "GITHUB_PERSONAL_ACCESS_TOKEN": mcp_connection.github_token
-                    },
+                    env={"GITHUB_PERSONAL_ACCESS_TOKEN": mcp_connection.github_token},
                 )
             )
 
-        # Retrieve the prompt for the agent
-        information_retrieval_prompt = PromptManager.get_prompt(
-            "information_retrieval_agent"
-        )
+        information_retrieval_prompt = PromptManager.get_prompt("information_retrieval_agent")
 
         # Build tools list based on available connections
         tools = [search_and_rerank_code_chunks]

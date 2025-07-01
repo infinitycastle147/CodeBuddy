@@ -1,6 +1,13 @@
 ER_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid Entity-Relationship (ER) diagrams. Follow these instructions precisely to generate syntactically correct ER diagrams that accurately model data structures, database schemas, and entity relationships using proper database design principles.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create an ER diagram that accurately represents the data structures, database schemas, and entity relationships. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

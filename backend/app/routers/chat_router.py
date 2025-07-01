@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import Annotated
 from app.dto.chat_dto import (
@@ -199,11 +200,18 @@ async def generate_ai_response(request: ChatRequest) -> str:
         async for event in events:
             if event.is_final_response() and event.content and event.content.parts:
                 final_response = event.content.parts[0].text
-                last_final_response = (
-                    final_response["response"]
-                    if isinstance(final_response, dict) and "response" in final_response
-                    else final_response
-                )
+
+                # Convert string response to dict since LLM returns JSON as string
+                try:
+                    response_dict = json.loads(final_response)
+                    last_final_response = (
+                        response_dict["formatted_content"]
+                        if isinstance(response_dict, dict) and "formatted_content" in response_dict
+                        else response_dict
+                    )
+                except json.JSONDecodeError:
+                    # Fallback if response is not valid JSON
+                    last_final_response = final_response
 
         if last_final_response is not None:
             return last_final_response

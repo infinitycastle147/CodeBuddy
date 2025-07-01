@@ -307,11 +307,19 @@ async def generate_diagram_content(request: DiagramRequest) -> str:
         async for event in events:
             if event.is_final_response() and event.content and event.content.parts:
                 final_response = event.content.parts[0].text
-                last_final_response = (
-                    final_response["response"]
-                    if isinstance(final_response, dict) and "response" in final_response
-                    else final_response
-                )
+
+                # Convert string response to dict since LLM returns JSON as string
+                try:
+                    response_dict = json.loads(final_response)
+                    logger.info(f"Diagram response: {response_dict}")
+                    last_final_response = (
+                        response_dict["diagram"]
+                        if isinstance(response_dict, dict) and "diagram" in response_dict
+                        else response_dict
+                    )
+                except json.JSONDecodeError:
+                    # Fallback if response is not valid JSON
+                    last_final_response = final_response
 
         if last_final_response is not None:
             return last_final_response

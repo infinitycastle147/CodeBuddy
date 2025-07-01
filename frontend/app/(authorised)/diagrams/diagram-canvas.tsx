@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Code, Upload } from "lucide-react";
+import { Code } from "lucide-react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import mermaid from "mermaid";
@@ -68,7 +68,7 @@ function DiagramCanvas({ diagram, onSave, onChange }: DiagramCanvasProps) {
     };
 
     renderDiagram();
-  }, [diagram]);
+  }, [diagram, onChange]);
 
   // Call onChange when mermaidCode changes (excluding initial load)
   const isInitializedRef = useRef(false);
@@ -154,7 +154,7 @@ function DiagramCanvas({ diagram, onSave, onChange }: DiagramCanvasProps) {
     };
     document.body.appendChild(input);
     input.click();
-  }, []);
+  }, [onChange]);
 
   const handleExport = useCallback(() => {
     if (!diagram) return;

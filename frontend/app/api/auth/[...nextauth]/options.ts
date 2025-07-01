@@ -17,6 +17,7 @@ export const authOptions: NextAuthOptions = {
           username: profile.login,
           email: profile.email,
           image: profile.avatar_url,
+          role: "user",
           isVerified: profile.email ? true : false,
         };
       },
@@ -134,7 +135,7 @@ export const authOptions: NextAuthOptions = {
           await dbConnect();
 
           // Check if user exists by email
-          let existingUser = await UserModel.findOne({ email: user.email });
+          const existingUser = await UserModel.findOne({ email: user.email });
 
           if (!existingUser) {
             // Create new user for GitHub OAuth

@@ -16,9 +16,14 @@ import {
   RepoSetup,
   TaskStatus,
   Message,
+  ChatRequest,
+  DiagramRequest,
+  DiagramTypeDetectionRequest,
+  DiagramUpdateRequest,
 } from "@/lib/api-endpoints";
 import { ApiError } from "@/lib/api-client";
 import { useToast } from "./use-toast";
+import { getStoredCredentials } from "@/lib/credentials";
 
 // Query Keys
 export const queryKeys = {
@@ -108,8 +113,18 @@ export function useAddMessage() {
   const showError = useErrorHandler();
 
   return useMutation({
-    mutationFn: ({ chatId, message }: { chatId: string; message: string }) =>
-      api.addMessage(chatId, message),
+    mutationFn: ({ chatId, message }: { chatId: string; message: string }) => {
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        throw new Error('GitHub credentials not found. Please set up your credentials first.');
+      }
+      
+      const requestData: ChatRequest = {
+        ...credentials,
+        message,
+      };
+      return api.addMessage(chatId, requestData);
+    },
     onSuccess: (data, variables) => {
       // Update the chat query with new messages
       queryClient.setQueryData<Chat>(
@@ -149,7 +164,18 @@ export function useCreateDiagram() {
   const showSuccess = useSuccessHandler();
 
   return useMutation({
-    mutationFn: api.createDiagram,
+    mutationFn: (data: { user_input: string; title?: string; type: string; description?: string }) => {
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        throw new Error('GitHub credentials not found. Please set up your credentials first.');
+      }
+      
+      const requestData: DiagramRequest = {
+        ...credentials,
+        ...data,
+      };
+      return api.createDiagram(requestData);
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.diagrams });
       showSuccess("Diagram created successfully");
@@ -170,7 +196,7 @@ export function useUpdateDiagram() {
     }: {
       diagramId: string;
       content: string;
-    }) => api.updateDiagram(diagramId, content),
+    }) => api.updateDiagram(diagramId, { content }),
     onSuccess: (data, variables) => {
       // Update the specific diagram query
       queryClient.setQueryData(queryKeys.diagram(variables.diagramId), data);
@@ -179,6 +205,22 @@ export function useUpdateDiagram() {
       showSuccess("Diagram updated successfully");
     },
     onError: (error) => showError(error, "Failed to update diagram"),
+  });
+}
+
+export function useDetectDiagramType() {
+  const showError = useErrorHandler();
+
+  return useMutation({
+    mutationFn: api.detectDiagramType,
+    onError: (error) => showError(error, "Failed to detect diagram type"),
+  });
+}
+
+export function useListChats() {
+  return useQuery({
+    queryKey: queryKeys.chats,
+    queryFn: api.listChats,
   });
 }
 
@@ -240,8 +282,9 @@ export function useTaskStatus(taskId: string, enabled = true) {
     queryKey: queryKeys.taskStatus(taskId),
     queryFn: () => api.getTaskStatus(taskId),
     enabled: enabled && !!taskId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Stop polling when task is completed or failed
+      const data = query.state.data;
       if (data && (data.status === "success" || data.status === "failure")) {
         return false;
       }

@@ -2,7 +2,7 @@
 
 // External dependencies
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BarChart, Settings, Save, Plus } from "lucide-react";
 
 // UI Components
@@ -21,7 +21,7 @@ import {
 import DiagramTypeSelector from "@/app/(authorised)/diagrams/diagram-type-selector";
 import Toolbar from "@/app/(authorised)/diagrams/toolbar";
 import ExportControls from "@/app/(authorised)/diagrams/export-controls";
-import PropertiesPanel from "@/app/(authorised)/diagrams/properties-panel";
+// import PropertiesPanel from "@/app/(authorised)/diagrams/properties-panel";
 import DiagramCanvas from "@/app/(authorised)/diagrams/diagram-canvas";
 
 export default function DiagramStudioPage() {
@@ -29,7 +29,7 @@ export default function DiagramStudioPage() {
   const [currentDiagramContent, setCurrentDiagramContent] =
     useState<string>("");
   const [isNewDiagram, setIsNewDiagram] = useState(true);
-  const [currentSvg, setCurrentSvg] = useState<string>("");
+  // const [currentSvg, setCurrentSvg] = useState<string>("");
 
   // React Query hooks
   const { data: diagrams } = useDiagrams();
@@ -43,6 +43,7 @@ export default function DiagramStudioPage() {
         {
           user_input: "Create diagram from studio",
           title: "Studio Diagram",
+          type: "flowchart",
           description: "Diagram created in the studio",
         },
         {
@@ -73,14 +74,14 @@ export default function DiagramStudioPage() {
   };
 
   // Function to load a diagram (can be used by PropertiesPanel or other components)
-  const handleLoadDiagram = (diagramId: string) => {
-    const diagram = diagrams?.find((d) => d.id === diagramId);
-    if (diagram) {
-      setCurrentDiagramId(diagramId);
-      setCurrentDiagramContent(diagram.content);
-      setIsNewDiagram(false);
-    }
-  };
+  // const handleLoadDiagram = (diagramId: string) => {
+  //   const diagram = diagrams?.find((d) => d.id === diagramId);
+  //   if (diagram) {
+  //     setCurrentDiagramId(diagramId);
+  //     setCurrentDiagramContent(diagram.content);
+  //     setIsNewDiagram(false);
+  //   }
+  // };
 
   const isSaving =
     createDiagramMutation.isPending || updateDiagramMutation.isPending;

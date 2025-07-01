@@ -27,6 +27,8 @@ import {
 } from "@/components/animate-ui/radix/tabs";
 import { Settings } from "@/components/animate-ui/icons/settings";
 import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
+import { useDetectDiagramType } from "@/hooks/api-hooks";
+import { useToast } from "@/hooks/use-toast";
 
 interface DiagramType {
   id: string;
@@ -114,17 +116,60 @@ function DiagramTypeSelector() {
   const [selectedType, setSelectedType] = useState("uml");
   const [customDescription, setCustomDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectedType, setDetectedType] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<number | null>(null);
+  
+  const detectDiagramTypeMutation = useDetectDiagramType();
+  const { toast } = useToast();
+
+  const handleDetectType = () => {
+    if (!customDescription.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a description to detect diagram type.",
+      });
+      return;
+    }
+    
+    setIsDetecting(true);
+    detectDiagramTypeMutation.mutate(
+      { user_input: customDescription },
+      {
+        onSuccess: (data) => {
+          setDetectedType(data.recommended_type);
+          setConfidence(data.confidence);
+          setIsDetecting(false);
+          toast({
+            title: "Type Detected",
+            description: `Recommended: ${data.recommended_type} (${Math.round(data.confidence * 100)}% confidence)`,
+          });
+        },
+        onError: () => {
+          setIsDetecting(false);
+        },
+      }
+    );
+  };
 
   const handleGenerate = () => {
     if (selectedType === "custom" && !customDescription.trim()) {
-      alert("Please enter a description for the custom diagram.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a description for the custom diagram.",
+      });
       return;
     }
     setIsGenerating(true);
     // Simulate diagram generation
     setTimeout(() => {
       setIsGenerating(false);
-      alert(`Diagram of type "${selectedType}" generated successfully!`);
+      toast({
+        title: "Success",
+        description: `Diagram of type "${selectedType}" generated successfully!`,
+      });
     }, 2000);
   };
 
@@ -282,9 +327,34 @@ function DiagramTypeSelector() {
               id="custom-description"
               placeholder="Describe what kind of diagram you want to create. Be as specific as possible..."
               value={customDescription}
-              onChange={(e) => setCustomDescription(e.target.value)}
+              onChange={(e) => {
+                setCustomDescription(e.target.value);
+                setDetectedType(null);
+                setConfidence(null);
+              }}
               className="min-h-[100px] border-violet-200 focus:border-violet-400 focus:ring-violet-400 bg-white/80 backdrop-blur-sm"
             />
+            <div className="flex items-center gap-2 mt-3">
+              <Button
+                onClick={handleDetectType}
+                disabled={isDetecting || !customDescription.trim()}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {isDetecting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {isDetecting ? "Detecting..." : "Detect Type"}
+              </Button>
+              {detectedType && confidence && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  {detectedType} ({Math.round(confidence * 100)}%)
+                </Badge>
+              )}
+            </div>
             <p className="text-xs text-violet-600 mt-2">
               💡 Tip: Include details about the structure, elements, and purpose
               of your diagram for best results.

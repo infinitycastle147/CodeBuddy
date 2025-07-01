@@ -35,6 +35,37 @@ export interface RepoSetup {
   access_token?: string
 }
 
+export interface ChatRequest {
+  github_username: string
+  github_token: string
+  jira_username?: string
+  jira_apiToken?: string
+  jira_project_name?: string
+  jira_url?: string
+  message: string
+}
+
+export interface DiagramRequest {
+  github_username: string
+  github_token: string
+  jira_username?: string
+  jira_apiToken?: string
+  jira_project_name?: string
+  jira_url?: string
+  user_input: string
+  title?: string
+  type: string
+  description?: string
+}
+
+export interface DiagramTypeDetectionRequest {
+  user_input: string
+}
+
+export interface DiagramUpdateRequest {
+  content: string
+}
+
 export interface TaskStatus {
   task_id: string
   status: 'pending' | 'started' | 'retry' | 'failure' | 'success'
@@ -56,18 +87,21 @@ export const api = {
   getTaskStatus: (taskId: string) => apiClient.get<TaskStatus>(`/tools/task-status/${taskId}`),
 
   // Chat
+  listChats: () => apiClient.get<Chat[]>('/chat/'),
   createChat: () => apiClient.post<Chat>('/chat/'),
   getChat: (chatId: string) => apiClient.get<Chat>(`/chat/${chatId}`),
-  addMessage: (chatId: string, message: string) => 
-    apiClient.post<{ message: Message; response: Message }>(`/chat/${chatId}/message`, { message }),
+  addMessage: (chatId: string, data: ChatRequest) => 
+    apiClient.post<{ message: Message; response: Message }>(`/chat/${chatId}/message`, data),
 
   // Diagrams
   listDiagrams: () => apiClient.get<Diagram[]>('/diagram/'),
-  createDiagram: (data: { user_input: string; title?: string; description?: string }) => 
+  createDiagram: (data: DiagramRequest) => 
     apiClient.post<Diagram>('/diagram/', data),
   getDiagram: (diagramId: string) => apiClient.get<Diagram>(`/diagram/${diagramId}`),
-  updateDiagram: (diagramId: string, content: string) => 
-    apiClient.patch<Diagram>(`/diagram/${diagramId}`, { content }),
+  updateDiagram: (diagramId: string, data: DiagramUpdateRequest) => 
+    apiClient.patch<Diagram>(`/diagram/${diagramId}`, data),
+  detectDiagramType: (data: DiagramTypeDetectionRequest) => 
+    apiClient.post<{ recommended_type: string; confidence: number }>('/diagram/detect-type', data),
 
   // Users
   listUsers: () => apiClient.get<User[]>('/user/'),

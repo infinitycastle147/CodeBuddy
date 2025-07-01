@@ -42,12 +42,25 @@ def save_user_query_to_state(callback_context: CallbackContext):
     return None
 
 
-# Define the diagram query generator agent
-diagram_query_generator_agent = LlmAgent(
-    name="diagram_query_generator_agent",
-    instruction=PromptManager.get_prompt("diagram_query_generator"),
-    description="Generates a structured query for an information retrieval agent.",
-    model="gemini-2.0-flash",
-    before_agent_callback=save_user_query_to_state,
-    output_key="refined_query",
-)
+def get_diagram_query_generator_agent():
+    """
+    Creates and returns a diagram query generator agent with user query state management.
+    
+    This agent refines user input into structured queries for information retrieval
+    and preserves the original user query in session state for downstream agents.
+    
+    Returns:
+        LlmAgent: Configured agent for query generation with callback for state management
+    """
+
+    # Define the diagram query generator agent
+    diagram_query_generator_agent = LlmAgent(
+        name="diagram_query_generator_agent",
+        instruction=PromptManager.get_prompt("diagram_query_generator"),
+        description="Generates a structured query for an information retrieval agent.",
+        model="gemini-2.0-flash",
+        before_agent_callback=save_user_query_to_state,
+        output_key="refined_query",
+    )
+
+    return diagram_query_generator_agent

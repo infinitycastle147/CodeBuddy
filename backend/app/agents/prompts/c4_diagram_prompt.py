@@ -1,6 +1,13 @@
 C4_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid C4 diagrams. Follow these instructions precisely to generate syntactically correct C4 architecture diagrams that effectively visualize software systems at different levels of detail using the C4 model methodology.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a C4 diagram that accurately represents the software system architecture at the appropriate level of detail. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **C4 Diagram Types**

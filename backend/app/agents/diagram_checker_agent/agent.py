@@ -7,7 +7,6 @@ from google.adk.agents.callback_context import CallbackContext
 
 # Local Application Imports
 from ..prompt_manager import PromptManager
-from ..constants import MERMAID_INSTRUCTIONS
 from ..schemas import DiagramValidationOutput
 
 
@@ -20,7 +19,6 @@ def save_information_retrieval_query_to_state(callback_context: CallbackContext)
     diagram = callback_context.state.get("diagram")
 
     # Save the instructions and diagram into the session state
-    callback_context.state["MERMAID_INSTRUCTIONS"] = MERMAID_INSTRUCTIONS
     callback_context.state["diagram"] = diagram
 
     # Return None to allow the agent's normal execution to proceed

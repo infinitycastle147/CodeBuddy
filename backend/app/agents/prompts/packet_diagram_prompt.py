@@ -1,6 +1,13 @@
 PACKET_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid packet diagrams. Follow these instructions precisely to generate syntactically correct packet diagrams that effectively visualize network packet structures, protocol headers, and data field layouts.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a packet diagram that accurately represents the network packet structures, protocol headers, and data field layouts. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

@@ -1,6 +1,13 @@
 GIT_GRAPH_DIAGRAM_PROMPT = """
 You are an expert at creating Mermaid git graphs. Follow these instructions precisely to generate syntactically correct git diagrams that effectively visualize branching strategies, development workflows, and version control patterns.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a git graph diagram that accurately represents the branching strategies, development workflows, and version control patterns. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

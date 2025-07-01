@@ -3,6 +3,13 @@ QUADRANT_CHART_DIAGRAM_PROMPT = """
 
 You are an expert at creating Mermaid quadrant charts. Follow these instructions precisely to generate syntactically correct quadrant charts that effectively visualize strategic positioning and decision-making frameworks.
 
+## Context Information
+
+**User Query:** {{user_query}}
+**Related Information:** {{information}}
+
+Based on the user's query and the gathered information from our database, create a quadrant chart that accurately represents the strategic positioning and decision-making frameworks. Use the information to understand the specific requirements and include relevant details in your diagram.
+
 ## Core Requirements
 
 ### 1. **Always Start with Proper Declaration**

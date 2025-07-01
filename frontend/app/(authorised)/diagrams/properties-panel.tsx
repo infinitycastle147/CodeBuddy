@@ -15,12 +15,13 @@ import { Diagram } from "@/lib/api-endpoints";
 
 interface PropertiesPanelProps {
   diagrams: Diagram[];
-  onLoadDiagram: (diagramId: string) => void;
+  onLoadDiagram?: (diagramId: string) => void;
   currentDiagramId: string | null;
 }
 
-export function PropertiesPanel({ diagrams, onLoadDiagram, currentDiagramId }: PropertiesPanelProps) {
-  const currentDiagram = diagrams.find((diagram) => diagram.id === currentDiagramId);
+export function PropertiesPanel({ diagrams, currentDiagramId }: PropertiesPanelProps) {
+  // const currentDiagram = diagrams.find((diagram) => diagram.id === currentDiagramId);
+  console.log('PropertiesPanel loaded with', diagrams.length, 'diagrams, current:', currentDiagramId);
 
   return (
     <Card className="w-80">

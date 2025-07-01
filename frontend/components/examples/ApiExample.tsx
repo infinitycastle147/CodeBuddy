@@ -28,6 +28,7 @@ export function ApiExample() {
       createDiagramMutation.mutate({
         user_input: diagramInput,
         title: 'Example Diagram',
+        type: 'flowchart',
       })
       setDiagramInput('')
     }

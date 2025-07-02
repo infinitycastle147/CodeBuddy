@@ -8,9 +8,6 @@ export interface UserCredentials {
 }
 
 export function getStoredCredentials(): UserCredentials | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
 
   const github_username = localStorage.getItem('github_username');
   const github_token = localStorage.getItem('github_token');
@@ -30,9 +27,6 @@ export function getStoredCredentials(): UserCredentials | null {
 }
 
 export function setStoredCredentials(credentials: UserCredentials): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
 
   localStorage.setItem('github_username', credentials.github_username);
   localStorage.setItem('github_token', credentials.github_token);
@@ -52,9 +46,6 @@ export function setStoredCredentials(credentials: UserCredentials): void {
 }
 
 export function clearStoredCredentials(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
 
   localStorage.removeItem('github_username');
   localStorage.removeItem('github_token');

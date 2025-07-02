@@ -22,23 +22,7 @@ import {
   EyeOff,
   Code2Icon,
 } from "lucide-react";
-
-interface SetupData {
-  github: {
-    token: string;
-    username: string;
-  };
-  jira: {
-    url: string;
-    apiToken: string;
-    username: string;
-    projectKey: string;
-  };
-  aiModel: {
-    name: string;
-    token: string;
-  };
-}
+import { setStoredCredentials, UserCredentials } from "@/lib/credentials";
 
 export default function SetupPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -47,10 +31,19 @@ export default function SetupPage() {
     jira: false,
     ai: false,
   });
-  const [setupData, setSetupData] = useState<SetupData>({
-    github: { token: "", username: "" },
-    jira: { url: "", apiToken: "", username: "", projectKey: "" },
-    aiModel: { name: "", token: "" },
+  const [githubData, setGithubData] = useState({
+    token: "",
+    username: ""
+  });
+  const [jiraData, setJiraData] = useState({
+    url: "",
+    apiToken: "",
+    username: "",
+    projectKey: ""
+  });
+  const [aiModelData, setAiModelData] = useState({
+    name: "",
+    token: ""
   });
 
   const steps = [
@@ -84,22 +77,29 @@ export default function SetupPage() {
   };
 
   const handleFinish = () => {
-    localStorage.setItem("setupData", JSON.stringify(setupData));
+    const credentials: UserCredentials = {
+      github_username: githubData.username,
+      github_token: githubData.token,
+      jira_username: jiraData.username || undefined,
+      jira_apiToken: jiraData.apiToken || undefined,
+      jira_project_name: jiraData.projectKey || undefined,
+      jira_url: jiraData.url || undefined,
+    };
+    
+    setStoredCredentials(credentials);
     alert("Setup completed successfully!");
   };
 
-  const updateSetupData = (
-    section: keyof SetupData,
-    field: string,
-    value: string
-  ) => {
-    setSetupData((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
+  const updateGithubData = (field: string, value: string) => {
+    setGithubData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateJiraData = (field: string, value: string) => {
+    setJiraData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateAiModelData = (field: string, value: string) => {
+    setAiModelData(prev => ({ ...prev, [field]: value }));
   };
 
   const toggleTokenVisibility = (type: "github" | "jira" | "ai") => {
@@ -109,7 +109,7 @@ export default function SetupPage() {
     }));
   };
 
-  const isGitHubValid = setupData.github.token && setupData.github.username;
+  const isGitHubValid = githubData.token && githubData.username;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
@@ -288,9 +288,9 @@ export default function SetupPage() {
                       <Input
                         id="github-username"
                         placeholder="Enter your GitHub username"
-                        value={setupData.github.username}
+                        value={githubData.username}
                         onChange={(e) =>
-                          updateSetupData("github", "username", e.target.value)
+                          updateGithubData("username", e.target.value)
                         }
                         className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400"
                       />
@@ -308,9 +308,9 @@ export default function SetupPage() {
                           id="github-token"
                           type={showTokens.github ? "text" : "password"}
                           placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                          value={setupData.github.token}
+                          value={githubData.token}
                           onChange={(e) =>
-                            updateSetupData("github", "token", e.target.value)
+                            updateGithubData("token", e.target.value)
                           }
                           className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400 pr-12"
                         />
@@ -378,9 +378,9 @@ export default function SetupPage() {
                       <Input
                         id="jira-url"
                         placeholder="https://yourcompany.atlassian.net"
-                        value={setupData.jira.url}
+                        value={jiraData.url}
                         onChange={(e) =>
-                          updateSetupData("jira", "url", e.target.value)
+                          updateJiraData("url", e.target.value)
                         }
                         className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                       />
@@ -396,9 +396,9 @@ export default function SetupPage() {
                       <Input
                         id="jira-username"
                         placeholder="your-email@company.com"
-                        value={setupData.jira.username}
+                        value={jiraData.username}
                         onChange={(e) =>
-                          updateSetupData("jira", "username", e.target.value)
+                          updateJiraData("username", e.target.value)
                         }
                         className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                       />
@@ -416,9 +416,9 @@ export default function SetupPage() {
                           id="jira-token"
                           type={showTokens.jira ? "text" : "password"}
                           placeholder="Your Jira API token"
-                          value={setupData.jira.apiToken}
+                          value={jiraData.apiToken}
                           onChange={(e) =>
-                            updateSetupData("jira", "apiToken", e.target.value)
+                            updateJiraData("apiToken", e.target.value)
                           }
                           className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400 pr-12"
                         />
@@ -448,9 +448,9 @@ export default function SetupPage() {
                       <Input
                         id="jira-project"
                         placeholder="PROJ"
-                        value={setupData.jira.projectKey}
+                        value={jiraData.projectKey}
                         onChange={(e) =>
-                          updateSetupData("jira", "projectKey", e.target.value)
+                          updateJiraData("projectKey", e.target.value)
                         }
                         className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                       />
@@ -518,9 +518,9 @@ export default function SetupPage() {
                       <Input
                         id="ai-model-name"
                         placeholder="gpt-4, claude-3-sonnet, gemini-pro, etc."
-                        value={setupData.aiModel.name}
+                        value={aiModelData.name}
                         onChange={(e) =>
-                          updateSetupData("aiModel", "name", e.target.value)
+                          updateAiModelData("name", e.target.value)
                         }
                         className="h-12 text-base border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
                       />
@@ -538,9 +538,9 @@ export default function SetupPage() {
                           id="ai-model-token"
                           type={showTokens.ai ? "text" : "password"}
                           placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-                          value={setupData.aiModel.token}
+                          value={aiModelData.token}
                           onChange={(e) =>
-                            updateSetupData("aiModel", "token", e.target.value)
+                            updateAiModelData("token", e.target.value)
                           }
                           className="h-12 text-base border-gray-200 focus:border-emerald-400 focus:ring-emerald-400 pr-12"
                         />
@@ -623,14 +623,14 @@ export default function SetupPage() {
                           </span>
                         </div>
                         <Badge
-                          variant={setupData.jira.url ? "default" : "secondary"}
+                          variant={jiraData.url ? "default" : "secondary"}
                           className={
-                            setupData.jira.url
+                            jiraData.url
                               ? "bg-blue-100 text-blue-800 border-blue-200"
                               : ""
                           }
                         >
-                          {setupData.jira.url ? "Connected" : "Skipped"}
+                          {jiraData.url ? "Connected" : "Skipped"}
                         </Badge>
                       </div>
 
@@ -643,15 +643,15 @@ export default function SetupPage() {
                         </div>
                         <Badge
                           variant={
-                            setupData.aiModel.name ? "default" : "secondary"
+                            aiModelData.name ? "default" : "secondary"
                           }
                           className={
-                            setupData.aiModel.name
+                            aiModelData.name
                               ? "bg-emerald-100 text-emerald-800 border-emerald-200"
                               : ""
                           }
                         >
-                          {setupData.aiModel.name ? "Configured" : "Skipped"}
+                          {aiModelData.name ? "Configured" : "Skipped"}
                         </Badge>
                       </div>
                     </div>

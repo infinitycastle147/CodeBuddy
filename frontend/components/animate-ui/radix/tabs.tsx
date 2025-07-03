@@ -58,12 +58,23 @@ function TabsList({
   React.useEffect(() => {
     getActiveValue();
 
-    const observer = new MutationObserver(getActiveValue);
+    const observer = new MutationObserver((mutations) => {
+      // Only update if there are actual data-state changes
+      const hasStateChanges = mutations.some(mutation => 
+        mutation.type === 'attributes' && 
+        mutation.attributeName === 'data-state'
+      );
+      
+      if (hasStateChanges) {
+        // Debounce the update to prevent rapid flickering
+        setTimeout(getActiveValue, 0);
+      }
+    });
 
     if (localRef.current) {
       observer.observe(localRef.current, {
         attributes: true,
-        childList: true,
+        attributeFilter: ['data-state'], // Only watch for data-state changes
         subtree: true,
       });
     }

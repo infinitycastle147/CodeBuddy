@@ -18,6 +18,21 @@ import {
   Zap,
   Palette,
   Code,
+  Users,
+  Calendar,
+  Clock,
+  Layers,
+  Boxes,
+  Cloud,
+  PieChart,
+  TrendingUp,
+  Target,
+  Share2,
+  Brain,
+  FileText,
+  Route,
+  Activity,
+  Shuffle,
 } from "lucide-react";
 import {
   Tabs,
@@ -37,89 +52,208 @@ interface DiagramType {
   description: string;
   category: string;
   color: string;
-  popular?: boolean;
 }
 
 const diagramTypes: DiagramType[] = [
-  {
-    id: "uml",
-    name: "UML Diagram",
-    icon: <BarChart className="w-5 h-5" />,
-    description: "Unified Modeling Language diagrams for software design",
-    category: "Software",
-    color: "bg-blue-500/10 border-blue-200 hover:bg-blue-500/20",
-    popular: true,
-  },
-  {
-    id: "erd",
-    name: "ERD",
-    icon: <Database className="w-5 h-5" />,
-    description: "Entity Relationship Diagrams for database design",
-    category: "Database",
-    color: "bg-green-500/10 border-green-200 hover:bg-green-500/20",
-    popular: true,
-  },
+  // Process
   {
     id: "flowchart",
     name: "Flowchart",
     icon: <Workflow className="w-5 h-5" />,
-    description: "Process flow diagrams and workflows",
+    description: "Process modeling and decision flows",
     category: "Process",
-    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
-    popular: true,
+    color: "bg-blue-500/10 border-blue-200 hover:bg-blue-500/20",
   },
   {
-    id: "network",
-    name: "Network",
+    id: "user-journey",
+    name: "User Journey",
+    icon: <Users className="w-5 h-5" />,
+    description: "Experience design and satisfaction mapping",
+    category: "Process",
+    color: "bg-blue-500/10 border-blue-200 hover:bg-blue-500/20",
+  },
+  {
+    id: "gantt",
+    name: "Gantt",
+    icon: <Calendar className="w-5 h-5" />,
+    description: "Project management and timeline planning",
+    category: "Process",
+    color: "bg-blue-500/10 border-blue-200 hover:bg-blue-500/20",
+  },
+  {
+    id: "timeline",
+    name: "Timeline",
+    icon: <Clock className="w-5 h-5" />,
+    description: "Chronological events and milestones",
+    category: "Process",
+    color: "bg-blue-500/10 border-blue-200 hover:bg-blue-500/20",
+  },
+  {
+    id: "kanban",
+    name: "Kanban",
+    icon: <Layers className="w-5 h-5" />,
+    description: "Task management and workflow visualization",
+    category: "Process",
+    color: "bg-blue-500/10 border-blue-200 hover:bg-blue-500/20",
+  },
+  // Architecture
+  {
+    id: "sequence",
+    name: "Sequence Diagram",
+    icon: <ArrowRight className="w-5 h-5" />,
+    description: "System interaction patterns",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  {
+    id: "class",
+    name: "Class Diagram",
+    icon: <Code className="w-5 h-5" />,
+    description: "Software architecture and object relationships",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  {
+    id: "state",
+    name: "State Diagram",
+    icon: <Activity className="w-5 h-5" />,
+    description: "Behavioral state modeling",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  {
+    id: "c4",
+    name: "C4",
+    icon: <Boxes className="w-5 h-5" />,
+    description: "Software architecture at different abstraction levels",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  {
+    id: "block",
+    name: "Block",
     icon: <Network className="w-5 h-5" />,
-    description: "Network topology and infrastructure diagrams",
-    category: "Infrastructure",
+    description: "Infrastructure layout and component relationships",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  {
+    id: "architecture",
+    name: "Architecture",
+    icon: <Cloud className="w-5 h-5" />,
+    description: "Cloud systems and service relationships",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  {
+    id: "zenuml",
+    name: "ZenUML",
+    icon: <Code className="w-5 h-5" />,
+    description: "Programming-focused sequence interactions",
+    category: "Architecture",
+    color: "bg-purple-500/10 border-purple-200 hover:bg-purple-500/20",
+  },
+  // Data
+  {
+    id: "erd",
+    name: "Entity Relationship Diagram",
+    icon: <Database className="w-5 h-5" />,
+    description: "Database design and data relationships",
+    category: "Data",
+    color: "bg-green-500/10 border-green-200 hover:bg-green-500/20",
+  },
+  {
+    id: "pie",
+    name: "Pie",
+    icon: <PieChart className="w-5 h-5" />,
+    description: "Proportional data and business intelligence",
+    category: "Data",
+    color: "bg-green-500/10 border-green-200 hover:bg-green-500/20",
+  },
+  {
+    id: "xy-chart",
+    name: "XY Chart",
+    icon: <TrendingUp className="w-5 h-5" />,
+    description: "Numerical trends and comparisons",
+    category: "Data",
+    color: "bg-green-500/10 border-green-200 hover:bg-green-500/20",
+  },
+  {
+    id: "radar",
+    name: "Radar",
+    icon: <Target className="w-5 h-5" />,
+    description: "Multi-dimensional performance analysis",
+    category: "Data",
+    color: "bg-green-500/10 border-green-200 hover:bg-green-500/20",
+  },
+  {
+    id: "sankey",
+    name: "Sankey",
+    icon: <Share2 className="w-5 h-5" />,
+    description: "Flow analysis and resource allocation",
+    category: "Data",
+    color: "bg-green-500/10 border-green-200 hover:bg-green-500/20",
+  },
+  // Strategy
+  {
+    id: "quadrant-chart",
+    name: "Quadrant Chart",
+    icon: <BarChart className="w-5 h-5" />,
+    description: "Decision frameworks and prioritization",
+    category: "Strategy",
     color: "bg-orange-500/10 border-orange-200 hover:bg-orange-500/20",
   },
   {
-    id: "sequence",
-    name: "Sequence",
-    icon: <ArrowRight className="w-5 h-5" />,
-    description: "Sequence diagrams for system interactions",
-    category: "Software",
+    id: "mindmap",
+    name: "Mindmap",
+    icon: <Brain className="w-5 h-5" />,
+    description: "Information organization and brainstorming",
+    category: "Strategy",
+    color: "bg-orange-500/10 border-orange-200 hover:bg-orange-500/20",
+  },
+  {
+    id: "requirement",
+    name: "Requirement Diagram",
+    icon: <FileText className="w-5 h-5" />,
+    description: "Requirements engineering and traceability",
+    category: "Strategy",
+    color: "bg-orange-500/10 border-orange-200 hover:bg-orange-500/20",
+  },
+  // Technical
+  {
+    id: "gitgraph",
+    name: "Gitgraph",
+    icon: <GitBranch className="w-5 h-5" />,
+    description: "Version control and branching strategies",
+    category: "Technical",
     color: "bg-cyan-500/10 border-cyan-200 hover:bg-cyan-500/20",
   },
   {
-    id: "mindmap",
-    name: "Mind Map",
-    icon: <GitBranch className="w-5 h-5" />,
-    description: "Mind mapping for brainstorming and planning",
-    category: "Planning",
-    color: "bg-pink-500/10 border-pink-200 hover:bg-pink-500/20",
-  },
-  {
-    id: "custom",
-    name: "Custom Diagram",
-    icon: <Sparkles className="w-5 h-5" />,
-    description: "Create a custom diagram with AI assistance",
-    category: "Custom",
-    color:
-      "bg-gradient-to-br from-violet-500/10 to-purple-500/10 border-violet-200 hover:from-violet-500/20 hover:to-purple-500/20",
+    id: "packet",
+    name: "Packet",
+    icon: <Route className="w-5 h-5" />,
+    description: "Network protocol visualization",
+    category: "Technical",
+    color: "bg-cyan-500/10 border-cyan-200 hover:bg-cyan-500/20",
   },
 ];
 
 const categoryIcons = {
-  Software: <Code className="w-4 h-4" />,
-  Database: <Database className="w-4 h-4" />,
   Process: <Workflow className="w-4 h-4" />,
-  Infrastructure: <Network className="w-4 h-4" />,
-  Planning: <GitBranch className="w-4 h-4" />,
-  Custom: <Palette className="w-4 h-4" />,
+  Architecture: <Code className="w-4 h-4" />,
+  Data: <Database className="w-4 h-4" />,
+  Strategy: <Target className="w-4 h-4" />,
+  Technical: <Network className="w-4 h-4" />,
 };
 
 function DiagramTypeSelector() {
-  const [selectedType, setSelectedType] = useState("uml");
+  const [selectedType, setSelectedType] = useState("flowchart");
   const [customDescription, setCustomDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedType, setDetectedType] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
-  
+
   const detectDiagramTypeMutation = useDetectDiagramType();
   const { toast } = useToast();
 
@@ -132,7 +266,7 @@ function DiagramTypeSelector() {
       });
       return;
     }
-    
+
     setIsDetecting(true);
     detectDiagramTypeMutation.mutate(
       { user_input: customDescription },
@@ -143,7 +277,9 @@ function DiagramTypeSelector() {
           setIsDetecting(false);
           toast({
             title: "Type Detected",
-            description: `Recommended: ${data.recommended_type} (${Math.round(data.confidence * 100)}% confidence)`,
+            description: `Recommended: ${data.recommended_type} (${Math.round(
+              data.confidence * 100
+            )}% confidence)`,
           });
         },
         onError: () => {
@@ -182,7 +318,7 @@ function DiagramTypeSelector() {
 
   return (
     <Card className="w-full mx-auto border-0 bg-gradient-to-br from-slate-50 to-white">
-      <CardHeader className="pb-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-t-lg">
+      {/* <CardHeader className="pb-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-t-lg">
         <CardTitle className="text-2xl flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
@@ -217,38 +353,28 @@ function DiagramTypeSelector() {
             )}
           </Button>
         </CardTitle>
-      </CardHeader>
+      </CardHeader> */}
 
       <CardContent className="p-6">
         {/* Selected Diagram Preview */}
         {selectedDiagram && (
-          <div className="mb-6 p-4 rounded-lg bg-white border border-slate-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
-                {selectedDiagram.icon}
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  {selectedDiagram.name}
-                  {selectedDiagram.popular && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs bg-yellow-100 text-yellow-800 border-yellow-200"
-                    >
-                      Popular
-                    </Badge>
-                  )}
-                </h3>
-                <p className="text-slate-600 text-sm">
-                  {selectedDiagram.description}
-                </p>
-              </div>
+          <div className="flex items-center gap-5 mb-8 p-4 rounded-lg bg-white border border-slate-200">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              {selectedDiagram.icon}
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                {selectedDiagram.name}
+              </h3>
+              <p className="text-slate-600 text-sm">
+                {selectedDiagram.description}
+              </p>
             </div>
           </div>
         )}
 
-        <Tabs defaultValue={categories[0]} className="w-full h-full">
-          <TabsList className="grid w-full gap-1 h-full grid-cols-3 lg:grid-cols-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-full shadow-inner">
+        <Tabs defaultValue={categories[0]}>
+          <TabsList className="w-full bg-slate-100 dark:bg-slate-800 p-1 rounded-full shadow-inner">
             {categories.map((category) => (
               <TabsTrigger
                 key={category}
@@ -294,14 +420,6 @@ function DiagramTypeSelector() {
                           <span className="font-semibold text-sm">
                             {type.name}
                           </span>
-                          {type.popular && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200"
-                            >
-                              ⭐
-                            </Badge>
-                          )}
                         </div>
                         <span className="text-xs text-muted-foreground leading-relaxed">
                           {type.description}
@@ -350,7 +468,10 @@ function DiagramTypeSelector() {
                 {isDetecting ? "Detecting..." : "Detect Type"}
               </Button>
               {detectedType && confidence && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200"
+                >
                   {detectedType} ({Math.round(confidence * 100)}%)
                 </Badge>
               )}

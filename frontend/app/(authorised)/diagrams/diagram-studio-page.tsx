@@ -29,7 +29,6 @@ export default function DiagramStudioPage() {
   const [currentDiagramContent, setCurrentDiagramContent] =
     useState<string>("");
   const [isNewDiagram, setIsNewDiagram] = useState(true);
-  // const [currentSvg, setCurrentSvg] = useState<string>("");
 
   // React Query hooks
   const { data: diagrams } = useDiagrams();
@@ -131,20 +130,12 @@ export default function DiagramStudioPage() {
               {isSaving ? "Saving..." : "Save"}
             </span>
           </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Settings</span>
-          </Button>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col gap-4 p-6 min-h-0 overflow-hidden">
+        
         {/* Top Controls */}
         <div className="shrink-0 space-y-4">
           <DiagramTypeSelector />

@@ -242,40 +242,10 @@ function DiagramCanvas({ diagram, onSave, onChange }: DiagramCanvasProps) {
                     aria-label="Rendered Mermaid Diagram"
                   />
                 ) : (
-                  // <div className="text-center space-y-6">
-                  //   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  //     <Code className="w-8 h-8 text-primary" />
-                  //   </div>
-                  //   <div className="space-y-2 max-w-md">
-                  //     <h3 className="text-lg font-semibold">Start Creating</h3>
-                  //     <p className="text-muted-foreground">
-                  //       Create beautiful diagrams using Mermaid syntax. Switch
-                  //       to edit mode to start coding your diagram.
-                  //     </p>
-                  //   </div>
-                  //   <div className="flex flex-wrap gap-3 justify-center">
-                  //     <Button
-                  //       size="sm"
-                  //       onClick={() => setIsEditMode(true)}
-                  //       className="flex items-center gap-1"
-                  //       aria-label="Start Editing"
-                  //     >
-                  //       <Code className="w-4 h-4" />
-                  //       Start Editing
-                  //     </Button>
-                  //     <Button
-                  //       variant="outline"
-                  //       size="sm"
-                  //       onClick={handleImport}
-                  //       className="flex items-center gap-1"
-                  //       aria-label="Import Diagram"
-                  //     >
-                  //       <Upload className="w-4 h-4" />
-                  //       Import
-                  //     </Button>
-                  //   </div>
-                          // </div>
-                          <MinimalEmptyState onStartEditing={() => setIsEditMode(true)} onImport={handleImport} />
+                  <MinimalEmptyState
+                    onStartEditing={() => setIsEditMode(true)}
+                    onImport={handleImport}
+                  />
                 )}
               </div>
             )}

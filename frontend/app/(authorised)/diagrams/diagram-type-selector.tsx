@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -236,6 +236,15 @@ const diagramTypes: DiagramType[] = [
     category: "Technical",
     color: "bg-cyan-500/10 border-cyan-200 hover:bg-cyan-500/20",
   },
+  // Custom
+  {
+    id: "custom",
+    name: "Custom Diagram",
+    icon: <Sparkles className="w-5 h-5" />,
+    description: "Create a custom diagram with AI assistance",
+    category: "Custom",
+    color: "bg-gradient-to-br from-violet-500/10 to-purple-500/10 border-violet-200 hover:from-violet-500/20 hover:to-purple-500/20",
+  },
 ];
 
 const categoryIcons = {
@@ -244,10 +253,16 @@ const categoryIcons = {
   Data: <Database className="w-4 h-4" />,
   Strategy: <Target className="w-4 h-4" />,
   Technical: <Network className="w-4 h-4" />,
+  Custom: <Sparkles className="w-4 h-4" />,
 };
 
-function DiagramTypeSelector() {
-  const [selectedType, setSelectedType] = useState("flowchart");
+interface DiagramTypeSelectorProps {
+  value?: string;
+  onChange?: (type: string) => void;
+}
+
+function DiagramTypeSelector({ value, onChange }: DiagramTypeSelectorProps = {}) {
+  const [selectedType, setSelectedType] = useState(value || "flowchart");
   const [customDescription, setCustomDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
@@ -256,6 +271,20 @@ function DiagramTypeSelector() {
 
   const detectDiagramTypeMutation = useDetectDiagramType();
   const { toast } = useToast();
+
+  // Sync with external value changes
+  useEffect(() => {
+    if (value !== undefined) {
+      setSelectedType(value);
+    }
+  }, [value]);
+
+  const handleTypeSelect = (type: string) => {
+    setSelectedType(type);
+    if (onChange) {
+      onChange(type);
+    }
+  };
 
   const handleDetectType = () => {
     if (!customDescription.trim()) {
@@ -318,43 +347,6 @@ function DiagramTypeSelector() {
 
   return (
     <Card className="w-full mx-auto border-0 bg-gradient-to-br from-slate-50 to-white">
-      {/* <CardHeader className="pb-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-t-lg">
-        <CardTitle className="text-2xl flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-              <Settings className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">Diagram Generator</h2>
-              <p className="text-slate-300 text-sm font-normal mt-1">
-                Choose your diagram type and generate instantly
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={handleGenerate}
-            disabled={
-              isGenerating ||
-              (selectedType === "custom" && !customDescription.trim())
-            }
-            className="h-12 px-6 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 border-0 shadow-lg transition-all duration-200 transform hover:scale-105"
-            size="lg"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Zap className="w-5 h-5 mr-2" />
-                Generate Diagram
-              </>
-            )}
-          </Button>
-        </CardTitle>
-      </CardHeader> */}
-
       <CardContent className="p-6">
         {/* Selected Diagram Preview */}
         {selectedDiagram && (
@@ -403,7 +395,7 @@ function DiagramTypeSelector() {
                         : `${type.color} hover:shadow-md`
                     }`}
                     key={type.id}
-                    onClick={() => setSelectedType(type.id)}
+                    onClick={() => handleTypeSelect(type.id)}
                   >
                     <CardContent className="p-4 flex flex-col items-center text-center gap-3 h-full">
                       <div

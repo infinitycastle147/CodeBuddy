@@ -31,12 +31,10 @@ function AuthorizedLayoutContent({ children }: { children: React.ReactNode }) {
     return null; // Will redirect to login
   }
 
-  const role = "backend"; // You can derive this from user data if needed
-
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">
-        <AppSidebar role={role} />
+        <AppSidebar />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </SidebarProvider>

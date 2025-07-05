@@ -22,10 +22,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useUser } from "@/app/context/UserContext";
 
-interface AppSidebarProps {
-  role: string;
-}
-
 const roleConfig = {
   backend: {
     color: "text-blue-600",
@@ -88,9 +84,7 @@ const navigationItems: NavigationItem[] = [
   // },
 ];
 
-export function AppSidebar({ role }: AppSidebarProps) {
-  const config =
-    roleConfig[role as keyof typeof roleConfig] || roleConfig.backend;
+export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [activeHref, setActiveHref] = useState<string>(pathname);
@@ -114,9 +108,6 @@ export function AppSidebar({ role }: AppSidebarProps) {
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-sm">Code Buddy</span>
-            <span className="text-xs text-muted-foreground">
-              {config.name} <span className={config.color}>{config.icon}</span>
-            </span>
           </div>
         </div>
       </SidebarHeader>

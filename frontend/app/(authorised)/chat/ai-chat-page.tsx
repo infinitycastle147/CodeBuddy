@@ -2,14 +2,13 @@
 
 // External Dependencies and React Core
 import { useState, useEffect, useMemo } from "react";
-import { MessageCircle, Settings, Plus, Loader2, Activity } from "lucide-react";
+import { MessageCircle, Loader2, Activity } from "lucide-react";
 
 // Local Components
 import ChatHistory from "@/app/(authorised)/chat/components/ChatHistory";
 import ChatList from "@/app/(authorised)/chat/components/ChatList";
 import ChatInputArea from "@/app/(authorised)/chat/components/ChatInputArea";
 import { type Message } from "@/app/(authorised)/chat/components/types";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 

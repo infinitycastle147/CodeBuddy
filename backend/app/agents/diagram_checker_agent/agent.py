@@ -25,13 +25,15 @@ def save_information_retrieval_query_to_state(callback_context: CallbackContext)
     return None
 
 
-# Define the diagram checker agent
-diagram_checker_agent = LlmAgent(
-    name="diagram_checker_agent",
-    instruction=PromptManager.get_prompt("diagram_checker_agent"),
-    description="Handles user requests related to diagram checking and provides appropriate responses.",
-    model="gemini-2.0-flash",
-    output_schema=DiagramValidationOutput,
-    output_key="diagram_validation_result",
-    before_agent_callback=save_information_retrieval_query_to_state,
-)
+# Define the diagram checker agent factory function
+def get_diagram_checker_agent():
+    """Create and return a new diagram checker agent instance."""
+    return LlmAgent(
+        name="diagram_checker_agent",
+        instruction=PromptManager.get_prompt("diagram_checker_agent"),
+        description="Handles user requests related to diagram checking and provides appropriate responses.",
+        model="gemini-2.0-flash",
+        output_schema=DiagramValidationOutput,
+        output_key="diagram_validation_result",
+        before_agent_callback=save_information_retrieval_query_to_state,
+    )

@@ -1,5 +1,5 @@
-from .agent import diagram_checker_agent
+from .agent import get_diagram_checker_agent
 
 __all__ = [
-    "diagram_checker_agent",
+    "get_diagram_checker_agent",
 ]

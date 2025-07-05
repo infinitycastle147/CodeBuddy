@@ -11,7 +11,7 @@ from .information_retrieval_agent import get_information_retrieval_agent
 from .diagram_generation_agent import get_diagram_generation_agent
 from .diagram_query_generator_agent import get_diagram_query_generator_agent
 from .response_formatter_agent import response_formatter_agent
-from .diagram_checker_agent import diagram_checker_agent
+from .diagram_checker_agent import get_diagram_checker_agent
 from .chat_query_generator_agent import chat_query_generator_agent
 from .security_checker_agent import get_security_checker_agent
 from app.dto.connection_dto import BaseMCPConnectionRequest
@@ -54,7 +54,7 @@ def get_diagram_agent(request: DiagramRequest):
             get_diagram_query_generator_agent(),             # Query refinement  
             get_information_retrieval_agent(mcp_connection), # Information gathering
             get_diagram_generation_agent(diagram_type),      # Type-specific diagram generation
-            diagram_checker_agent,                           # Diagram validation
+            get_diagram_checker_agent(),                     # Diagram validation
         ],
         description="Sequential agent pipeline for generating type-specific diagrams with information retrieval and validation.",
     )

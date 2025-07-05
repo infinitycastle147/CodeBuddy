@@ -5,6 +5,7 @@ export interface User {
   id: string
   email: string
   name?: string
+  password?: string
 }
 
 export interface Chat {
@@ -24,6 +25,7 @@ export interface Message {
 export interface Diagram {
   id: string
   title?: string
+  type: string
   description?: string
   content: string
   created_at: string

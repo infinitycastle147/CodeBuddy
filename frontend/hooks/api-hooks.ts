@@ -10,16 +10,9 @@ import {
 } from "@tanstack/react-query";
 import {
   api,
-  User,
   Chat,
-  Diagram,
-  RepoSetup,
-  TaskStatus,
-  Message,
   ChatRequest,
   DiagramRequest,
-  DiagramTypeDetectionRequest,
-  DiagramUpdateRequest,
 } from "@/lib/api-endpoints";
 import { ApiError } from "@/lib/api-client";
 import { useToast } from "./use-toast";

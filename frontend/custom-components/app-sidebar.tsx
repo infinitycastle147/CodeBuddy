@@ -10,15 +10,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Settings,
   Home,
@@ -26,14 +17,10 @@ import {
   MessageCircle,
   GitBranchPlus,
   Code2Icon,
-  LogOut,
-  User,
-  ChevronUp,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useUser } from "@/app/context/UserContext";
-import { signOut } from "next-auth/react";
 
 interface AppSidebarProps {
   role: string;
@@ -82,23 +69,23 @@ const navigationItems: NavigationItem[] = [
     icon: <GitBranchPlus className="w-4 h-4" />,
     label: "Diagrams",
   },
-  {
-    href: "/explorer",
-    icon: <FileText className="w-4 h-4" />,
-    label: "Files",
-    badge: "12",
-  },
+  // {
+  //   href: "/explorer",
+  //   icon: <FileText className="w-4 h-4" />,
+  //   label: "Files",
+  //   badge: "12",
+  // },
   {
     href: "/chat",
     icon: <MessageCircle className="w-4 h-4" />,
     label: "Chat",
     badge: "3",
   },
-  {
-    href: "/settings",
-    icon: <Settings className="w-4 h-4" />,
-    label: "Settings",
-  },
+  // {
+  //   href: "/settings",
+  //   icon: <Settings className="w-4 h-4" />,
+  //   label: "Settings",
+  // },
 ];
 
 export function AppSidebar({ role }: AppSidebarProps) {

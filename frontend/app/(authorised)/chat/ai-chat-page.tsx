@@ -6,7 +6,7 @@ import { MessageCircle, Settings, Plus, Loader2, Activity } from "lucide-react";
 
 // Local Components
 import ChatHistory from "@/app/(authorised)/chat/components/ChatHistory";
-import ContextPanel from "@/app/(authorised)/chat/components/ContextPanel";
+import ChatList from "@/app/(authorised)/chat/components/ChatList";
 import ChatInputArea from "@/app/(authorised)/chat/components/ChatInputArea";
 import { type Message } from "@/app/(authorised)/chat/components/types";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // Custom Hooks
-import { useCreateChat, useAddMessage, useChat } from "@/hooks/api-hooks";
+import { useCreateChat, useAddMessage, useChat, useListChats } from "@/hooks/api-hooks";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
@@ -27,6 +27,7 @@ export default function AiChatPage() {
   // React Query hooks - using our built infrastructure
   const createChatMutation = useCreateChat();
   const addMessageMutation = useAddMessage();
+  const { data: allChats } = useListChats();
   const {
     data: chatData,
     isLoading: chatLoading,
@@ -125,8 +126,43 @@ export default function AiChatPage() {
     }
   };
 
+  const handleChatSelect = (chatId: string) => {
+    setCurrentChatId(chatId);
+  };
+
+  const handleDeleteChat = (chatId: string) => {
+    // TODO: Implement delete chat functionality
+    console.log('Delete chat:', chatId);
+  };
+
+  // Format chats for ChatList component
+  const formattedChats = useMemo(() => {
+    if (!allChats) return [];
+    
+    return allChats.map(chat => {
+      // Safely parse the timestamp
+      const timestampValue = chat.updated_at || chat.created_at;
+      let timestamp = new Date();
+      
+      if (timestampValue) {
+        const parsedDate = new Date(timestampValue);
+        if (!isNaN(parsedDate.getTime())) {
+          timestamp = parsedDate;
+        }
+      }
+      
+      return {
+        id: chat.id,
+        title: chat.title || 'Untitled Chat',
+        lastMessage: chat.messages?.[chat.messages.length - 1]?.content || 'No messages yet',
+        timestamp,
+        messageCount: chat.messages?.length || 0,
+      };
+    });
+  }, [allChats]);
+
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       {/* Enhanced Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="px-6 mx-auto py-4 w-full">
@@ -179,38 +215,29 @@ export default function AiChatPage() {
                   {currentChatId ? "Connected" : "Ready"}
                 </span>
               </Badge>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={createNewChat}
-                  disabled={createChatMutation.isPending}
-                  variant="default"
-                  size="sm"
-                  className="gap-2"
-                >
-                  {createChatMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4" />
-                  )}
-                  New Chat
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </Button>
-              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex overflow-hidden">
-        <div className="flex-1 flex gap-6 p-6 min-h-0">
+      <main className="flex-1 flex overflow-hidden min-h-0">
+        <div className="flex-1 flex gap-6 p-6 min-h-0 max-h-full">
+          {/* Chat List Sidebar */}
+          <aside className="w-80 flex-shrink-0 min-h-0 max-h-full">
+            <ChatList
+              chats={formattedChats}
+              currentChatId={currentChatId}
+              onChatSelect={handleChatSelect}
+              onNewChat={createNewChat}
+              onDeleteChat={handleDeleteChat}
+              isCreatingChat={createChatMutation.isPending}
+            />
+          </aside>
+
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col gap-4 min-w-0">
-            <div className="flex-1 overflow-hidden">
+          <div className="flex-1 flex flex-col gap-4 min-w-0 min-h-0">
+            <div className="flex-1 min-h-0">
               <ChatHistory
                 messages={messages}
                 isTyping={isTyping}
@@ -218,20 +245,13 @@ export default function AiChatPage() {
                 hasActiveChat={!!currentChatId}
               />
             </div>
-            <ChatInputArea
-              onSendMessage={addMessage}
-              disabled={createChatMutation.isPending || addMessageMutation.isPending}
-            />
+            <div className="flex-shrink-0">
+              <ChatInputArea
+                onSendMessage={addMessage}
+                disabled={createChatMutation.isPending || addMessageMutation.isPending}
+              />
+            </div>
           </div>
-
-          {/* Context Sidebar */}
-          <aside className="w-80 flex-shrink-0">
-            <ContextPanel
-              currentChatId={currentChatId}
-              messageCount={messages.length}
-              isConnected={!!currentChatId}
-            />
-          </aside>
         </div>
       </main>
 

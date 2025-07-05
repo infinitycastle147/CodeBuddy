@@ -49,7 +49,7 @@ export default function ChatInputArea({ onSendMessage, disabled = false }: ChatI
   }, [message])
 
   return (
-    <Card>
+    <Card className="border-0 shadow-sm">
       <CardContent className="p-4">
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative">
@@ -59,16 +59,21 @@ export default function ChatInputArea({ onSendMessage, disabled = false }: ChatI
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={disabled ? "Creating new chat..." : "Ask a question about your code, project, or workflow..."}
-              className="min-h-[60px] max-h-[120px] resize-none pr-24 text-sm border-dashed"
+              className="min-h-[56px] max-h-[120px] resize-none pr-20 text-sm border-2 border-border/20 focus:border-primary/30 rounded-xl"
               rows={1}
               disabled={disabled}
             />
-            <div className="absolute bottom-2 right-2 flex items-center gap-1">
+            <div className="absolute bottom-3 right-3 flex items-center gap-1">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Paperclip className="w-4 h-4" />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 hover:bg-muted/50"
+                    >
+                      <Paperclip className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Attach file</TooltipContent>
@@ -82,10 +87,10 @@ export default function ChatInputArea({ onSendMessage, disabled = false }: ChatI
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className={`h-8 w-8 p-0 ${isRecording ? "text-red-500" : ""}`}
+                      className={`h-7 w-7 p-0 hover:bg-muted/50 ${isRecording ? "text-red-500" : ""}`}
                       onClick={() => setIsRecording(!isRecording)}
                     >
-                      <Mic className="w-4 h-4" />
+                      <Mic className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Voice input</TooltipContent>
@@ -99,8 +104,12 @@ export default function ChatInputArea({ onSendMessage, disabled = false }: ChatI
               <Clock className="w-3 h-3" />
               <span>Press Enter to send, Shift+Enter for new line</span>
             </div>
-            <Button type="submit" disabled={disabled || !message.trim()} className="h-9">
-              <Send className="w-4 h-4 mr-1" />
+            <Button 
+              type="submit" 
+              disabled={disabled || !message.trim()} 
+              className="h-9 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+            >
+              <Send className="w-4 h-4 mr-2" />
               {disabled ? 'Please wait...' : 'Send'}
             </Button>
           </div>

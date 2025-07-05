@@ -22,11 +22,11 @@ export default function ChatHistory({ messages, isTyping, onFeedback, hasActiveC
   }, [messages, isTyping])
 
   return (
-    <Card className="flex-1 flex flex-col">
-      <CardContent className="flex-1 p-0">
-        <div className="h-full overflow-y-auto p-6 space-y-6">
+    <Card className="h-full flex flex-col border-0 shadow-sm">
+      <CardContent className="flex-1 p-0 min-h-0">
+        <div className="h-full overflow-y-auto p-6">
           {messages.length === 0 && !isTyping ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="h-full flex items-center justify-center">
               <div className="text-center space-y-4 max-w-md">
                 <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
                   <Sparkles className="w-8 h-8 text-primary" />
@@ -45,14 +45,14 @@ export default function ChatHistory({ messages, isTyping, onFeedback, hasActiveC
               </div>
             </div>
           ) : (
-            <>
+            <div className="space-y-6">
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} onFeedback={onFeedback} />
               ))}
-              {isTyping && <TypingIndicator />}
-            </>
+              {isTyping && <TypingIndicator key="typing-indicator" />}
+              <div key="scroll-anchor" ref={messagesEndRef} />
+            </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </CardContent>
     </Card>

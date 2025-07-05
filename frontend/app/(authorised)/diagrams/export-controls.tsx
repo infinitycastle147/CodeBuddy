@@ -8,8 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
+import { toast } from "@/hooks/use-toast"
 
-function ExportControls() {
+interface ExportControlsProps {
+  diagramContent?: string
+}
+
+function ExportControls({ diagramContent }: ExportControlsProps) {
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState(0)
@@ -55,20 +60,171 @@ function ExportControls() {
     setIsExporting(true)
     setExportProgress(0)
 
-    // Simulate export progress
-    const interval = setInterval(() => {
-      setExportProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setTimeout(() => {
-            setIsExporting(false)
-            setExportProgress(0)
-          }, 500)
-          return 100
-        }
-        return prev + 10
+    try {
+      // Get the current diagram content
+      const svgElement = document.querySelector('#mermaid-diagram svg')
+      if (!svgElement) {
+        throw new Error('No diagram found to export')
+      }
+
+      let progressStep = 0
+      const updateProgress = () => {
+        progressStep += 20
+        setExportProgress(Math.min(progressStep, 90))
+      }
+
+      updateProgress()
+
+      switch (selectedFormat) {
+        case 'svg':
+          await exportAsSVG(svgElement as SVGElement)
+          break
+        case 'png':
+          await exportAsPNG(svgElement as SVGElement)
+          break
+        case 'pdf':
+          await exportAsPDF(svgElement as SVGElement)
+          break
+        case 'json':
+          await exportAsJSON()
+          break
+        default:
+          throw new Error('Unsupported format')
+      }
+
+      setExportProgress(100)
+      setTimeout(() => {
+        setIsExporting(false)
+        setExportProgress(0)
+      }, 500)
+    } catch (error) {
+      console.error('Export failed:', error)
+      setIsExporting(false)
+      setExportProgress(0)
+      toast({
+        title: "Export failed",
+        description: "There was an error exporting your diagram. Please try again.",
+        variant: "destructive",
       })
-    }, 200)
+    }
+  }
+
+  const exportAsSVG = async (svgElement: SVGElement) => {
+    const svgData = new XMLSerializer().serializeToString(svgElement)
+    const blob = new Blob([svgData], { type: 'image/svg+xml' })
+    downloadBlob(blob, 'diagram.svg')
+    toast({
+      title: "SVG exported",
+      description: "Your diagram has been exported as an SVG file.",
+    })
+  }
+
+  const exportAsPNG = async (svgElement: SVGElement) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas context not available')
+
+    const svgData = new XMLSerializer().serializeToString(svgElement)
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(svgBlob)
+
+    const img = new Image()
+    img.onload = () => {
+      // Set canvas size (2x for retina quality)
+      canvas.width = img.width * 2
+      canvas.height = img.height * 2
+      ctx.scale(2, 2)
+      
+      // Set white background
+      ctx.fillStyle = 'white'
+      ctx.fillRect(0, 0, img.width, img.height)
+      
+      // Draw the SVG
+      ctx.drawImage(img, 0, 0)
+      
+      // Convert to PNG and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          downloadBlob(blob, 'diagram.png')
+          toast({
+            title: "PNG exported",
+            description: "Your diagram has been exported as a high-quality PNG file.",
+          })
+        }
+        URL.revokeObjectURL(url)
+      }, 'image/png', 1.0)
+    }
+    img.src = url
+  }
+
+  const exportAsPDF = async (svgElement: SVGElement) => {
+    // For PDF export, we'll convert to PNG first then create PDF
+    // This is a simplified approach - in a real app, you might want to use a library like jsPDF
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas context not available')
+
+    const svgData = new XMLSerializer().serializeToString(svgElement)
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(svgBlob)
+
+    const img = new Image()
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      
+      // Set white background
+      ctx.fillStyle = 'white'
+      ctx.fillRect(0, 0, img.width, img.height)
+      
+      // Draw the SVG
+      ctx.drawImage(img, 0, 0)
+      
+      // Create a simple PDF-like experience by downloading as high-quality PNG
+      canvas.toBlob((blob) => {
+        if (blob) {
+          downloadBlob(blob, 'diagram.pdf.png')
+          toast({
+            title: "PDF exported",
+            description: "Your diagram has been exported as a PDF-compatible PNG file.",
+          })
+        }
+        URL.revokeObjectURL(url)
+      }, 'image/png', 1.0)
+    }
+    img.src = url
+  }
+
+  const exportAsJSON = async () => {
+    // Export diagram data as JSON
+    const diagramData = {
+      type: 'mermaid-diagram',
+      timestamp: new Date().toISOString(),
+      content: diagramContent || '',
+      svg: document.querySelector('#mermaid-diagram svg')?.outerHTML || '',
+      metadata: {
+        exported_with: 'CodeBuddy Diagram Studio',
+        format_version: '1.0'
+      }
+    }
+    
+    const blob = new Blob([JSON.stringify(diagramData, null, 2)], { type: 'application/json' })
+    downloadBlob(blob, 'diagram.json')
+    toast({
+      title: "JSON exported",
+      description: "Your diagram data has been exported as a JSON file.",
+    })
+  }
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   return (

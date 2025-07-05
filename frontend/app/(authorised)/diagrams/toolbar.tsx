@@ -21,8 +21,6 @@ import {
   Circle,
   ArrowRight,
   Type,
-  ZoomIn,
-  ZoomOut,
   RotateCcw,
   Save,
   Share,
@@ -34,7 +32,6 @@ import {
   Wand2,
 } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
-import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 
 interface Tool {
@@ -47,7 +44,6 @@ interface Tool {
 
 interface ToolbarProps {
   onToolChange?: (tool: string) => void
-  onZoomChange?: (zoom: number) => void
   onGridToggle?: (show: boolean) => void
   onUndo?: () => void
   onSave?: () => void
@@ -104,7 +100,6 @@ const tools: Tool[] = [
 
 export default function AwesomeToolbar({
   onToolChange,
-  onZoomChange,
   onGridToggle,
   onUndo,
   onSave,
@@ -115,17 +110,12 @@ export default function AwesomeToolbar({
 }: ToolbarProps) {
   const [activeTool, setActiveTool] = useState("select")
   const [showGrid, setShowGrid] = useState(true)
-  const [zoom, setZoom] = useState([100])
 
   const handleToolChange = (toolId: string) => {
     setActiveTool(toolId)
     onToolChange?.(toolId)
   }
 
-  const handleZoomChange = (newZoom: number) => {
-    setZoom([newZoom])
-    onZoomChange?.(newZoom)
-  }
 
   return (
     <TooltipProvider>
@@ -214,59 +204,6 @@ export default function AwesomeToolbar({
                 </Tooltip>
               </div>
 
-              <div className="flex items-center gap-2 p-2 bg-gray-100/50 rounded-lg">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleZoomChange(Math.max(25, zoom[0] - 25))}
-                      disabled={disabled || zoom[0] <= 25}
-                      className="h-8 w-8 p-0 hover:bg-white hover:shadow-md transition-all duration-150 ease-out"
-                    >
-                      <ZoomOut className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-black text-white border-gray-800 font-medium">
-                    <span>Zoom Out</span>
-                  </TooltipContent>
-                </Tooltip>
-
-                <div className="flex items-center gap-3 min-w-[140px] px-2">
-                  <Slider
-                    value={zoom}
-                    onValueChange={(value) => handleZoomChange(value[0])}
-                    max={200}
-                    min={25}
-                    step={25}
-                    className="flex-1"
-                    disabled={disabled}
-                  />
-                  <Badge
-                    variant="secondary"
-                    className="text-xs font-mono min-w-[45px] justify-center bg-white border-gray-200"
-                  >
-                    {zoom[0]}%
-                  </Badge>
-                </div>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleZoomChange(Math.min(200, zoom[0] + 25))}
-                      disabled={disabled || zoom[0] >= 200}
-                      className="h-8 w-8 p-0 hover:bg-white hover:shadow-md transition-all duration-150 ease-out"
-                    >
-                      <ZoomIn className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-black text-white border-gray-800 font-medium">
-                    <span>Zoom In</span>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
             </div>
 
             <Separator
@@ -392,20 +329,22 @@ export default function AwesomeToolbar({
                         variant="ghost"
                         size="sm"
                         onClick={onGenerate}
-                        disabled={disabled}
+                        disabled={disabled || loading}
                         className="relative h-9 px-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 hover:shadow-lg transition-all duration-150 ease-out hover:scale-[1.02] border-0"
                       >
-                        <Wand2 className="w-4 h-4 mr-2" />
-                        Generate
+                        {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                        {loading ? "Generating..." : "Generate"}
                       </Button>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-black text-white border-gray-800 font-medium">
                     <div className="flex items-center gap-2">
-                      <span>AI Generate</span>
-                      <Badge variant="secondary" className="text-xs bg-gray-700 text-gray-200 border-gray-600">
-                        Ctrl+G
-                      </Badge>
+                      <span>{loading ? "Generating diagram..." : "AI Generate with predefined query"}</span>
+                      {!loading && (
+                        <Badge variant="secondary" className="text-xs bg-gray-700 text-gray-200 border-gray-600">
+                          Ctrl+G
+                        </Badge>
+                      )}
                     </div>
                   </TooltipContent>
                 </Tooltip>

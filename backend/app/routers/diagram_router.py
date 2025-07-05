@@ -274,7 +274,11 @@ async def detect_diagram_type_content(user_input: str) -> str:
         return "flowchart"  # Default fallback
 
     except Exception as e:
-        return create_error_response
+        return create_error_response(
+            code="detect_diagram_type_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @observe(name="diagram_content_generation")

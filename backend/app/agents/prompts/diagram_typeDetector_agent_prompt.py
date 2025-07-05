@@ -91,5 +91,5 @@ INSTRUCTIONS:
 5. Use the exact names from the available diagram types list
 
 The diagram_type value must be one of these exact names:
-flowchart, sequence, class, state, entity_relationship, user_journey, gantt, pie, quadrant_chart, requirement, gitgraph, c4, mindmap, timeline, zenuml, sankey, xy_chart, block, packet, kanban, architecture, radar
+flowchart, sequence, class, state, erd, user_journey, gantt, pie, quadrant_chart, requirement, gitgraph, c4, mindmap, timeline, zenuml, sankey, xy_chart, block, packet, kanban, architecture, radar
 """

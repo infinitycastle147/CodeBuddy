@@ -12,7 +12,7 @@ class DiagramType(Enum):
     SEQUENCE = "sequence"
     CLASS = "class"
     STATE = "state"
-    ENTITY_RELATIONSHIP = "entity_relationship"
+    ENTITY_RELATIONSHIP = "erd"
     USER_JOURNEY = "user_journey"
     GANTT = "gantt"
     PIE = "pie"

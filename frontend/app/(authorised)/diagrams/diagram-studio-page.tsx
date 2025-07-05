@@ -3,7 +3,7 @@
 // External dependencies
 import type React from "react";
 import { useState } from "react";
-import { BarChart, Save, Plus, List, FileText, Wand2, Clock, FolderOpen, ChevronDown } from "lucide-react";
+import { BarChart, Save, Plus, FileText, Wand2, Clock, FolderOpen, ChevronDown } from "lucide-react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -17,24 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 // Custom hooks
 import {
   useDiagrams,
   useCreateDiagram,
   useUpdateDiagram,
-  useDetectDiagramType,
 } from "@/hooks/api-hooks";
 
 // Local components
@@ -137,7 +125,7 @@ export default function DiagramStudioPage() {
     }
   };
 
-  const handleDiagramTypeSelect = (type: string, query: string) => {
+  const handleDiagramTypeSelect = (type: string) => {
     setSelectedDiagramType(type);
   };
 
@@ -374,7 +362,7 @@ export default function DiagramStudioPage() {
 
         {/* Bottom Controls */}
         <div className="shrink-0">
-          <ExportControls />
+          <ExportControls diagramContent={currentDiagramContent} />
         </div>
       </main>
     </div>

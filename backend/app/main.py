@@ -79,6 +79,22 @@ def create_app() -> FastAPI:
         """Handle request validation errors with detailed logging."""
         logger.error(f"Validation Error: {exc.errors()}")
         return JSONResponse({"detail": exc.errors()}, status_code=422)
+    
+    @app.exception_handler(ValueError)
+    async def value_error_handler(request: Request, exc: ValueError) -> JSONResponse:
+        """Handle ValueError exceptions to prevent JSON serialization errors."""
+        logger.error(f"ValueError: {str(exc)}")
+        return JSONResponse(
+            {
+                "success": False,
+                "error": {
+                    "code": "value_error",
+                    "message": str(exc),
+                    "details": None
+                }
+            },
+            status_code=400
+        )
 
     logger.info("FastAPI application initialized successfully")
     return app

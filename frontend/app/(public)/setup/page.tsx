@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   CheckCircle,
   Github,
@@ -22,7 +32,9 @@ import {
   EyeOff,
   Code2Icon,
 } from "lucide-react";
-import { setStoredCredentials, UserCredentials } from "@/lib/credentials";
+import { setStoredCredentials, getStoredCredentials, UserCredentials } from "@/lib/credentials";
+import { setupFormSchema, SetupFormData } from "@/app/schemas/setup";
+import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -31,20 +43,50 @@ export default function SetupPage() {
     jira: false,
     ai: false,
   });
-  const [githubData, setGithubData] = useState({
-    token: "",
-    username: ""
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const form = useForm<SetupFormData>({
+    resolver: zodResolver(setupFormSchema),
+    defaultValues: {
+      github: {
+        username: "",
+        token: "",
+      },
+      jira: {
+        url: "",
+        username: "",
+        apiToken: "",
+        projectKey: "",
+      },
+      aiModel: {
+        name: "",
+        token: "",
+      },
+    },
   });
-  const [jiraData, setJiraData] = useState({
-    url: "",
-    apiToken: "",
-    username: "",
-    projectKey: ""
-  });
-  const [aiModelData, setAiModelData] = useState({
-    name: "",
-    token: ""
-  });
+
+  useEffect(() => {
+    const stored = getStoredCredentials();
+    if (stored) {
+      form.reset({
+        github: {
+          username: stored.github_username,
+          token: stored.github_token,
+        },
+        jira: {
+          url: stored.jira_url || "",
+          username: stored.jira_username || "",
+          apiToken: stored.jira_apiToken || "",
+          projectKey: stored.jira_project_name || "",
+        },
+        aiModel: {
+          name: stored.ai_model_name || "",
+          token: stored.ai_model_token || "",
+        },
+      });
+    }
+  }, [form]);
 
   const steps = [
     {
@@ -64,7 +106,12 @@ export default function SetupPage() {
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (currentStep === 1) {
+      const isValid = await form.trigger(["github.username", "github.token"]);
+      if (!isValid) return;
+    }
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
@@ -76,30 +123,28 @@ export default function SetupPage() {
     }
   };
 
-  const handleFinish = () => {
-    const credentials: UserCredentials = {
-      github_username: githubData.username,
-      github_token: githubData.token,
-      jira_username: jiraData.username || undefined,
-      jira_apiToken: jiraData.apiToken || undefined,
-      jira_project_name: jiraData.projectKey || undefined,
-      jira_url: jiraData.url || undefined,
-    };
-    
-    setStoredCredentials(credentials);
-    alert("Setup completed successfully!");
-  };
-
-  const updateGithubData = (field: string, value: string) => {
-    setGithubData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const updateJiraData = (field: string, value: string) => {
-    setJiraData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const updateAiModelData = (field: string, value: string) => {
-    setAiModelData(prev => ({ ...prev, [field]: value }));
+  const handleFinish = async () => {
+    setIsLoading(true);
+    try {
+      const formData = form.getValues();
+      const credentials: UserCredentials = {
+        github_username: formData.github.username,
+        github_token: formData.github.token,
+        jira_username: formData.jira.username || undefined,
+        jira_apiToken: formData.jira.apiToken || undefined,
+        jira_project_name: formData.jira.projectKey || undefined,
+        jira_url: formData.jira.url || undefined,
+        ai_model_name: formData.aiModel.name || undefined,
+        ai_model_token: formData.aiModel.token || undefined,
+      };
+      
+      setStoredCredentials(credentials);
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error saving credentials:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleTokenVisibility = (type: "github" | "jira" | "ai") => {
@@ -109,6 +154,9 @@ export default function SetupPage() {
     }));
   };
 
+  const githubData = form.watch("github");
+  const jiraData = form.watch("jira");
+  const aiModelData = form.watch("aiModel");
   const isGitHubValid = githubData.token && githubData.username;
 
   return (
@@ -197,7 +245,9 @@ export default function SetupPage() {
         {/* Main Content Card */}
         <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-0">
-            <div className="p-8 lg:p-12">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(() => {})}>
+                <div className="p-8 lg:p-12">
               {/* Welcome Step */}
               {currentStep === 0 && (
                 <div className="text-center space-y-8 max-w-2xl mx-auto">
@@ -278,65 +328,69 @@ export default function SetupPage() {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="github-username"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        GitHub Username
-                      </Label>
-                      <Input
-                        id="github-username"
-                        placeholder="Enter your GitHub username"
-                        value={githubData.username}
-                        onChange={(e) =>
-                          updateGithubData("username", e.target.value)
-                        }
-                        className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400"
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="github.username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            GitHub Username
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your GitHub username"
+                              className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="github-token"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        Personal Access Token
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="github-token"
-                          type={showTokens.github ? "text" : "password"}
-                          placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                          value={githubData.token}
-                          onChange={(e) =>
-                            updateGithubData("token", e.target.value)
-                          }
-                          className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400 pr-12"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                          onClick={() => toggleTokenVisibility("github")}
-                        >
-                          {showTokens.github ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
-                          <strong>Need a token?</strong> Go to GitHub Settings →
-                          Developer settings → Personal access tokens → Generate
-                          new token. Select <strong>repo</strong> scope for full
-                          repository access.
-                        </p>
-                      </div>
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="github.token"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            Personal Access Token
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showTokens.github ? "text" : "password"}
+                                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400 pr-12"
+                                {...field}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                                onClick={() => toggleTokenVisibility("github")}
+                              >
+                                {showTokens.github ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                          <FormDescription className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <span className="text-sm text-blue-800">
+                              <strong>Need a token?</strong> Go to GitHub Settings →
+                              Developer settings → Personal access tokens → Generate
+                              new token. Select <strong>repo</strong> scope for full
+                              repository access.
+                            </span>
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
               )}
@@ -368,93 +422,101 @@ export default function SetupPage() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="jira-url"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        Jira Instance URL
-                      </Label>
-                      <Input
-                        id="jira-url"
-                        placeholder="https://yourcompany.atlassian.net"
-                        value={jiraData.url}
-                        onChange={(e) =>
-                          updateJiraData("url", e.target.value)
-                        }
-                        className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="jira.url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            Jira Instance URL
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://yourcompany.atlassian.net"
+                              className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="jira-username"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        Email Address
-                      </Label>
-                      <Input
-                        id="jira-username"
-                        placeholder="your-email@company.com"
-                        value={jiraData.username}
-                        onChange={(e) =>
-                          updateJiraData("username", e.target.value)
-                        }
-                        className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="jira.username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            Email Address
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="your-email@company.com"
+                              className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="jira-token"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        API Token
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="jira-token"
-                          type={showTokens.jira ? "text" : "password"}
-                          placeholder="Your Jira API token"
-                          value={jiraData.apiToken}
-                          onChange={(e) =>
-                            updateJiraData("apiToken", e.target.value)
-                          }
-                          className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400 pr-12"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                          onClick={() => toggleTokenVisibility("jira")}
-                        >
-                          {showTokens.jira ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="jira.apiToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            API Token
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showTokens.jira ? "text" : "password"}
+                                placeholder="Your Jira API token"
+                                className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400 pr-12"
+                                {...field}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                                onClick={() => toggleTokenVisibility("jira")}
+                              >
+                                {showTokens.jira ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="jira-project"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        Project Key
-                      </Label>
-                      <Input
-                        id="jira-project"
-                        placeholder="PROJ"
-                        value={jiraData.projectKey}
-                        onChange={(e) =>
-                          updateJiraData("projectKey", e.target.value)
-                        }
-                        className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="jira.projectKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            Project Key
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="PROJ"
+                              className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -508,57 +570,61 @@ export default function SetupPage() {
                   </Alert>
 
                   <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="ai-model-name"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        AI Model Name
-                      </Label>
-                      <Input
-                        id="ai-model-name"
-                        placeholder="gpt-4, claude-3-sonnet, gemini-pro, etc."
-                        value={aiModelData.name}
-                        onChange={(e) =>
-                          updateAiModelData("name", e.target.value)
-                        }
-                        className="h-12 text-base border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="aiModel.name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            AI Model Name
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="gpt-4, claude-3-sonnet, gemini-pro, etc."
+                              className="h-12 text-base border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="ai-model-token"
-                        className="text-sm font-semibold text-gray-700"
-                      >
-                        API Token
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="ai-model-token"
-                          type={showTokens.ai ? "text" : "password"}
-                          placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-                          value={aiModelData.token}
-                          onChange={(e) =>
-                            updateAiModelData("token", e.target.value)
-                          }
-                          className="h-12 text-base border-gray-200 focus:border-emerald-400 focus:ring-emerald-400 pr-12"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                          onClick={() => toggleTokenVisibility("ai")}
-                        >
-                          {showTokens.ai ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="aiModel.token"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            API Token
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showTokens.ai ? "text" : "password"}
+                                placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+                                className="h-12 text-base border-gray-200 focus:border-emerald-400 focus:ring-emerald-400 pr-12"
+                                {...field}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                                onClick={() => toggleTokenVisibility("ai")}
+                              >
+                                {showTokens.ai ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -658,7 +724,9 @@ export default function SetupPage() {
                   </div>
                 </div>
               )}
-            </div>
+                </div>
+              </form>
+            </Form>
 
             <Separator />
 
@@ -677,9 +745,10 @@ export default function SetupPage() {
               {currentStep === steps.length - 1 ? (
                 <Button
                   onClick={handleFinish}
-                  className="flex items-center space-x-2 h-12 px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg"
+                  disabled={isLoading}
+                  className="flex items-center space-x-2 h-12 px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg disabled:opacity-50"
                 >
-                  <span>Complete Setup</span>
+                  <span>{isLoading ? "Completing..." : "Complete Setup"}</span>
                   <CheckCircle className="w-4 h-4" />
                 </Button>
               ) : (

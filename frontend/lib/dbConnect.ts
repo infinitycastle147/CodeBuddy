@@ -22,7 +22,7 @@ async function dbConnect() {
       console.log("Database connected successfully to Atlas:", atlasUri);
       return;
     } catch (error) {
-      console.warn("Atlas connection failed, trying local MongoDB:", error.message);
+      console.warn("Atlas connection failed, trying local MongoDB:", error instanceof Error ? error.message : String(error));
     }
   }
 

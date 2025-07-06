@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // Custom Hooks
-import { useCreateChat, useAddMessage, useChat, useListChats } from "@/hooks/api-hooks";
+import { useCreateChat, useAddMessage, useChat, useListChats, useDeleteChat } from "@/hooks/api-hooks";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
@@ -26,6 +26,7 @@ export default function AiChatPage() {
   // React Query hooks - using our built infrastructure
   const createChatMutation = useCreateChat();
   const addMessageMutation = useAddMessage();
+  const deleteChatMutation = useDeleteChat();
   const { data: allChats } = useListChats();
   const {
     data: chatData,
@@ -56,11 +57,11 @@ export default function AiChatPage() {
     if (!chatData?.messages) return [];
 
     return chatData.messages.map(
-      (msg): Message => ({
-        id: msg.id,
+      (msg, index): Message => ({
+        id: msg.id || `msg-${index}`,
         type: msg.role === "user" ? "user" : "assistant",
-        content: msg.content,
-        timestamp: new Date(msg.timestamp),
+        content: msg.content || "",
+        timestamp: new Date(msg.timestamp || Date.now()),
         context: msg.role === "assistant" ? ["ai"] : undefined,
       })
     );
@@ -125,8 +126,18 @@ export default function AiChatPage() {
   };
 
   const handleDeleteChat = (chatId: string) => {
-    // TODO: Implement delete chat functionality
-    console.log('Delete chat:', chatId);
+    deleteChatMutation.mutate(chatId, {
+      onSuccess: () => {
+        // If the deleted chat was the current active chat, clear the current chat
+        if (currentChatId === chatId) {
+          setCurrentChatId(null);
+          setMessages([]);
+        }
+      },
+      onError: (error) => {
+        console.error('Failed to delete chat:', error);
+      }
+    });
   };
 
   // Format chats for ChatList component

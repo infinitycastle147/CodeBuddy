@@ -3,6 +3,10 @@ import { z } from "zod";
 export const githubSchema = z.object({
   username: z.string().min(1, "GitHub username is required"),
   token: z.string().min(1, "GitHub token is required").regex(/^gh[ps]_[A-Za-z0-9_]{36,255}$/, "Invalid GitHub token format"),
+  repoUrl: z.string().min(1, "GitHub repository URL is required").url("Please enter a valid GitHub repository URL").refine(
+    (url) => url.includes("github.com") && url.includes("/"),
+    "Please enter a valid GitHub repository URL (e.g., https://github.com/username/repository)"
+  ),
 });
 
 export const jiraSchema = z.object({

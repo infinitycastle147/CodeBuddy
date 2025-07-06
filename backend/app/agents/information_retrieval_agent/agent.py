@@ -43,14 +43,12 @@ def create_callback_with_mcp_connection(
         Runs before the agent's main logic.
         """
         refined_query = callback_context.state.get("refined_query", None)
-        user_id = callback_context.state.get("user_id", None)
-        repo_url = callback_context.state.get("repo_url", None)
 
         logger.debug(
             f"[Callback] Running save_refined_query_to_state for {callback_context.agent_name}"
         )
         logger.debug(
-            f"[Callback] Current state: refined_query={refined_query}, user_id={user_id}, repo_url={repo_url}"
+            f"[Callback] Current state: refined_query={refined_query}"
         )
 
         if refined_query is None:
@@ -68,11 +66,10 @@ def create_callback_with_mcp_connection(
 
         # Store all relevant information in state
         callback_context.state["refined_query"] = refined_query
-        callback_context.state["user_id"] = user_id
-        callback_context.state["repo_url"] = repo_url
-
+        
         # Store MCP connection info for template variables
         if mcp_connection:
+            callback_context.state["repo_url"] = mcp_connection.repo_url or "N/A"
             callback_context.state["github_username"] = (
                 mcp_connection.github_username or "N/A"
             )
@@ -81,12 +78,13 @@ def create_callback_with_mcp_connection(
             )
             callback_context.state["jira_url"] = mcp_connection.jira_url or "N/A"
         else:
+            callback_context.state["repo_url"] = "N/A"
             callback_context.state["github_username"] = "N/A"
             callback_context.state["jira_project_name"] = "N/A"
             callback_context.state["jira_url"] = "N/A"
 
         logger.info(
-            f"[Callback] Saved query '{refined_query}' and filters (user_id={user_id}, repo_url={repo_url}) to state"
+            f"[Callback] Saved query '{refined_query}' and repo_url={callback_context.state.get('repo_url', 'N/A')} to state"
         )
 
         # Return None to allow the agent's normal execution to proceed

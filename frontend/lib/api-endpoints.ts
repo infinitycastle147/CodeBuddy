@@ -41,6 +41,7 @@ export interface RepoSetup {
 export interface ChatRequest {
   github_username: string
   github_token: string
+  repo_url: string
   jira_username?: string
   jira_apiToken?: string
   jira_project_name?: string
@@ -51,6 +52,7 @@ export interface ChatRequest {
 export interface DiagramRequest {
   github_username: string
   github_token: string
+  repo_url: string
   jira_username?: string
   jira_apiToken?: string
   jira_project_name?: string
@@ -93,6 +95,7 @@ export const api = {
   listChats: () => apiClient.get<Chat[]>('/chat/'),
   createChat: () => apiClient.post<Chat>('/chat/'),
   getChat: (chatId: string) => apiClient.get<Chat>(`/chat/${chatId}`),
+  deleteChat: (chatId: string) => apiClient.delete<{ message: string }>(`/chat/${chatId}`),
   addMessage: (chatId: string, data: ChatRequest) => 
     apiClient.post<{ message: Message; response: Message }>(`/chat/${chatId}/message`, data),
 

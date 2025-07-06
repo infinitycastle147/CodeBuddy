@@ -31,6 +31,7 @@ import {
   Eye,
   EyeOff,
   Code2Icon,
+  AlertCircle,
 } from "lucide-react";
 import { setStoredCredentials, getStoredCredentials, UserCredentials } from "@/lib/credentials";
 import { setupFormSchema, SetupFormData } from "@/app/schemas/setup";
@@ -52,6 +53,7 @@ export default function SetupPage() {
       github: {
         username: "",
         token: "",
+        repoUrl: "",
       },
       jira: {
         url: "",
@@ -73,6 +75,7 @@ export default function SetupPage() {
         github: {
           username: stored.github_username,
           token: stored.github_token,
+          repoUrl: stored.repo_url,
         },
         jira: {
           url: stored.jira_url || "",
@@ -108,7 +111,7 @@ export default function SetupPage() {
 
   const handleNext = async () => {
     if (currentStep === 1) {
-      const isValid = await form.trigger(["github.username", "github.token"]);
+      const isValid = await form.trigger(["github.username", "github.token", "github.repoUrl"]);
       if (!isValid) return;
     }
     
@@ -130,6 +133,7 @@ export default function SetupPage() {
       const credentials: UserCredentials = {
         github_username: formData.github.username,
         github_token: formData.github.token,
+        repo_url: formData.github.repoUrl,
         jira_username: formData.jira.username || undefined,
         jira_apiToken: formData.jira.apiToken || undefined,
         jira_project_name: formData.jira.projectKey || undefined,
@@ -157,7 +161,7 @@ export default function SetupPage() {
   const githubData = form.watch("github");
   const jiraData = form.watch("jira");
   const aiModelData = form.watch("aiModel");
-  const isGitHubValid = githubData.token && githubData.username;
+  const isGitHubValid = githubData.token && githubData.username && githubData.repoUrl;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
@@ -324,6 +328,12 @@ export default function SetupPage() {
                         Connect your GitHub account to access repositories and
                         manage your codebase seamlessly.
                       </p>
+                      <Alert className="border-orange-200 bg-orange-50/50 backdrop-blur-sm">
+                        <AlertCircle className="h-4 w-4 text-orange-600" />
+                        <AlertDescription className="text-orange-800 text-sm">
+                          <strong>Single Repository Support:</strong> Currently, our application supports working with one GitHub repository at a time. You can change this repository later in settings.
+                        </AlertDescription>
+                      </Alert>
                     </div>
                   </div>
 
@@ -386,6 +396,31 @@ export default function SetupPage() {
                               Developer settings → Personal access tokens → Generate
                               new token. Select <strong>repo</strong> scope for full
                               repository access.
+                            </span>
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="github.repoUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-700">
+                            Repository URL
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://github.com/username/repository"
+                              className="h-12 text-base border-gray-200 focus:border-gray-400 focus:ring-gray-400"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                          <FormDescription className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <span className="text-sm text-gray-600">
+                              <strong>Repository URL:</strong> Enter the complete GitHub repository URL (e.g., https://github.com/username/repository-name). Make sure you have access to this repository with your provided token.
                             </span>
                           </FormDescription>
                         </FormItem>

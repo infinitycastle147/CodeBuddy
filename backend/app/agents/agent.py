@@ -41,6 +41,7 @@ def get_diagram_agent(request: DiagramRequest):
     mcp_connection = BaseMCPConnectionRequest(
         github_username=request.github_username,
         github_token=request.github_token,
+        repo_url=request.repo_url,
         jira_username=request.jira_username,
         jira_apiToken=request.jira_apiToken,
         jira_project_name=request.jira_project_name,

@@ -9,7 +9,7 @@ class Diagram(BaseModelWithId):
     """
     user_id: str = Field(..., description="ID of the user who owns the diagram")
     title: str = Field(..., description="Title of the diagram")
-    type: str = Field(..., description="Type of the diagram")
+    type: str = Field(default="flowchart", description="Type of the diagram")
     description: str = Field(..., description="Description of the diagram")
     content: str = Field(..., description="Content of the diagram in mermaid format")
 

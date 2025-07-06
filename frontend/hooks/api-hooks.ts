@@ -101,6 +101,21 @@ export function useChat(chatId: string, enabled = true) {
   });
 }
 
+export function useDeleteChat() {
+  const queryClient = useQueryClient();
+  const showError = useErrorHandler();
+  const showSuccess = useSuccessHandler();
+
+  return useMutation({
+    mutationFn: api.deleteChat,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.chats });
+      showSuccess("Chat deleted successfully");
+    },
+    onError: (error) => showError(error, "Failed to delete chat"),
+  });
+}
+
 export function useAddMessage() {
   const queryClient = useQueryClient();
   const showError = useErrorHandler();

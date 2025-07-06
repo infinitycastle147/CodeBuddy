@@ -1,6 +1,7 @@
 export interface UserCredentials {
   github_username: string;
   github_token: string;
+  repo_url: string;
   jira_username?: string;
   jira_apiToken?: string;
   jira_project_name?: string;
@@ -16,7 +17,9 @@ export function getStoredCredentials(): UserCredentials | null {
 
   const github_username = localStorage.getItem('github_username');
   const github_token = localStorage.getItem('github_token');
+  const repo_url = localStorage.getItem('repo_url');
 
+  // Only require username and token - repo URL can be empty for backward compatibility
   if (!github_username || !github_token) {
     return null;
   }
@@ -24,6 +27,7 @@ export function getStoredCredentials(): UserCredentials | null {
   return {
     github_username,
     github_token,
+    repo_url: repo_url || "",
     jira_username: localStorage.getItem('jira_username') || undefined,
     jira_apiToken: localStorage.getItem('jira_apiToken') || undefined,
     jira_project_name: localStorage.getItem('jira_project_name') || undefined,
@@ -40,6 +44,7 @@ export function setStoredCredentials(credentials: UserCredentials): void {
 
   localStorage.setItem('github_username', credentials.github_username);
   localStorage.setItem('github_token', credentials.github_token);
+  localStorage.setItem('repo_url', credentials.repo_url);
   
   if (credentials.jira_username) {
     localStorage.setItem('jira_username', credentials.jira_username);
@@ -68,10 +73,23 @@ export function clearStoredCredentials(): void {
 
   localStorage.removeItem('github_username');
   localStorage.removeItem('github_token');
+  localStorage.removeItem('repo_url');
   localStorage.removeItem('jira_username');
   localStorage.removeItem('jira_apiToken');
   localStorage.removeItem('jira_project_name');
   localStorage.removeItem('jira_url');
   localStorage.removeItem('ai_model_name');
   localStorage.removeItem('ai_model_token');
+}
+
+export function hasCompleteGitHubCredentials(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const github_username = localStorage.getItem('github_username');
+  const github_token = localStorage.getItem('github_token');
+  const repo_url = localStorage.getItem('repo_url');
+
+  return !!(github_username && github_token && repo_url);
 }

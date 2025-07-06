@@ -55,7 +55,7 @@ async def detect_diagram_type(
     """
     try:
         # Generate diagram type using AI
-        detected_type = await detect_diagram_type_content(request.user_input)
+        detected_type = await detect_diagram_type_content(request.user_input, str(current_user.id))
         
         logger.info(f"Detected diagram type: {detected_type}")
 
@@ -144,7 +144,7 @@ async def create_diagram(
     """
     try:
         # Generate diagram content using AI
-        diagram_content = await generate_diagram_content(request)
+        diagram_content = await generate_diagram_content(request, str(current_user.id))
 
         logger.info(f"Diagram content: {diagram_content}")
 
@@ -231,7 +231,7 @@ async def update_diagram(
 
 
 @observe(name="diagram_type_detection")
-async def detect_diagram_type_content(user_input: str) -> str:
+async def detect_diagram_type_content(user_input: str, user_id: str) -> str:
     """
     Detect diagram type using the diagram type detector agent.
     """
@@ -240,7 +240,7 @@ async def detect_diagram_type_content(user_input: str) -> str:
 
         session = await session_service.create_session(
             app_name=settings.application_name,
-            user_id="123",
+            user_id=user_id,
         )
 
         content = types.Content(role="user", parts=[types.Part(text=user_input)])
@@ -282,7 +282,7 @@ async def detect_diagram_type_content(user_input: str) -> str:
 
 
 @observe(name="diagram_content_generation")
-async def generate_diagram_content(request: DiagramRequest) -> str:
+async def generate_diagram_content(request: DiagramRequest, user_id: str) -> str:
     """
     Generate diagram content using the diagram agent with MCP connection parameters.
     """
@@ -291,7 +291,7 @@ async def generate_diagram_content(request: DiagramRequest) -> str:
 
         session = await session_service.create_session(
             app_name=settings.application_name,
-            user_id="123",
+            user_id=user_id,
         )
 
         content = types.Content(role="user", parts=[types.Part(text=request.user_input)])

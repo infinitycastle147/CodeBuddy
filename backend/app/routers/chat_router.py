@@ -129,6 +129,34 @@ async def create_chat(
         )
 
 
+@router.delete("/{chat_id}")
+async def delete_chat(
+    chat: Annotated[Chat, Depends(require_chat_ownership)],
+    chat_repo: ChatRepository = Depends(get_chat_repository),
+):
+    """
+    Delete a chat session by its ID.
+    Only works if the current user owns the chat.
+    """
+    try:
+        success = await chat_repo.delete(str(chat.id))
+        
+        if not success:
+            return create_error_response(
+                code="delete_chat_error",
+                message="Failed to delete chat",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+        return create_response(message="Chat deleted successfully")
+    except Exception as e:
+        return create_error_response(
+            code="delete_chat_error",
+            message=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 @router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
 @observe(name="chat_message_processing")
 async def add_message(
@@ -145,7 +173,7 @@ async def add_message(
         chat.add_message(role="user", content=request.message)
 
         # Generate AI response
-        ai_response = await generate_ai_response(request)
+        ai_response = await generate_ai_response(request, chat.user_id)
         assistant_message = chat.add_message(role="assistant", content=ai_response)
 
         # Update the chat
@@ -172,7 +200,7 @@ async def add_message(
 
 
 @observe(name="ai_response_generation")
-async def generate_ai_response(request: ChatRequest) -> str:
+async def generate_ai_response(request: ChatRequest, user_id: str) -> str:
     """
     Generate AI response using the chat agent with MCP connection parameters.
     """
@@ -180,7 +208,7 @@ async def generate_ai_response(request: ChatRequest) -> str:
         session_service = InMemorySessionService()
         session = await session_service.create_session(
             app_name=settings.application_name,
-            user_id="123",
+            user_id=user_id,
         )
 
         content = types.Content(role="user", parts=[types.Part(text=request.message)])

@@ -75,7 +75,7 @@ const navigationItems: NavigationItem[] = [
     href: "/chat",
     icon: <MessageCircle className="w-4 h-4" />,
     label: "Chat",
-    badge: "3",
+    // badge: "3",
   },
   // {
   //   href: "/settings",

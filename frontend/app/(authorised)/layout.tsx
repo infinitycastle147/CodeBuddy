@@ -4,17 +4,43 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/custom-components/app-sidebar";
 import { UserProvider, useUser } from "@/app/context/UserContext";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useCredentialCheck } from "@/hooks/use-credential-check";
+import SetupRequiredDialog from "@/components/SetupRequiredDialog";
 
 function AuthorizedLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isLoading, isAuthenticated } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
+  
+  // Define which pages require credentials and what type
+  const getCredentialRequirements = (path: string) => {
+    if (path.startsWith('/chat')) {
+      return { github: true, jira: false, aiModel: false };
+    }
+    if (path.startsWith('/diagrams')) {
+      return { github: true, jira: false, aiModel: false };
+    }
+    // Add more routes as needed
+    return { github: false, jira: false, aiModel: false };
+  };
+
+  const credentialRequirements = getCredentialRequirements(pathname);
+  const needsCredentialCheck = credentialRequirements.github || credentialRequirements.jira || credentialRequirements.aiModel;
+  
+  const credentialCheck = useCredentialCheck(credentialRequirements);
   
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  const getFeatureName = (path: string) => {
+    if (path.startsWith('/chat')) return 'AI Chat';
+    if (path.startsWith('/diagrams')) return 'Diagram Studio';
+    return 'This feature';
+  };
 
   if (isLoading) {
     return (
@@ -36,6 +62,21 @@ function AuthorizedLayoutContent({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen w-full">
         <AppSidebar />
         <main className="flex-1 overflow-auto">{children}</main>
+        
+        {/* Credential Check Dialog */}
+        {needsCredentialCheck && (
+          <SetupRequiredDialog
+            open={credentialCheck.showSetupDialog}
+            onOpenChange={(open) => {
+              if (!open) {
+                credentialCheck.dismissDialog();
+              }
+            }}
+            missingCredentials={credentialCheck.status.missingCredentials}
+            featureName={getFeatureName(pathname)}
+            onDismiss={credentialCheck.dismissDialog}
+          />
+        )}
       </div>
     </SidebarProvider>
   );

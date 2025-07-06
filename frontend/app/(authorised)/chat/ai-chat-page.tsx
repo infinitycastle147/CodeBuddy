@@ -83,10 +83,8 @@ export default function AiChatPage() {
   }, [chatError, toast]);
 
   const createNewChat = () => {
-    console.log('Creating new chat...');
     createChatMutation.mutate(undefined, {
       onSuccess: (newChat) => {
-        console.log('New chat created:', newChat);
         setCurrentChatId(newChat.id);
         setMessages([]); // Clear messages for new chat
       },
@@ -97,13 +95,11 @@ export default function AiChatPage() {
   };
 
   const addMessage = (content: string) => {
-    console.log('addMessage called with:', { content, currentChatId });
     
     // If no current chat, create one first
     if (!currentChatId) {
       createChatMutation.mutate(undefined, {
         onSuccess: (newChat) => {
-          console.log('Chat created successfully:', newChat);
           setCurrentChatId(newChat.id);
           // Then send the message
           addMessageMutation.mutate({
@@ -117,7 +113,6 @@ export default function AiChatPage() {
       });
     } else {
       // Send message to existing chat
-      console.log('Sending message to existing chat:', currentChatId);
       addMessageMutation.mutate({
         chatId: currentChatId,
         message: content,

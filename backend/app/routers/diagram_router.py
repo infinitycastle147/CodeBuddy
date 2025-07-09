@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 
 # Application imports
 from app.agents.agent import get_diagram_agent
-from app.agents.diagram_typeDetector_agent import diagram_typeDetector_agent
+from app.agents.diagram_typeDetector_agent import get_diagram_typeDetector_agent
 from app.dto.diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest
 from app.dto.diagram_type_dto import DiagramTypeDetectionRequest, DiagramTypeDetectionResponse
 from app.models.diagram import Diagram
@@ -246,7 +246,7 @@ async def detect_diagram_type_content(user_input: str, user_id: str) -> str:
         content = types.Content(role="user", parts=[types.Part(text=user_input)])
 
         runner = Runner(
-            agent=diagram_typeDetector_agent,
+            agent=get_diagram_typeDetector_agent(),
             app_name=settings.application_name,
             session_service=session_service,
         )

@@ -39,17 +39,20 @@ def save_refined_query_to_state(callback_context: CallbackContext):
     # Return None to allow the agent's normal execution to proceed
     return None
 
+def get_response_formatter_agent():
 
-# Initialize the response formatter agent
-response_formatter_agent = LlmAgent(
-    name="response_formatter_agent",
-    instruction=PromptManager.get_prompt("response_formatter_agent"),
-    description=(
-        "Handles the user's request and returns the appropriate response "
-        "based on the provided instructions."
-    ),
-    model="gemini-2.0-flash",
-    output_schema=FormattedResponse,
-    output_key="formatted_chat_response",
-    before_agent_callback=save_refined_query_to_state,
-)
+    # Initialize the response formatter agent
+    response_formatter_agent = LlmAgent(
+        name="response_formatter_agent",
+        instruction=PromptManager.get_prompt("response_formatter_agent"),
+        description=(
+            "Handles the user's request and returns the appropriate response "
+            "based on the provided instructions."
+        ),
+        model="gemini-2.0-flash",
+        output_schema=FormattedResponse,
+        output_key="formatted_chat_response",
+        before_agent_callback=save_refined_query_to_state,
+    )
+
+    return response_formatter_agent

@@ -1,0 +1,1 @@
+export const CODEBUDDY_DOCS_URL = "https://code-buddy-docs.vercel.app/"

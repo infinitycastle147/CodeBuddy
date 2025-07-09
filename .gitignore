@@ -2,3 +2,6 @@
 .DS_Store
 
 .env
+
+# Development backlog (internal use only)
+BACKLOG.md

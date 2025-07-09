@@ -28,6 +28,7 @@ import {
   Shield,
   Rocket,
 } from "lucide-react";
+import { CODEBUDDY_DOCS_URL } from "@/constants/links";
 
 export default function LandingPage() {
   return (
@@ -56,12 +57,13 @@ export default function LandingPage() {
           >
             Testimonials
           </Link>
-          <Link
-            href="#pricing"
-            className="text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-105"
+          <a
+            href={CODEBUDDY_DOCS_URL}
+            className="text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-105 cursor-pointer"
           >
-            Pricing
-          </Link>
+            Docs
+            {/* TO DO add icon for external link from lucide react */}
+          </a>
         </nav>
 
         {/* Sign In Button */}

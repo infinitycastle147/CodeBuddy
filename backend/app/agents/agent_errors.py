@@ -8,7 +8,5 @@ class AgentOperationError(Exception):
 
 def handle_agent_error(context, error, agent_name="UnknownAgent"):
     logger.error(f"[{agent_name}] Error: {error}")
-    # Optionally, add more sophisticated error reporting here (e.g., Sentry, alerts)
-    # You can also update the context state with error info if needed
     context.state["error"] = str(error)
     return None

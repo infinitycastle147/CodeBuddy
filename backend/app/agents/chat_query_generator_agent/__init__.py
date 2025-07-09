@@ -1,3 +1,3 @@
-from .agent import chat_query_generator_agent
+from .agent import get_chat_query_generator_agent
 
-__all__ = ["chat_query_generator_agent"]
+__all__ = ["get_chat_query_generator_agent"]

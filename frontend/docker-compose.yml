@@ -1,0 +1,43 @@
+# Production Docker Compose for CodeBuddy Frontend
+
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - MONGODB_URI=${MONGODB_URI}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - codebuddy-prod
+
+  # Backend service reference (runs from backend directory)
+  backend:
+    image: codebuddy-backend:prod
+    ports:
+      - "8000:8000"
+    external_links:
+      - backend_app_1:backend
+    networks:
+      - codebuddy-prod
+
+networks:
+  codebuddy-prod:
+    external: true
+    name: backend_codebuddy-prod

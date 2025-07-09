@@ -1,0 +1,45 @@
+# Development Dockerfile for CodeBuddy Frontend
+# Optimized for fast development with hot reload and debugging
+
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
+RUN npm ci --legacy-peer-deps
+
+# Development image, copy all the files and run next dev
+FROM base AS dev
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
+COPY . .
+
+# Change ownership to nextjs user and create .next directory
+RUN chown -R nextjs:nodejs /app && \
+    mkdir -p /app/.next && \
+    chown -R nextjs:nodejs /app/.next
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Enable Next.js telemetry
+ENV NEXT_TELEMETRY_DISABLED 0
+
+# Start the development server
+CMD ["npm", "run", "dev"]

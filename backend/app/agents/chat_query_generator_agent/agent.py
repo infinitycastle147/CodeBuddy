@@ -3,7 +3,6 @@
 # Third-party imports
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
-from google.adk.models.lite_llm import LiteLlm
 
 # Local application imports
 from ..prompt_manager import PromptManager
@@ -37,12 +36,16 @@ def save_refined_query_to_state(callback_context: CallbackContext):
     # Return None to allow the agent's normal execution to proceed
     return None
 
-# Define the chat query generator agent
-chat_query_generator_agent = LlmAgent(
-    name="chat_query_generator_agent",
-    instruction=PromptManager.get_prompt("chat_query_generator_agent"),
-    description="Generates a refined query based on the user's input.",
-    model="gemini-2.0-flash", # otherwise to define other models use LiteLLm
-    before_agent_callback=save_refined_query_to_state,
-    output_key="refined_query",
-)
+def get_chat_query_generator_agent():
+
+    # Define the chat query generator agent
+    chat_query_generator_agent = LlmAgent(
+        name="chat_query_generator_agent",
+        instruction=PromptManager.get_prompt("chat_query_generator_agent"),
+        description="Generates a refined query based on the user's input.",
+        model="gemini-2.0-flash", # otherwise to define other models use LiteLLm
+        before_agent_callback=save_refined_query_to_state,
+        output_key="refined_query",
+    )
+
+    return chat_query_generator_agent

@@ -101,12 +101,12 @@ export default function CodeBlock({
           ],
         });
         setHighlightedCode(highlighted);
-      } catch (error) {
-        console.error('Failed to highlight code:', error);
+      } catch (err) {
+        console.error('Failed to highlight code:', err);
         setHighlightedCode(`<pre><code>${displayCode}</code></pre>`);
       }
     }
-  }, [highlighter, displayCode, language, showLineNumbers]);
+  }, [highlighter, displayCode, language, showLineNumbers, code]);
 
   const copyToClipboard = async () => {
     try {
@@ -117,7 +117,7 @@ export default function CodeBlock({
         description: "The code has been copied to your clipboard.",
       });
       setTimeout(() => setIsCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Could not copy code to clipboard.",
@@ -176,7 +176,12 @@ export default function CodeBlock({
         <div className="p-4">
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-4 bg-muted animate-pulse rounded" style={{width: `${Math.random() * 40 + 60}%`}}></div>
+              <div 
+                key={i} 
+                className={`h-4 bg-muted animate-pulse rounded ${
+                  i % 3 === 0 ? 'w-3/4' : i % 3 === 1 ? 'w-5/6' : 'w-2/3'
+                }`}
+              ></div>
             ))}
           </div>
         </div>

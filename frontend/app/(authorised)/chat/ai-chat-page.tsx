@@ -56,18 +56,20 @@ export default function AiChatPage() {
   const formattedMessages = useMemo(() => {
     if (!chatData?.messages) return [];
 
-    return chatData.messages.map(
-      (msg, index): Message => ({
-        id: msg.id || `msg-${index}`,
-        type: msg.role === "user" ? "user" : "assistant",
-        content: msg.content || "",
-        timestamp: new Date(msg.timestamp || Date.now()),
-        context: msg.role === "assistant" ? ["ai"] : undefined,
-      })
-    );
+    return chatData.messages
+      .filter((msg) => msg != null) // Filter out null/undefined messages
+      .map(
+        (msg, index): Message => ({
+          id: msg.id || `msg-${index}`,
+          type: msg.role === "user" ? "user" : "assistant",
+          content: msg.content || "",
+          timestamp: new Date(msg.timestamp || Date.now()),
+          context: msg.role === "assistant" ? ["ai"] : undefined,
+        })
+      );
   }, [chatData?.messages]);
 
-  // Update local messages when chat data changes
+  // Update local messages when chat data changes - simplified to use React Query as single source of truth
   useEffect(() => {
     setMessages(formattedMessages);
   }, [formattedMessages]);
@@ -96,13 +98,12 @@ export default function AiChatPage() {
   };
 
   const addMessage = (content: string) => {
-    
-    // If no current chat, create one first
+    // If no current chat, create one first then send message
     if (!currentChatId) {
       createChatMutation.mutate(undefined, {
         onSuccess: (newChat) => {
           setCurrentChatId(newChat.id);
-          // Then send the message
+          // Send the message immediately after chat creation
           addMessageMutation.mutate({
             chatId: newChat.id,
             message: content,

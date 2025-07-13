@@ -3,7 +3,6 @@
 import { ThumbsUp, ThumbsDown, Bot, User, Copy, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Message } from "./types"
@@ -48,16 +47,6 @@ export default function MessageBubble({ message, onFeedback }: MessageBubbleProp
             content={message.content}
             className="text-sm leading-relaxed"
           />
-
-          {message.context && message.context.length > 0 && (
-            <div className="flex gap-1 mt-2 flex-wrap">
-              {message.context.map((ctx) => (
-                <Badge key={ctx} variant="secondary" className="text-xs">
-                  {ctx}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">

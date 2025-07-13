@@ -133,20 +133,54 @@ export function useAddMessage() {
       };
       return api.addMessage(chatId, requestData);
     },
+    onMutate: async ({ chatId, message }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: queryKeys.chat(chatId) });
+
+      // Snapshot the previous value
+      const previousChat = queryClient.getQueryData<Chat>(queryKeys.chat(chatId));
+
+      // Optimistically update to the new value
+      if (previousChat) {
+        const optimisticUserMessage = {
+          id: `temp-${Date.now()}`,
+          role: 'user' as const,
+          content: message,
+          timestamp: new Date().toISOString(),
+        };
+
+        queryClient.setQueryData<Chat>(queryKeys.chat(chatId), {
+          ...previousChat,
+          messages: [...previousChat.messages, optimisticUserMessage],
+        });
+      }
+
+      // Return a context object with the snapshotted value
+      return { previousChat };
+    },
     onSuccess: (data, variables) => {
-      // Update the chat query with new messages
+      // Replace optimistic message with real backend response (user message + AI response)
       queryClient.setQueryData<Chat>(
         queryKeys.chat(variables.chatId),
         (oldData) => {
           if (!oldData) return oldData;
+          
+          // Remove any optimistic messages and add real messages from backend
+          const nonOptimisticMessages = oldData.messages.filter(msg => !msg.id.startsWith('temp-'));
           return {
             ...oldData,
-            messages: [...oldData.messages, data.message, data.response],
+            messages: [...nonOptimisticMessages, data.message, data.response],
           };
         }
       );
     },
-    onError: (error) => showError(error, "Failed to send message"),
+    onError: (error, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousChat) {
+        queryClient.setQueryData(queryKeys.chat(variables.chatId), context.previousChat);
+      }
+      showError(error, "Failed to send message");
+    },
   });
 }
 

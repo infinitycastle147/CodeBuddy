@@ -98,7 +98,7 @@ export default function MermaidDiagram({ children, title }: MermaidDiagramProps)
         description: "The mermaid diagram code has been copied to your clipboard.",
       });
       setTimeout(() => setIsCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Could not copy diagram code to clipboard.",
@@ -125,7 +125,7 @@ export default function MermaidDiagram({ children, title }: MermaidDiagramProps)
         title: "Download started",
         description: "The diagram has been downloaded as an SVG file.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Download failed",
         description: "Could not download the diagram.",
@@ -167,7 +167,7 @@ export default function MermaidDiagram({ children, title }: MermaidDiagramProps)
       };
       
       img.src = 'data:image/svg+xml;base64,' + btoa(svgContent);
-    } catch (error) {
+    } catch {
       toast({
         title: "Download failed",
         description: "Could not download the diagram as PNG.",

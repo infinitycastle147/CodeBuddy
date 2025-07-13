@@ -1,6 +1,5 @@
 "use client";
 
-import { Fragment } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
@@ -20,6 +19,76 @@ interface CodeProps {
 
 export default function EnhancedMessageRenderer({ content, className = "" }: EnhancedMessageRendererProps) {
   
+  // Known programming languages that should use CodeBlock
+  const PROGRAMMING_LANGUAGES = [
+    'javascript', 'js', 'typescript', 'ts', 'jsx', 'tsx',
+    'python', 'py', 'java', 'c', 'cpp', 'c++', 'csharp', 'c#',
+    'go', 'rust', 'php', 'ruby', 'swift', 'kotlin', 'dart',
+    'html', 'css', 'scss', 'sass', 'less',
+    'sql', 'json', 'yaml', 'yml', 'xml', 'toml',
+    'bash', 'shell', 'sh', 'zsh', 'powershell', 'cmd',
+    'dockerfile', 'makefile', 'gitignore',
+    'regex', 'markdown', 'md'
+  ];
+
+  // Check if content should be rendered as a code block vs inline code
+  const shouldUseCodeBlock = (language: string, code: string) => {
+    console.log('shouldUseCodeBlock called with:', { language, codeLength: code.length });
+    
+    // If language is specified and is a programming language
+    if (language && PROGRAMMING_LANGUAGES.includes(language.toLowerCase())) {
+      console.log('Language detected as programming language:', language);
+      return true;
+    }
+
+    // If no language or "text", analyze content
+    if (!language || language === 'text') {
+      const trimmedCode = code.trim();
+      
+      // Short single-line content should be inline
+      if (trimmedCode.split('\n').length === 1 && trimmedCode.length < 50) {
+        console.log('Content is short single line, using inline');
+        return false;
+      }
+
+      // Check for code-like patterns
+      const codePatterns = [
+        /[{}();]/,  // Common code punctuation
+        /\b(function|class|def|var|let|const|if|else|for|while|return)\b/,  // Keywords
+        /[=><]=?/,  // Operators
+        /\w+\([^)]*\)/,  // Function calls
+        /^\s*(import|from|#include|using)\b/m,  // Import statements
+      ];
+      
+      const hasCodePattern = codePatterns.some(pattern => pattern.test(trimmedCode));
+      console.log('Code pattern check result:', hasCodePattern);
+      return hasCodePattern;
+    }
+
+    console.log('Default case, using CodeBlock');
+    return true; // Default to CodeBlock for safety
+  };
+
+  // Analyze content type to determine optimal rendering approach
+  const analyzeContent = (content: string) => {
+    const trimmedContent = content.trim();
+    
+    // Check if content is pure code (no markdown, just code)
+    const codeBlockPattern = /^```[\s\S]*```$/;
+    const multipleCodeBlocks = (trimmedContent.match(/```/g) || []).length > 2;
+    const hasMarkdownElements = /(?:^|\n)(#{1,6}\s|[\*\-\+]\s|\d+\.\s|\[.*\]\(.*\)|!\[.*\]\(.*\))/m.test(trimmedContent);
+    const hasFencedCodeBlocks = /```/.test(trimmedContent);
+    
+    return {
+      isPureCode: codeBlockPattern.test(trimmedContent) && !multipleCodeBlocks,
+      hasMultipleCodeBlocks: multipleCodeBlocks,
+      hasMarkdown: hasMarkdownElements,
+      hasFencedCode: hasFencedCodeBlocks,
+      contentType: codeBlockPattern.test(trimmedContent) && !multipleCodeBlocks ? 'code' : 
+                   hasMarkdownElements || hasFencedCodeBlocks ? 'markdown' : 'text'
+    };
+  };
+
   // Extract and process code blocks and mermaid diagrams
   const processContent = (content: string): string => {
     // Handle fenced code blocks with proper language detection
@@ -39,46 +108,93 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
   // Custom components for ReactMarkdown
   const components: Components = {
     code: ({ inline, className, children, ...props }: CodeProps) => {
-      const match = /language-(\w+)/.exec(className || '');
-      const language = match ? match[1] : 'text';
-      const code = String(children).replace(/\n$/, '');
-
-      if (!inline) {
-        // Check if it's a mermaid diagram
-        if (language.toLowerCase() === 'mermaid' || 
-            code.includes('graph') || 
-            code.includes('sequenceDiagram') ||
-            code.includes('classDiagram') ||
-            code.includes('stateDiagram') ||
-            code.includes('erDiagram') ||
-            code.includes('gantt') ||
-            code.includes('pie') ||
-            code.includes('journey') ||
-            code.includes('gitgraph')) {
-          return <MermaidDiagram>{code}</MermaidDiagram>;
-        }
-
-        // Regular code block
+      // Only handle inline code here - let pre handle block code
+      if (inline) {
         return (
-          <CodeBlock
-            language={language}
-            showLineNumbers={code.split('\n').length > 10}
-            collapsible={code.split('\n').length > 20}
+          <code 
+            className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
+            {...props}
           >
-            {code}
-          </CodeBlock>
+            {children}
+          </code>
         );
       }
 
-      // Inline code
-      return (
-        <code 
-          className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
-          {...props}
-        >
-          {children}
-        </code>
-      );
+      // For non-inline code, return the children as-is - pre will handle the rendering
+      return children;
+    },
+
+    // Handle pre element - this is where we render CodeBlock to avoid nesting issues
+    pre: ({ children, ...props }) => {
+      console.log('Pre component called with children:', children);
+      console.log('Pre component children type:', typeof children);
+      console.log('Pre component children props:', children && typeof children === 'object' ? children.props : 'no props');
+      
+      // Based on your debug output, the structure is different - let's handle it correctly
+      if (children && typeof children === 'object' && 'props' in children) {
+        const codeElement = children as React.ReactElement;
+        console.log('Code element props:', codeElement.props);
+        
+        // The className should be directly on the props
+        const className = codeElement.props?.className || '';
+        const codeContent = codeElement.props?.children;
+        
+        console.log('Extracted:', { className, codeContent: typeof codeContent === 'string' ? codeContent.substring(0, 50) : codeContent });
+        
+        // Check if this has a language class
+        const match = /language-(\w+)/.exec(className);
+        const language = match ? match[1] : '';
+        
+        if (language && codeContent && typeof codeContent === 'string') {
+          const code = codeContent.replace(/\n$/, '');
+
+          console.log('Pre component processing code:', { language, className, codeLength: code.length, codePreview: code.substring(0, 50) });
+
+          // Check if it's a mermaid diagram
+          if (language.toLowerCase() === 'mermaid' || 
+              code.includes('graph') || 
+              code.includes('sequenceDiagram') ||
+              code.includes('classDiagram') ||
+              code.includes('stateDiagram') ||
+              code.includes('erDiagram') ||
+              code.includes('gantt') ||
+              code.includes('pie') ||
+              code.includes('journey') ||
+              code.includes('gitgraph')) {
+            console.log('Rendering as Mermaid diagram');
+            return <MermaidDiagram>{code}</MermaidDiagram>;
+          }
+
+          // Check if this should be a CodeBlock or simple inline code
+          if (shouldUseCodeBlock(language, code)) {
+            console.log('Rendering as CodeBlock');
+            // Return CodeBlock directly - no wrapper to avoid nesting issues
+            return (
+              <CodeBlock
+                language={language || 'text'}
+                showLineNumbers={code.split('\n').length > 10}
+                collapsible={code.split('\n').length > 20}
+              >
+                {code}
+              </CodeBlock>
+            );
+          } else {
+            console.log('Rendering as simple inline code');
+            // For simple text, render as inline code (but in a block context)
+            return (
+              <div className="my-2">
+                <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+                  {code}
+                </code>
+              </div>
+            );
+          }
+        }
+      }
+      
+      console.log('Pre component fallback');
+      // Fallback to default pre rendering
+      return <pre className="whitespace-pre-wrap font-mono text-sm" {...props}>{children}</pre>;
     },
 
     // Enhanced blockquote styling
@@ -208,10 +324,57 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
     ),
   };
 
+  const contentAnalysis = analyzeContent(content);
   const processedContent = processContent(content);
 
+  // Render pure code content differently from mixed content
+  if (contentAnalysis.isPureCode) {
+    // Extract language and code from the content
+    const codeMatch = content.match(/```(\w+)?\n([\s\S]*?)```/);
+    if (codeMatch) {
+      const [, language, code] = codeMatch;
+      const trimmedCode = code.trim();
+      
+      // Use improved logic to determine rendering
+      if (shouldUseCodeBlock(language || '', trimmedCode)) {
+        return (
+          <div className={className}>
+            <CodeBlock
+              language={language || 'text'}
+              showLineNumbers={trimmedCode.split('\n').length > 10}
+              collapsible={trimmedCode.split('\n').length > 20}
+            >
+              {trimmedCode}
+            </CodeBlock>
+          </div>
+        );
+      } else {
+        // For simple text, render as inline code
+        return (
+          <div className={className}>
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              {trimmedCode}
+            </code>
+          </div>
+        );
+      }
+    }
+  }
+
+  // For text-only content (no markdown), render as simple formatted text
+  if (contentAnalysis.contentType === 'text') {
+    return (
+      <div className={className}>
+        <div className="whitespace-pre-wrap leading-7 text-sm">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  // For markdown content, use the full ReactMarkdown renderer
   return (
-    <div className={`prose prose-sm max-w-none ${className}`}>
+    <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={components}

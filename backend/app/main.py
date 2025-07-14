@@ -66,6 +66,19 @@ def create_app() -> FastAPI:
     async def health_check() -> Dict[str, str]:
         """Health check endpoint for load balancers and monitoring."""
         return {"status": "healthy", "service": "CodeBuddy Backend"}
+    
+    # Startup event
+    @app.on_event("startup")
+    async def startup_event():
+        """Startup event handler."""
+        logger.info("CodeBuddy application started successfully")
+        logger.info(f"Server running on {settings.host}:{settings.port}")
+    
+    # Shutdown event
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """Shutdown event handler."""
+        logger.info("CodeBuddy application shutting down")
 
     # Add exception handlers
     @app.exception_handler(StarletteHTTPException)

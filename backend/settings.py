@@ -109,7 +109,8 @@ class Settings(BaseSettings):
         :return: workers count.
         """
         if self.workers_count_override is None or self.workers_count_override == 0:
-            return (multiprocessing.cpu_count() * 2) + 1
+            # Use single worker for production to avoid memory issues
+            return 1
         return self.workers_count_override
     
 settings = Settings()

@@ -3,7 +3,7 @@ Factory for creating embedding and reranking providers.
 """
 
 import logging
-from typing import Dict, Any, Type, Optional
+from typing import Dict, Any, Type, Optional, List
 from enum import Enum
 
 from .base import BaseEmbeddingProvider, BaseRerankingProvider, ProviderConfig

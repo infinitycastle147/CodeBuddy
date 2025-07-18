@@ -16,9 +16,9 @@ from pymongo.errors import OperationFailure
 from app.utils.github_handler import clone_repo
 from app.celery_app import celery_app
 from app.db.mongodb import get_mongo_connection, get_mongo_client, get_db_and_collection
-from app.utils.providers.factory import ProviderManager, ProviderType
+from app.utils.providers.factory import ProviderManager
 from app.utils.providers.base import EmbeddingInputType
-from app.settings import settings
+from settings import settings
 
 # Load environment variables
 load_dotenv()

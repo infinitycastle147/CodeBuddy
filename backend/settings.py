@@ -8,7 +8,6 @@ Attributes:
     settings {Settings} -- Application settings instance.
 """
 
-import multiprocessing
 from cryptography.fernet import Fernet
 from pathlib import Path
 from tempfile import gettempdir
@@ -77,7 +76,6 @@ class Settings(BaseSettings):
     # MongoDB settings
     mongo_uri: str = Field("mongodb://localhost:27017", alias="APPLICATION_MONGO_URI")
     mongo_db: str = Field("CodeBuddy", alias="APPLICATION_MONGO_DB")
-    mongo_collection: str = Field("codebuddy", alias="APPLICATION_MONGO_COLLECTION")
     
     # Redis settings
     redis_url: str = Field("redis://localhost:6379/0", alias="APPLICATION_REDIS_URL")

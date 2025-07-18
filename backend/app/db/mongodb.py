@@ -1,7 +1,7 @@
 # Standard library imports
 import asyncio
 from typing import Tuple, Dict, Any, Optional, List
-from contextlib import contextmanager
+# contextmanager import removed - no longer needed
 
 # Third-party imports
 import pymongo
@@ -118,45 +118,9 @@ def get_mongo_client() -> MongoClient:
     return _mongo_client
 
 
-@contextmanager
-def get_mongo_connection() -> Tuple[MongoClient, Database, Collection]:
-    """
-    Get a MongoDB connection with proper error handling and cleanup.
-    This is a context manager for synchronous code.
-    
-    Yields:
-        Tuple[MongoClient, Database, Collection]: MongoDB client, database, and collection
-    """
-    client = None
-    try:
-        client = get_mongo_client()
-        db = client[settings.mongo_db]
-        collection = db[settings.mongo_collection]
-        yield client, db, collection
-    except Exception as e:
-        logger.error(f"MongoDB operation failed: {e}")
-        raise
-    finally:
-        # We don't close the client here as it's a singleton
-        # The connection will be returned to the pool
-        pass
-
-
-def get_db_and_collection(client: MongoClient = None) -> Tuple[Database, Collection]:
-    """
-    Get database and collection objects from a client.
-    
-    Args:
-        client (MongoClient, optional): MongoDB client. If None, uses the singleton.
-    
-    Returns:
-        Tuple[Database, Collection]: MongoDB database and collection
-    """
-    if client is None:
-        client = get_mongo_client()
-    db = client[settings.mongo_db]
-    collection = db[settings.mongo_collection]
-    return db, collection
+# Removed get_mongo_connection and get_db_and_collection functions
+# as they used the generic mongo_collection setting which has been deprecated.
+# Use get_mongo_client() and specify collections explicitly using constants from app.constants.collections
 
 
 # Async support using event loop executors
@@ -277,17 +241,6 @@ async def async_aggregate(collection: Collection, pipeline: List[Dict[str, Any]]
     return await async_mongo_operation(list, cursor)
 
 
-# Convenience function for getting async-compatible connection
-async def get_async_mongo_connection() -> Tuple[MongoClient, Database, Collection]:
-    """
-    Get MongoDB connection for async operations.
-    This doesn't actually create an async connection, but returns objects
-    that can be used with the async helper functions.
-    
-    Returns:
-        Tuple[MongoClient, Database, Collection]: MongoDB client, database, and collection
-    """
-    client = get_mongo_client()
-    db = client[settings.mongo_db]
-    collection = db[settings.mongo_collection]
-    return client, db, collection
+# Removed get_async_mongo_connection function
+# as it used the generic mongo_collection setting which has been deprecated.
+# Use get_mongo_client() and specify collections explicitly using constants from app.constants.collections

@@ -178,7 +178,7 @@ APPLICATION_ENVIRONMENT=dev
 # Database Configuration
 APPLICATION_MONGO_URI=mongodb://localhost:27017
 APPLICATION_MONGO_DB=CodeBuddy
-APPLICATION_MONGO_COLLECTION=codebuddy
+# APPLICATION_MONGO_COLLECTION removed - using specific collection constants
 
 # Redis Configuration
 APPLICATION_REDIS_URL=redis://localhost:6379/0

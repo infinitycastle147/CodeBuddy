@@ -110,7 +110,7 @@ pymongo==4.13.0
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
-python-jose==3.3.0
+python-jose==3.4.0
 python-multipart==0.0.20
 PyYAML==6.0.2
 redis==6.1.0

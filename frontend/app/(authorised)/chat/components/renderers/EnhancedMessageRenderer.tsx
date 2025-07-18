@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
+
 import CodeBlock from "./CodeBlock";
 import MermaidDiagram from "./MermaidDiagram";
 
@@ -11,11 +12,6 @@ interface EnhancedMessageRendererProps {
   className?: string;
 }
 
-interface CodeProps {
-  inline?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}
 
 export default function EnhancedMessageRenderer({ content, className = "" }: EnhancedMessageRendererProps) {
   
@@ -107,13 +103,16 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
 
   // Custom components for ReactMarkdown
   const components: Components = {
-    code: ({ inline, children, ...props }: CodeProps) => {
+    code: (props) => {
+      // React Markdown passes inline as a prop for inline code elements
+      const { inline, children, ...restProps } = props as React.ComponentProps<'code'> & { inline?: boolean };
+      
       // Only handle inline code here - let pre handle block code
       if (inline) {
         return (
           <code 
             className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
-            {...props}
+            {...restProps}
           >
             {children}
           </code>
@@ -128,7 +127,7 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
     pre: ({ children, ...props }) => {
       console.log('Pre component called with children:', children);
       console.log('Pre component children type:', typeof children);
-      console.log('Pre component children props:', children && typeof children === 'object' ? children.props : 'no props');
+      console.log('Pre component children props:', children && typeof children === 'object' && 'props' in children ? (children as React.ReactElement).props : 'no props');
       
       // Based on your debug output, the structure is different - let's handle it correctly
       if (children && typeof children === 'object' && 'props' in children) {
@@ -136,8 +135,8 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
         console.log('Code element props:', codeElement.props);
         
         // The className should be directly on the props
-        const className = codeElement.props?.className || '';
-        const codeContent = codeElement.props?.children;
+        const className = (codeElement.props as React.ComponentProps<'code'>)?.className || '';
+        const codeContent = (codeElement.props as React.ComponentProps<'code'>)?.children;
         
         console.log('Extracted:', { className, codeContent: typeof codeContent === 'string' ? codeContent.substring(0, 50) : codeContent });
         

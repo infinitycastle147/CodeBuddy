@@ -107,7 +107,7 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
 
   // Custom components for ReactMarkdown
   const components: Components = {
-    code: ({ inline, className, children, ...props }: CodeProps) => {
+    code: ({ inline, children, ...props }: CodeProps) => {
       // Only handle inline code here - let pre handle block code
       if (inline) {
         return (

@@ -23,7 +23,6 @@ services:
       - APPLICATION_REDIS_URL=redis://redis:6379/0
       - APPLICATION_MONGO_URI=mongodb://mongo:27017/
       - APPLICATION_MONGO_DB=CodeBuddy_Dev
-      - APPLICATION_MONGO_COLLECTION=codebuddy_dev
       - APPLICATION_ENCRYPTION_KEY=dev-key-32-bytes-base64-encoded-here
       - LANGFUSE_ENABLED=false
       - PYTHONPATH=/app
@@ -59,7 +58,6 @@ services:
       - APPLICATION_REDIS_URL=redis://redis:6379/0
       - APPLICATION_MONGO_URI=mongodb://mongo:27017/
       - APPLICATION_MONGO_DB=CodeBuddy_Dev
-      - APPLICATION_MONGO_COLLECTION=codebuddy_dev
       - APPLICATION_ENCRYPTION_KEY=dev-key-32-bytes-base64-encoded-here
       - LANGFUSE_ENABLED=false
       - PYTHONPATH=/app

@@ -15,7 +15,8 @@ from pymongo.errors import OperationFailure
 # Local application imports
 from app.utils.github_handler import clone_repo
 from app.celery_app import celery_app
-from app.db.mongodb import get_mongo_connection, get_mongo_client, get_db_and_collection
+from app.db.mongodb import get_mongo_client
+from app.constants.collections import CODE_EMBEDDINGS_COLLECTION
 from app.utils.providers.factory import ProviderManager
 from app.utils.providers.base import EmbeddingInputType
 from settings import settings
@@ -187,101 +188,104 @@ def process_repository(
     processed_chunks = 0
     try:
         # Ensure MongoDB connection is available
-        with get_mongo_connection() as (mongo_client, db, collection):
-            # Clone the repository
-            logger.info(f"Cloning repository: {repo_url} for user: {user_id}")
-            repo_path = clone_repo(repo_url, access_token, max_size_mb=max_size_mb)
-            repo = git.Repo(repo_path)
+        mongo_client = get_mongo_client()
+        db = mongo_client[settings.mongo_db]
+        collection = db[CODE_EMBEDDINGS_COLLECTION]
+        
+        # Clone the repository
+        logger.info(f"Cloning repository: {repo_url} for user: {user_id}")
+        repo_path = clone_repo(repo_url, access_token, max_size_mb=max_size_mb)
+        repo = git.Repo(repo_path)
 
-            # Fetch all branches
-            logger.info("Fetching all branches")
-            repo.git.fetch("--all")
-            branches = [ref.name for ref in repo.remotes.origin.refs]
-            logger.info(f"Found {len(branches)} branches")
+        # Fetch all branches
+        logger.info("Fetching all branches")
+        repo.git.fetch("--all")
+        branches = [ref.name for ref in repo.remotes.origin.refs]
+        logger.info(f"Found {len(branches)} branches")
 
-            for branch_ref in branches:
-                branch_name = branch_ref.replace("origin/", "")
-                try:
-                    logger.info(f"Processing branch: {branch_name}")
-                    repo.git.checkout("-f", branch_name)
+        for branch_ref in branches:
+            branch_name = branch_ref.replace("origin/", "")
+            try:
+                logger.info(f"Processing branch: {branch_name}")
+                repo.git.checkout("-f", branch_name)
 
-                    for file_path in Path(repo_path).rglob("*"):
-                        # Skip excluded directories
-                        if any(
-                            excluded_dir in file_path.parts
-                            for excluded_dir in EXCLUDED_DIRS
-                        ):
-                            continue
+                for file_path in Path(repo_path).rglob("*"):
+                    # Skip excluded directories
+                    if any(
+                        excluded_dir in file_path.parts
+                        for excluded_dir in EXCLUDED_DIRS
+                    ):
+                        continue
 
-                        if (
-                            file_path.suffix in SUPPORTED_EXTENSIONS
-                            and file_path.is_file()
-                        ):
+                    if (
+                        file_path.suffix in SUPPORTED_EXTENSIONS
+                        and file_path.is_file()
+                    ):
+                        try:
+                            # Read file content with error handling for encoding issues
                             try:
-                                # Read file content with error handling for encoding issues
+                                text = file_path.read_text(encoding="utf-8")
+                            except UnicodeDecodeError:
+                                logger.warning(
+                                    f"Skipping file with encoding issues: {file_path}"
+                                )
+                                continue
+
+                            # Skip empty files
+                            if not text.strip():
+                                continue
+
+                            # Generate chunks and embeddings
+                            provider_manager = get_provider_manager()
+                            embedding_provider = provider_manager.get_embedding_provider()
+                            chunks = embedding_provider.chunk_text(text, max_tokens=512)
+                            if not chunks:
+                                continue
+
+                            # Process each chunk
+                            for i, chunk in enumerate(chunks):
+                                # Generate embedding for the chunk
+                                embedding = generate_embedding(chunk)
+
+                                # Create a document for MongoDB
+                                document = {
+                                    "user_id": user_id,
+                                    "repo_url": repo_url,
+                                    "branch": branch_name,
+                                    "file_path": str(
+                                        file_path.relative_to(repo_path)
+                                    ),
+                                    "chunk_index": i,
+                                    "chunk": chunk,
+                                    "embedding": embedding,
+                                    "created_at": datetime.datetime.utcnow(),
+                                }
+
+                                # Insert into MongoDB with error handling
                                 try:
-                                    text = file_path.read_text(encoding="utf-8")
-                                except UnicodeDecodeError:
-                                    logger.warning(
-                                        f"Skipping file with encoding issues: {file_path}"
-                                    )
+                                    collection.insert_one(document)
+                                    processed_chunks += 1
+                                except OperationFailure as e:
+                                    logger.error(f"MongoDB operation failed: {e}")
                                     continue
 
-                                # Skip empty files
-                                if not text.strip():
-                                    continue
+                            processed_files += 1
 
-                                # Generate chunks and embeddings
-                                provider_manager = get_provider_manager()
-                                embedding_provider = provider_manager.get_embedding_provider()
-                                chunks = embedding_provider.chunk_text(text, max_tokens=512)
-                                if not chunks:
-                                    continue
-
-                                # Process each chunk
-                                for i, chunk in enumerate(chunks):
-                                    # Generate embedding for the chunk
-                                    embedding = generate_embedding(chunk)
-
-                                    # Create a document for MongoDB
-                                    document = {
-                                        "user_id": user_id,
-                                        "repo_url": repo_url,
-                                        "branch": branch_name,
-                                        "file_path": str(
-                                            file_path.relative_to(repo_path)
-                                        ),
-                                        "chunk_index": i,
-                                        "chunk": chunk,
-                                        "embedding": embedding,
-                                        "created_at": datetime.datetime.utcnow(),
-                                    }
-
-                                    # Insert into MongoDB with error handling
-                                    try:
-                                        collection.insert_one(document)
-                                        processed_chunks += 1
-                                    except OperationFailure as e:
-                                        logger.error(f"MongoDB operation failed: {e}")
-                                        continue
-
-                                processed_files += 1
-
-                                # Log progress periodically
-                                if processed_files % 10 == 0:
-                                    logger.info(
-                                        f"[{branch_name}] Processed {processed_files} files, {processed_chunks} chunks"
-                                    )
-
-                            except Exception as e:
-                                logger.error(
-                                    f"[{branch_name}] Error processing {file_path}: {e}"
+                            # Log progress periodically
+                            if processed_files % 10 == 0:
+                                logger.info(
+                                    f"[{branch_name}] Processed {processed_files} files, {processed_chunks} chunks"
                                 )
 
-                except Exception as branch_err:
-                    logger.error(
-                        f"Failed to process branch {branch_name}: {branch_err}"
-                    )
+                        except Exception as e:
+                            logger.error(
+                                f"[{branch_name}] Error processing {file_path}: {e}"
+                            )
+
+            except Exception as branch_err:
+                logger.error(
+                    f"Failed to process branch {branch_name}: {branch_err}"
+                )
 
         logger.info(
             f"Repository processing complete. Processed {processed_files} files and {processed_chunks} chunks."
@@ -329,7 +333,8 @@ async def search_similar_code_chunks(
     try:
         # Get MongoDB connection
         client = get_mongo_client()
-        db, collection = get_db_and_collection(client)
+        db = client[settings.mongo_db]
+        collection = db[CODE_EMBEDDINGS_COLLECTION]
 
         # Generate query embedding
         query_embedding = generate_embedding(query)

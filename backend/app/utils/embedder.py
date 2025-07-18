@@ -11,12 +11,14 @@ import git
 from dotenv import load_dotenv
 from loguru import logger
 from pymongo.errors import OperationFailure
-from sentence_transformers import SentenceTransformer
 
 # Local application imports
 from app.utils.github_handler import clone_repo
 from app.celery_app import celery_app
 from app.db.mongodb import get_mongo_connection, get_mongo_client, get_db_and_collection
+from app.utils.providers.factory import ProviderManager, ProviderType
+from app.utils.providers.base import EmbeddingInputType
+from app.settings import settings
 
 # Load environment variables
 load_dotenv()
@@ -71,31 +73,65 @@ def chunk_code(content: str, max_tokens: int = 512) -> List[str]:
         return [content]
 
 
-# Initialize the model once at module level for reuse
-_model = None
+# Initialize the provider manager
+_provider_manager = None
+
+
+def get_provider_manager():
+    """
+    Get or initialize the provider manager.
+
+    Returns:
+        ProviderManager: The initialized provider manager.
+    """
+    global _provider_manager
+    if _provider_manager is None:
+        try:
+            # Get provider configuration from settings
+            provider_config = {
+                'embedding_provider': getattr(settings, 'EMBEDDING_PROVIDER', 'cohere'),
+                'reranking_provider': getattr(settings, 'RERANKING_PROVIDER', 'cohere'),
+                'embedding_config': {
+                    'model': getattr(settings, 'EMBEDDING_MODEL', MODEL_NAME),
+                    'max_tokens': 512,
+                    'api_key': os.getenv('COHERE_API_KEY')
+                },
+                'reranking_config': {
+                    'model': getattr(settings, 'RERANKING_MODEL', 'cross-encoder/ms-marco-MiniLM-L6-v2'),
+                    'max_documents': 1000,
+                    'api_key': os.getenv('COHERE_API_KEY')
+                }
+            }
+            
+            _provider_manager = ProviderManager(provider_config)
+            logger.info(f"Initialized provider manager with embedding: {provider_config['embedding_provider']}, reranking: {provider_config['reranking_provider']}")
+        except Exception as e:
+            logger.error(f"Failed to initialize provider manager: {e}")
+            raise
+    return _provider_manager
 
 
 def get_model():
     """
-    Get or initialize the sentence transformer model.
+    Legacy function for backward compatibility.
+    Now returns the embedding provider instead of a model.
 
     Returns:
-        SentenceTransformer: The initialized model.
+        BaseEmbeddingProvider: The initialized embedding provider.
     """
-    global _model
-    if _model is None:
-        try:
-            _model = SentenceTransformer(MODEL_NAME)
-            logger.info(f"Initialized embedding model: {MODEL_NAME}")
-        except Exception as e:
-            logger.error(f"Failed to initialize embedding model: {e}")
-            raise
-    return _model
+    try:
+        provider_manager = get_provider_manager()
+        embedding_provider = provider_manager.get_embedding_provider()
+        logger.info(f"Using embedding provider: {embedding_provider.get_model_name()}")
+        return embedding_provider
+    except Exception as e:
+        logger.error(f"Failed to get embedding provider: {e}")
+        raise
 
 
 def generate_embedding(text: str) -> List[float]:
     """
-    Generate an embedding for the given text using a pre-trained model.
+    Generate an embedding for the given text using the configured provider.
 
     Args:
         text (str): The text to embed.
@@ -105,12 +141,25 @@ def generate_embedding(text: str) -> List[float]:
     """
     if not text or not text.strip():
         logger.warning("Received empty text for embedding")
-        return [0.0] * 384  # Return zero vector with correct dimensions
+        # Get the correct embedding dimension from the provider
+        try:
+            provider_manager = get_provider_manager()
+            embedding_provider = provider_manager.get_embedding_provider()
+            dim = embedding_provider.get_embedding_dimension()
+            return [0.0] * dim
+        except:
+            return [0.0] * 384  # Fallback to 384 dimensions
 
     try:
-        model = get_model()
-        embedding = model.encode([text])[0].tolist()
-        return embedding
+        provider_manager = get_provider_manager()
+        embedding_provider = provider_manager.get_embedding_provider()
+        
+        result = embedding_provider.generate_embeddings(
+            [text], 
+            input_type=EmbeddingInputType.SEARCH_DOCUMENT
+        )
+        
+        return result.embeddings[0]
     except Exception as e:
         logger.error(f"Error generating embedding: {e}")
         raise
@@ -183,7 +232,9 @@ def process_repository(
                                     continue
 
                                 # Generate chunks and embeddings
-                                chunks = chunk_code(text)
+                                provider_manager = get_provider_manager()
+                                embedding_provider = provider_manager.get_embedding_provider()
+                                chunks = embedding_provider.chunk_text(text, max_tokens=512)
                                 if not chunks:
                                     continue
 

@@ -4,11 +4,14 @@ from dataclasses import dataclass
 
 # Third-party imports
 from loguru import logger
-from sentence_transformers import CrossEncoder
 
 # Local application imports
 from app.utils.embedder import search_similar_code_chunks
 from langfuse import observe
+from app.utils.providers.factory import ProviderManager
+from app.utils.providers.base import RerankResult as BaseRerankResult
+from app.settings import settings
+import os
 
 
 @dataclass
@@ -221,6 +224,42 @@ class CodeReranker:
             return [(doc, 0.0) for doc in documents]
 
 
+# Provider manager for reranking
+_provider_manager = None
+
+def get_provider_manager():
+    """
+    Get or initialize the provider manager for reranking.
+    
+    Returns:
+        ProviderManager: The initialized provider manager.
+    """
+    global _provider_manager
+    if _provider_manager is None:
+        try:
+            # Get provider configuration from settings
+            provider_config = {
+                'embedding_provider': getattr(settings, 'EMBEDDING_PROVIDER', 'cohere'),
+                'reranking_provider': getattr(settings, 'RERANKING_PROVIDER', 'cohere'),
+                'embedding_config': {
+                    'model': getattr(settings, 'EMBEDDING_MODEL', 'all-MiniLM-L6-v2'),
+                    'max_tokens': 512,
+                    'api_key': os.getenv('COHERE_API_KEY')
+                },
+                'reranking_config': {
+                    'model': getattr(settings, 'RERANKING_MODEL', 'cross-encoder/ms-marco-MiniLM-L6-v2'),
+                    'max_documents': 1000,
+                    'api_key': os.getenv('COHERE_API_KEY')
+                }
+            }
+            
+            _provider_manager = ProviderManager(provider_config)
+        except Exception as e:
+            logger.error(f"Failed to initialize provider manager: {e}")
+            raise
+    return _provider_manager
+
+
 # Singleton instance for reuse across the application
 _reranker_instance = None
 
@@ -251,6 +290,7 @@ async def search_and_rerank_code_chunks(
 ) -> List[Dict]:
     """
     Drop-in replacement for search_similar_code_chunks with optional re-ranking.
+    Uses the new provider system for better flexibility.
     
     Args:
         query: Search query
@@ -269,28 +309,82 @@ async def search_and_rerank_code_chunks(
             query=query, top_k=top_k, user_id=user_id, repo_url=repo_url
         )
     
-    # Use re-ranker
-    reranker = get_reranker(rerank_model)
-    results = await reranker.search_and_rerank(
-        query=query,
-        initial_k=min(32, top_k * 4),  # Retrieve 4x more for re-ranking
-        final_k=top_k,
-        user_id=user_id,
-        repo_url=repo_url
-    )
-    
-    # Convert back to original format for compatibility
-    return [
-        {
-            'user_id': result.user_id,
-            'repo_url': result.repo_url,
-            'branch': result.branch,
-            'file_path': result.file_path,
-            'chunk_index': result.chunk_index,
-            'chunk': result.chunk,
-            'score': result.rerank_score,  # Use re-ranking score
-            'original_score': result.original_score,  # Keep original for reference
-            'rank': result.final_rank
-        }
-        for result in results
-    ]
+    try:
+        # Get initial results
+        initial_k = min(32, top_k * 4)  # Retrieve 4x more for re-ranking
+        initial_results = await search_similar_code_chunks(
+            query=query, top_k=initial_k, user_id=user_id, repo_url=repo_url
+        )
+        
+        if not initial_results:
+            return []
+        
+        # Use provider-based reranking
+        provider_manager = get_provider_manager()
+        reranking_provider = provider_manager.get_reranking_provider()
+        
+        # Prepare documents for reranking
+        documents = []
+        for result in initial_results:
+            doc_dict = {
+                'text': f"File: {result['file_path']}\n\n{result['chunk']}",
+                'metadata': result
+            }
+            documents.append(doc_dict)
+        
+        # Perform reranking
+        reranked_results = reranking_provider.rerank(
+            query=query,
+            documents=documents,
+            top_n=top_k
+        )
+        
+        # Convert back to original format for compatibility
+        final_results = []
+        for rank, rerank_result in enumerate(reranked_results, 1):
+            # Get original metadata
+            original_metadata = documents[rerank_result.index]['metadata']
+            
+            result_dict = {
+                'user_id': original_metadata['user_id'],
+                'repo_url': original_metadata['repo_url'],
+                'branch': original_metadata['branch'],
+                'file_path': original_metadata['file_path'],
+                'chunk_index': original_metadata['chunk_index'],
+                'chunk': original_metadata['chunk'],
+                'score': rerank_result.relevance_score,
+                'original_score': original_metadata.get('score', 0.0),
+                'rank': rank
+            }
+            final_results.append(result_dict)
+        
+        return final_results
+        
+    except Exception as e:
+        logger.error(f"Error in provider-based reranking: {e}")
+        # Fallback to original search or legacy reranker
+        logger.info("Falling back to legacy reranker")
+        reranker = get_reranker(rerank_model)
+        results = await reranker.search_and_rerank(
+            query=query,
+            initial_k=min(32, top_k * 4),
+            final_k=top_k,
+            user_id=user_id,
+            repo_url=repo_url
+        )
+        
+        # Convert back to original format for compatibility
+        return [
+            {
+                'user_id': result.user_id,
+                'repo_url': result.repo_url,
+                'branch': result.branch,
+                'file_path': result.file_path,
+                'chunk_index': result.chunk_index,
+                'chunk': result.chunk,
+                'score': result.rerank_score,
+                'original_score': result.original_score,
+                'rank': result.final_rank
+            }
+            for result in results
+        ]

@@ -42,7 +42,10 @@ class Settings(BaseSettings):
     environment: str = Field("dev", alias="APPLICATION_ENVIRONMENT")
 
     # CORS settings
-    cors_allow_origins: Union[List[str], str] = Field(["*"], alias="APPLICATION_CORS_ALLOW_ORIGINS")
+    cors_allow_origins: Union[List[str], str] = Field([
+        "http://localhost:3000", 
+        "https://code-buddy-five.vercel.app"
+    ], alias="APPLICATION_CORS_ALLOW_ORIGINS")
     cors_allow_methods: Union[List[str], str] = Field(["*"], alias="APPLICATION_CORS_ALLOW_METHODS")
     cors_allow_headers: Union[List[str], str] = Field(["*"], alias="APPLICATION_CORS_ALLOW_HEADERS")
     

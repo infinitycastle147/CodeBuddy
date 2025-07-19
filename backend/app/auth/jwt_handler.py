@@ -9,9 +9,10 @@ from loguru import logger
 
 class NextAuthSessionHandler:
     def __init__(self):
-        # Frontend NextAuth session endpoint
-        self.nextauth_url = getattr(settings, 'nextauth_url', 'http://localhost:3000')
+        # Frontend NextAuth session endpoint - uses NEXTAUTH_URL environment variable
+        self.nextauth_url = settings.nextauth_url
         self.session_endpoint = f"{self.nextauth_url}/api/auth/session"
+        logger.info(f"NextAuth configured to use: {self.nextauth_url}")
         
     async def validate_session(self, request: Request) -> Dict[str, Any]:
         """Validate session by calling NextAuth session endpoint"""

@@ -133,7 +133,7 @@ async def require_chat_ownership(chat_id, current_user, chat_repo) -> Chat:
 
 ```bash
 # Backend Settings
-NEXTAUTH_URL=http://localhost:3000  # Frontend NextAuth URL
+NEXTAUTH_URL=http://localhost:3000  # Frontend NextAuth URL (set to production URL in deployment)
 NEXTAUTH_SECRET=your_secret         # Should match frontend AUTH_SECRET
 ```
 

@@ -1,12 +1,11 @@
 # Standard library imports
 import asyncio
-from typing import Tuple, Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List
 # contextmanager import removed - no longer needed
 
 # Third-party imports
 import pymongo
 from pymongo import MongoClient
-from pymongo.database import Database
 from pymongo.collection import Collection
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from loguru import logger
@@ -116,12 +115,6 @@ def get_mongo_client() -> MongoClient:
     if _mongo_client is None:
         _mongo_client = create_mongo_client()
     return _mongo_client
-
-
-# Removed get_mongo_connection and get_db_and_collection functions
-# as they used the generic mongo_collection setting which has been deprecated.
-# Use get_mongo_client() and specify collections explicitly using constants from app.constants.collections
-
 
 # Async support using event loop executors
 async def async_mongo_operation(operation, *args, **kwargs):
@@ -239,8 +232,3 @@ async def async_aggregate(collection: Collection, pipeline: List[Dict[str, Any]]
     """
     cursor = collection.aggregate(pipeline, *args, **kwargs)
     return await async_mongo_operation(list, cursor)
-
-
-# Removed get_async_mongo_connection function
-# as it used the generic mongo_collection setting which has been deprecated.
-# Use get_mongo_client() and specify collections explicitly using constants from app.constants.collections

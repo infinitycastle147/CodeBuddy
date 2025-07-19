@@ -60,9 +60,9 @@ APPLICATION_HOST=0.0.0.0
 APPLICATION_PORT=8000
 APPLICATION_CORS_ALLOW_ORIGINS=http://localhost:3000
 
-# Authentication
+# Authentication  
 NEXTAUTH_SECRET=your-secret
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000  # Use your frontend URL in production
 ```
 
 ## Authentication Flow

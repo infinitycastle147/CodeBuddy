@@ -6,7 +6,7 @@ import logging
 from typing import Dict, Any, Type, Optional, List
 from enum import Enum
 
-from .base import BaseEmbeddingProvider, BaseRerankingProvider, ProviderConfig
+from .base import BaseEmbeddingProvider, BaseRerankingProvider
 from .cohere_provider import CohereEmbeddingProvider, CohereRerankingProvider
 
 logger = logging.getLogger(__name__)

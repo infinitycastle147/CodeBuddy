@@ -97,7 +97,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        domain: process.env.NODE_ENV === 'production' && process.env.AUTH_DOMAIN ? process.env.AUTH_DOMAIN : undefined,
       }
     },
     callbackUrl: {
@@ -105,7 +105,7 @@ export const authOptions: NextAuthOptions = {
       options: {
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        domain: process.env.NODE_ENV === 'production' && process.env.AUTH_DOMAIN ? process.env.AUTH_DOMAIN : undefined,
       }
     },
     csrfToken: {
@@ -114,7 +114,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        domain: process.env.NODE_ENV === 'production' && process.env.AUTH_DOMAIN ? process.env.AUTH_DOMAIN : undefined,
       }
     }
   },

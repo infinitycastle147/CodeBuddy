@@ -1,6 +1,6 @@
 "use client";
 
-import DiagramStudioPage from "@/app/(authorised)/diagrams/diagram-studio-page";
+import DiagramStudioPage from "./diagram-studio-page";
 
 export default function Page() {
   return <DiagramStudioPage />;

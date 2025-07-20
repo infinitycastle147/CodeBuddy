@@ -67,14 +67,8 @@ function AuthorizedLayoutContent({ children }: { children: React.ReactNode }) {
         {needsCredentialCheck && (
           <SetupRequiredDialog
             open={credentialCheck.showSetupDialog}
-            onOpenChange={(open) => {
-              if (!open) {
-                credentialCheck.dismissDialog();
-              }
-            }}
             missingCredentials={credentialCheck.status.missingCredentials}
             featureName={getFeatureName(pathname)}
-            onDismiss={credentialCheck.dismissDialog}
           />
         )}
       </div>

@@ -16,30 +16,21 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SetupRequiredDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
   missingCredentials: string[];
   featureName: string;
-  onDismiss: () => void;
 }
 
 export default function SetupRequiredDialog({
   open,
-  onOpenChange,
   missingCredentials,
   featureName,
-  onDismiss,
 }: SetupRequiredDialogProps) {
   const router = useRouter();
 
   const handleGoToSetup = () => {
     router.push('/setup');
-    onOpenChange(false);
   };
 
-  const handleSkipForNow = () => {
-    onDismiss();
-    onOpenChange(false);
-  };
 
   const getCredentialIcon = (credential: string) => {
     switch (credential.toLowerCase()) {
@@ -70,7 +61,7 @@ export default function SetupRequiredDialog({
   const isGithubMissing = missingCredentials.some(cred => cred.toLowerCase() === 'github');
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center space-x-2">
@@ -139,19 +130,12 @@ export default function SetupRequiredDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-          <Button
-            variant="outline"
-            onClick={handleSkipForNow}
-            className="w-full sm:w-auto"
-          >
-            Skip for now
-          </Button>
+        <DialogFooter>
           <Button
             onClick={handleGoToSetup}
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
           >
-            <span>Go to Setup</span>
+            <span>Complete Setup</span>
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </DialogFooter>

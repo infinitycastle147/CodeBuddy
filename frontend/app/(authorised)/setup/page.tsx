@@ -36,6 +36,7 @@ import {
 import { setStoredCredentials, getStoredCredentials, UserCredentials } from "@/lib/credentials";
 import { setupFormSchema, SetupFormData } from "@/app/schemas/setup";
 import { useRouter } from "next/navigation";
+import { useSetupRepo, useTaskStatus } from "@/hooks/api-hooks";
 
 export default function SetupPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -45,7 +46,13 @@ export default function SetupPage() {
     ai: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [setupTaskId, setSetupTaskId] = useState<string | null>(null);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
   const router = useRouter();
+
+  // Backend setup hooks
+  const setupRepoMutation = useSetupRepo();
+  const { data: taskStatus } = useTaskStatus(setupTaskId || "", !!setupTaskId);
 
   const form = useForm<SetupFormData>({
     resolver: zodResolver(setupFormSchema),
@@ -91,6 +98,19 @@ export default function SetupPage() {
     }
   }, [form]);
 
+  // Handle task status changes
+  useEffect(() => {
+    if (taskStatus) {
+      if (taskStatus.status === "success") {
+        setIsSetupComplete(true);
+        setIsLoading(false);
+      } else if (taskStatus.status === "failure") {
+        setIsLoading(false);
+        console.error("Setup failed:", taskStatus.error);
+      }
+    }
+  }, [taskStatus]);
+
   const steps = [
     {
       title: "Welcome",
@@ -113,6 +133,24 @@ export default function SetupPage() {
     if (currentStep === 1) {
       const isValid = await form.trigger(["github.username", "github.token", "github.repoUrl"]);
       if (!isValid) return;
+
+      // Trigger backend setup when GitHub credentials are validated
+      const formData = form.getValues();
+      setIsLoading(true);
+      
+      try {
+        const setupData = {
+          repo_url: formData.github.repoUrl,
+          access_token: formData.github.token,
+        };
+        
+        const response = await setupRepoMutation.mutateAsync(setupData);
+        setSetupTaskId(response.task_id);
+      } catch (error) {
+        setIsLoading(false);
+        console.error("Failed to initiate setup:", error);
+        return; // Don't proceed if setup fails
+      }
     }
     
     if (currentStep < steps.length - 1) {
@@ -127,6 +165,12 @@ export default function SetupPage() {
   };
 
   const handleFinish = async () => {
+    // Ensure backend setup is complete before finishing
+    if (!isSetupComplete) {
+      console.warn("Backend setup not complete yet");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = form.getValues();
@@ -757,6 +801,72 @@ export default function SetupPage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Backend Setup Status */}
+                  {setupTaskId && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6 border border-blue-200">
+                      <h3 className="font-semibold text-blue-900 mb-4 text-left">
+                        Backend Setup Status
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-3 h-3 rounded-full ${
+                              taskStatus?.status === "success" 
+                                ? "bg-green-500" 
+                                : taskStatus?.status === "failure"
+                                ? "bg-red-500"
+                                : taskStatus?.status === "started" || taskStatus?.status === "retry"
+                                ? "bg-yellow-500 animate-pulse"
+                                : "bg-gray-300"
+                            }`} />
+                            <span className="font-medium text-gray-900">
+                              Repository Setup
+                            </span>
+                          </div>
+                          <Badge
+                            variant={
+                              taskStatus?.status === "success" 
+                                ? "default" 
+                                : taskStatus?.status === "failure" 
+                                ? "destructive"
+                                : "secondary"
+                            }
+                            className={
+                              taskStatus?.status === "success"
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : taskStatus?.status === "failure"
+                                ? "bg-red-100 text-red-800 border-red-200"
+                                : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                            }
+                          >
+                            {taskStatus?.status === "success" ? "Complete" : 
+                             taskStatus?.status === "failure" ? "Failed" :
+                             taskStatus?.status === "started" || taskStatus?.status === "retry" ? "In Progress" : 
+                             "Pending"}
+                          </Badge>
+                        </div>
+                        
+                        {taskStatus?.status === "failure" && taskStatus.error && (
+                          <Alert className="border-red-200 bg-red-50">
+                            <AlertCircle className="h-4 w-4 text-red-600" />
+                            <AlertDescription className="text-red-800">
+                              <strong>Setup Failed:</strong> {taskStatus.error}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
+                        {(taskStatus?.status === "started" || taskStatus?.status === "retry") && (
+                          <Alert className="border-blue-200 bg-blue-50">
+                            <Settings className="h-4 w-4 text-blue-600 animate-spin" />
+                            <AlertDescription className="text-blue-800">
+                              Setting up your repository and configuring backend services...
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
                 </div>
@@ -780,21 +890,25 @@ export default function SetupPage() {
               {currentStep === steps.length - 1 ? (
                 <Button
                   onClick={handleFinish}
-                  disabled={isLoading}
+                  disabled={isLoading || !isSetupComplete}
                   className="flex items-center space-x-2 h-12 px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg disabled:opacity-50"
                 >
-                  <span>{isLoading ? "Completing..." : "Complete Setup"}</span>
+                  <span>
+                    {isLoading ? "Completing..." : 
+                     !isSetupComplete ? "Waiting for Backend Setup..." : 
+                     "Complete Setup"}
+                  </span>
                   <CheckCircle className="w-4 h-4" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleNext}
-                  disabled={currentStep === 1 && !isGitHubValid}
+                  disabled={(currentStep === 1 && !isGitHubValid) || isLoading}
                   className="relative flex items-center justify-center h-12 px-8 overflow-hidden rounded-md bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl group"
                 >
                   {/* Main content */}
                   <span className="relative z-10 font-semibold text-white transition-all duration-300 group-hover:text-gray-100">
-                    Continue
+                    {isLoading && currentStep === 1 ? "Setting up..." : "Continue"}
                   </span>
                   <ArrowRight className="w-4 h-4 text-white transition-all duration-300 relative z-10 group-hover:translate-x-1 group-hover:text-gray-100" />
 

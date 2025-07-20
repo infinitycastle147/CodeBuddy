@@ -1,6 +1,6 @@
 "use client"
 
-import AiChatPage from "@/app/(authorised)/chat/ai-chat-page"
+import AiChatPage from "./ai-chat-page"
 
 export default function Page() {
   return <AiChatPage />

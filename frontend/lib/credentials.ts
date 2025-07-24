@@ -1,3 +1,5 @@
+import CryptoJS from 'crypto-js';
+
 export interface UserCredentials {
   github_username: string;
   github_token: string;
@@ -10,7 +12,61 @@ export interface UserCredentials {
   ai_model_token?: string;
 }
 
+// Generate a consistent encryption key based on user session
+const getEncryptionKey = (): string => {
+  // Use a combination of factors to create a session-specific key
+  const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : '';
+  const timestamp = typeof window !== 'undefined' ? window.localStorage.getItem('session_start') : '';
+  
+  if (!timestamp) {
+    // Set session start time if not exists
+    const sessionStart = Date.now().toString();
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('session_start', sessionStart);
+    }
+    return CryptoJS.SHA256(userAgent + sessionStart + 'codebuddy-secret').toString();
+  }
+  
+  return CryptoJS.SHA256(userAgent + timestamp + 'codebuddy-secret').toString();
+};
+
 export function getStoredCredentials(): UserCredentials | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const encryptedData = localStorage.getItem('encrypted_credentials');
+    if (!encryptedData) {
+      // Try to migrate old unencrypted data
+      return migrateOldCredentials();
+    }
+
+    const encryptionKey = getEncryptionKey();
+    const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey);
+    const decryptedData = decryptedBytes.toString(CryptoJS.enc.Utf8);
+    
+    if (!decryptedData) {
+      console.warn('Failed to decrypt credentials, they may be corrupted');
+      return null;
+    }
+
+    const credentials = JSON.parse(decryptedData);
+    
+    // Validate required fields
+    if (!credentials.github_username || !credentials.github_token) {
+      return null;
+    }
+    
+    return credentials;
+  } catch (error) {
+    console.warn('Error retrieving encrypted credentials:', error);
+    return null;
+  }
+}
+
+// Migrate old unencrypted credentials to encrypted format
+function migrateOldCredentials(): UserCredentials | null {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -19,12 +75,11 @@ export function getStoredCredentials(): UserCredentials | null {
   const github_token = localStorage.getItem('github_token');
   const repo_url = localStorage.getItem('repo_url');
 
-  // Only require username and token - repo URL can be empty for backward compatibility
   if (!github_username || !github_token) {
     return null;
   }
 
-  return {
+  const credentials: UserCredentials = {
     github_username,
     github_token,
     repo_url: repo_url || "",
@@ -35,38 +90,15 @@ export function getStoredCredentials(): UserCredentials | null {
     ai_model_name: localStorage.getItem('ai_model_name') || undefined,
     ai_model_token: localStorage.getItem('ai_model_token') || undefined,
   };
-}
 
-export function setStoredCredentials(credentials: UserCredentials): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  localStorage.setItem('github_username', credentials.github_username);
-  localStorage.setItem('github_token', credentials.github_token);
-  localStorage.setItem('repo_url', credentials.repo_url);
+  // Store encrypted version and remove old unencrypted data
+  setStoredCredentials(credentials);
+  clearOldUnencryptedCredentials();
   
-  if (credentials.jira_username) {
-    localStorage.setItem('jira_username', credentials.jira_username);
-  }
-  if (credentials.jira_apiToken) {
-    localStorage.setItem('jira_apiToken', credentials.jira_apiToken);
-  }
-  if (credentials.jira_project_name) {
-    localStorage.setItem('jira_project_name', credentials.jira_project_name);
-  }
-  if (credentials.jira_url) {
-    localStorage.setItem('jira_url', credentials.jira_url);
-  }
-  if (credentials.ai_model_name) {
-    localStorage.setItem('ai_model_name', credentials.ai_model_name);
-  }
-  if (credentials.ai_model_token) {
-    localStorage.setItem('ai_model_token', credentials.ai_model_token);
-  }
+  return credentials;
 }
 
-export function clearStoredCredentials(): void {
+function clearOldUnencryptedCredentials(): void {
   if (typeof window === 'undefined') {
     return;
   }
@@ -82,14 +114,43 @@ export function clearStoredCredentials(): void {
   localStorage.removeItem('ai_model_token');
 }
 
+export function setStoredCredentials(credentials: UserCredentials): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const encryptionKey = getEncryptionKey();
+    const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(credentials), encryptionKey).toString();
+    
+    localStorage.setItem('encrypted_credentials', encryptedData);
+    
+    // Remove any old unencrypted credentials that might still exist
+    clearOldUnencryptedCredentials();
+  } catch (error) {
+    console.error('Error storing encrypted credentials:', error);
+    throw new Error('Failed to securely store credentials');
+  }
+}
+
+export function clearStoredCredentials(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  // Clear encrypted credentials
+  localStorage.removeItem('encrypted_credentials');
+  localStorage.removeItem('session_start');
+  
+  // Also clear any old unencrypted credentials for safety
+  clearOldUnencryptedCredentials();
+}
+
 export function hasCompleteGitHubCredentials(): boolean {
   if (typeof window === 'undefined') {
     return false;
   }
 
-  const github_username = localStorage.getItem('github_username');
-  const github_token = localStorage.getItem('github_token');
-  const repo_url = localStorage.getItem('repo_url');
-
-  return !!(github_username && github_token && repo_url);
+  const credentials = getStoredCredentials();
+  return !!(credentials?.github_username && credentials?.github_token && credentials?.repo_url);
 }

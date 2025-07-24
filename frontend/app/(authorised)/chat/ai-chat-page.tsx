@@ -36,22 +36,6 @@ export default function AiChatPage() {
 
   const isTyping = addMessageMutation.isPending;
 
-  const handleFeedback = (
-    messageId: string,
-    feedbackType: "positive" | "negative"
-  ) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              feedback: msg.feedback === feedbackType ? null : feedbackType,
-            }
-          : msg
-      )
-    );
-  };
-
   // Convert API messages to component format
   const formattedMessages = useMemo(() => {
     if (!chatData?.messages) return [];
@@ -64,7 +48,6 @@ export default function AiChatPage() {
           type: msg.role === "user" ? "user" : "assistant",
           content: msg.content || "",
           timestamp: new Date(msg.timestamp || Date.now()),
-          context: msg.role === "assistant" ? ["ai"] : undefined,
         })
       );
   }, [chatData?.messages]);
@@ -247,7 +230,6 @@ export default function AiChatPage() {
               <ChatHistory
                 messages={messages}
                 isTyping={isTyping}
-                onFeedback={handleFeedback}
                 hasActiveChat={!!currentChatId}
               />
             </div>

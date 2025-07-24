@@ -99,18 +99,8 @@ class Settings(BaseSettings):
     nextauth_secret: str = Field("", alias="NEXTAUTH_SECRET")
     nextauth_url: str = Field("http://localhost:3000", alias="NEXTAUTH_URL")  # Set to frontend URL in production
     
-    # Embedding and Reranking Provider settings
-    embedding_provider: str = Field("cohere", alias="EMBEDDING_PROVIDER")
-    reranking_provider: str = Field("cohere", alias="RERANKING_PROVIDER")
-    
-    # Model settings
-    embedding_model: str = Field("embed-v4.0", alias="EMBEDDING_MODEL")
-    reranking_model: str = Field("rerank-v3.5", alias="RERANKING_MODEL")
-    
-    # Cohere settings
+    # Cohere API settings (simplified - only using Cohere now)
     cohere_api_key: str = Field("", alias="COHERE_API_KEY")
-    cohere_embedding_model: str = Field("embed-english-v3.0", alias="COHERE_EMBEDDING_MODEL")
-    cohere_reranking_model: str = Field("rerank-v3.5", alias="COHERE_RERANKING_MODEL")
 
     @property
     def workers_count(self) -> int:

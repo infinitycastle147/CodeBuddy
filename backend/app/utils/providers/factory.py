@@ -39,11 +39,6 @@ class EmbeddingProviderFactory:
         
         if provider_type not in providers:
             available_providers = list(providers.keys())
-            if provider_type == ProviderType.SENTENCE_TRANSFORMERS:
-                raise ImportError(
-                    f"SentenceTransformers provider not available in this deployment. "
-                    f"Available providers: {[p.value for p in available_providers]}"
-                )
             raise ValueError(f"Unknown embedding provider type: {provider_type}. Available: {[p.value for p in available_providers]}")
         
         provider_class = providers[provider_type]
@@ -83,11 +78,6 @@ class RerankingProviderFactory:
         
         if provider_type not in providers:
             available_providers = list(providers.keys())
-            if provider_type == ProviderType.SENTENCE_TRANSFORMERS:
-                raise ImportError(
-                    f"SentenceTransformers provider not available in this deployment. "
-                    f"Available providers: {[p.value for p in available_providers]}"
-                )
             raise ValueError(f"Unknown reranking provider type: {provider_type}. Available: {[p.value for p in available_providers]}")
         
         provider_class = providers[provider_type]

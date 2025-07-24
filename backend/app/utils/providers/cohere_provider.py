@@ -6,7 +6,6 @@ import os
 import logging
 from typing import List, Dict, Any, Optional
 from cohere import Client
-from cohere.types import EmbedInputType as CohereEmbedInputType
 
 from .base import (
     BaseEmbeddingProvider, 
@@ -29,17 +28,12 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
             raise ValueError("Cohere API key is required")
         
         self.client = Client(api_key=self.api_key)
-        self.model_name = config.get('model', 'embed-english-v3.0')
+        self.model_name = config.get('model', 'embed-v4.0')
         self.max_tokens = config.get('max_tokens', 512)
         
         # Model dimension mapping
         self.model_dimensions = {
-            'embed-english-v3.0': 1024,
-            'embed-multilingual-v3.0': 1024,
-            'embed-english-light-v3.0': 384,
-            'embed-multilingual-light-v3.0': 384,
-            'embed-english-v2.0': 4096,
-            'embed-multilingual-v2.0': 768,
+            "embed-v4.0" : 512
         }
         
         logger.info(f"Initialized Cohere embedding provider with model: {self.model_name}")

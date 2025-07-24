@@ -34,8 +34,10 @@ import { CODEBUDDY_DOCS_URL } from "@/constants/links";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+
       {/* Navigation */}
       <header className="sticky top-0 flex h-16 w-full items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+        
         {/* Logo */}
         <div className="flex items-center justify-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">

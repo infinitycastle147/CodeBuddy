@@ -10,11 +10,10 @@ import type { Message } from "@/app/(authorised)/chat/components/types"
 interface ChatHistoryProps {
   messages: Message[]
   isTyping: boolean
-  onFeedback: (messageId: string, feedbackType: "positive" | "negative") => void
   hasActiveChat?: boolean
 }
 
-export default function ChatHistory({ messages, isTyping, onFeedback, hasActiveChat = false }: ChatHistoryProps) {
+export default function ChatHistory({ messages, isTyping, hasActiveChat = false }: ChatHistoryProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,7 +46,7 @@ export default function ChatHistory({ messages, isTyping, onFeedback, hasActiveC
           ) : (
             <div className="space-y-6">
               {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} onFeedback={onFeedback} />
+                <MessageBubble key={message.id} message={message} />
               ))}
               {isTyping && <TypingIndicator key="typing-indicator" />}
               <div key="scroll-anchor" ref={messagesEndRef} />

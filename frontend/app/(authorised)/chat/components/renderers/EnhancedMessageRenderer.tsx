@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
+import DOMPurify from "dompurify";
 
 import CodeBlock from "./CodeBlock";
 import MermaidDiagram from "./MermaidDiagram";
@@ -14,6 +15,25 @@ interface EnhancedMessageRendererProps {
 
 
 export default function EnhancedMessageRenderer({ content, className = "" }: EnhancedMessageRendererProps) {
+  // Sanitize content to prevent XSS attacks
+  const sanitizeContent = (rawContent: string): string => {
+    if (typeof window === 'undefined') return rawContent; // Skip sanitization on server
+    
+    return DOMPurify.sanitize(rawContent, {
+      ALLOWED_TAGS: [
+        'p', 'br', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 
+        'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'img', 
+        'table', 'thead', 'tbody', 'tr', 'th', 'td', 'hr'
+      ],
+      ALLOWED_ATTR: [
+        'class', 'href', 'src', 'alt', 'title', 'target', 'rel'
+      ],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|ftp|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+      ADD_ATTR: ['target', 'rel'],
+      FORBID_ATTR: ['style', 'onclick', 'onerror', 'onload'],
+      FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input']
+    });
+  };
   
   // Known programming languages that should use CodeBlock
   const PROGRAMMING_LANGUAGES = [
@@ -323,13 +343,15 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
     ),
   };
 
-  const contentAnalysis = analyzeContent(content);
-  const processedContent = processContent(content);
+  // Sanitize content first
+  const sanitizedContent = sanitizeContent(content);
+  const contentAnalysis = analyzeContent(sanitizedContent);
+  const processedContent = processContent(sanitizedContent);
 
   // Render pure code content differently from mixed content
   if (contentAnalysis.isPureCode) {
-    // Extract language and code from the content
-    const codeMatch = content.match(/```(\w+)?\n([\s\S]*?)```/);
+    // Extract language and code from the sanitized content
+    const codeMatch = sanitizedContent.match(/```(\w+)?\n([\s\S]*?)```/);
     if (codeMatch) {
       const [, language, code] = codeMatch;
       const trimmedCode = code.trim();
@@ -365,7 +387,7 @@ export default function EnhancedMessageRenderer({ content, className = "" }: Enh
     return (
       <div className={className}>
         <div className="whitespace-pre-wrap leading-7 text-sm">
-          {content}
+          {sanitizedContent}
         </div>
       </div>
     );

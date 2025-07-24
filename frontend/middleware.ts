@@ -28,7 +28,9 @@ export async function middleware(request: NextRequest) {
 
     // Allow NextAuth API routes
     if (pathname.startsWith('/api/auth')) {
-      return NextResponse.next()
+      const response = NextResponse.next()
+      addSecurityHeaders(response)
+      return response
     }
 
     // Allow static assets and Next.js internals
@@ -37,7 +39,9 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/favicon.ico') ||
       pathname.includes('.')
     ) {
-      return NextResponse.next()
+      const response = NextResponse.next()
+      addSecurityHeaders(response)
+      return response
     }
 
     const token = await getToken({ 

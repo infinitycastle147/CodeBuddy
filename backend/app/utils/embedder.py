@@ -11,21 +11,22 @@ import git
 from dotenv import load_dotenv
 from loguru import logger
 from pymongo.errors import OperationFailure
+from cohere import Client
 
 # Local application imports
 from app.utils.github_handler import clone_repo
 from app.celery_app import celery_app
 from app.db.mongodb import get_mongo_client
 from app.constants.collections import CODE_EMBEDDINGS_COLLECTION
-from app.utils.providers.factory import ProviderManager
-from app.utils.providers.base import EmbeddingInputType
 from settings import settings
 
 # Load environment variables
 load_dotenv()
 
 # Constants
-MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "embed-v4.0"
+RERANKING_MODEL = "rerank-v3.5"
+EMBEDDING_DIMENSIONS = 512
 SUPPORTED_EXTENSIONS = [".py", ".js", ".ts", ".java", ".go", ".cpp", ".cs"]
 EXCLUDED_DIRS = [
     "node_modules",
@@ -56,83 +57,59 @@ def chunk_code(content: str, max_tokens: int = 512) -> List[str]:
         logger.warning("Received empty content for chunking")
         return []
 
-    # Approximate characters per token (4 is a common estimate)
-    approx_chunk_len = max_tokens * 4
-
     try:
-        chunks = textwrap.wrap(
-            content,
-            width=approx_chunk_len,
-            break_long_words=False,
-            replace_whitespace=False,
-        )
+        # Simple word-based chunking for better context preservation
+        words = content.split()
+        chunks = []
+        current_chunk = []
+        current_length = 0
+        
+        for word in words:
+            word_length = len(word.split()) + 1  # +1 for space
+            if current_length + word_length > max_tokens and current_chunk:
+                chunks.append(' '.join(current_chunk))
+                current_chunk = [word]
+                current_length = word_length
+            else:
+                current_chunk.append(word)
+                current_length += word_length
+        
+        if current_chunk:
+            chunks.append(' '.join(current_chunk))
+        
         logger.debug(f"Split content into {len(chunks)} chunks")
-        return chunks
+        return chunks if chunks else [content]
     except Exception as e:
         logger.error(f"Error chunking code: {e}")
-        # Return a single chunk with the original content if chunking fails
         return [content]
 
 
-# Initialize the provider manager
-_provider_manager = None
+# Initialize Cohere client
+_cohere_client = None
 
 
-def get_provider_manager():
+def get_cohere_client() -> Client:
     """
-    Get or initialize the provider manager.
+    Get or initialize the Cohere client.
 
     Returns:
-        ProviderManager: The initialized provider manager.
+        Client: The initialized Cohere client.
     """
-    global _provider_manager
-    if _provider_manager is None:
-        try:
-            # Get provider configuration from settings
-            provider_config = {
-                'embedding_provider': getattr(settings, 'EMBEDDING_PROVIDER', 'cohere'),
-                'reranking_provider': getattr(settings, 'RERANKING_PROVIDER', 'cohere'),
-                'embedding_config': {
-                    'model': getattr(settings, 'EMBEDDING_MODEL', MODEL_NAME),
-                    'max_tokens': 512,
-                    'api_key': os.getenv('COHERE_API_KEY')
-                },
-                'reranking_config': {
-                    'model': getattr(settings, 'RERANKING_MODEL', 'cross-encoder/ms-marco-MiniLM-L6-v2'),
-                    'max_documents': 1000,
-                    'api_key': os.getenv('COHERE_API_KEY')
-                }
-            }
-            
-            _provider_manager = ProviderManager(provider_config)
-            logger.info(f"Initialized provider manager with embedding: {provider_config['embedding_provider']}, reranking: {provider_config['reranking_provider']}")
-        except Exception as e:
-            logger.error(f"Failed to initialize provider manager: {e}")
-            raise
-    return _provider_manager
-
-
-def get_model():
-    """
-    Legacy function for backward compatibility.
-    Now returns the embedding provider instead of a model.
-
-    Returns:
-        BaseEmbeddingProvider: The initialized embedding provider.
-    """
-    try:
-        provider_manager = get_provider_manager()
-        embedding_provider = provider_manager.get_embedding_provider()
-        logger.info(f"Using embedding provider: {embedding_provider.get_model_name()}")
-        return embedding_provider
-    except Exception as e:
-        logger.error(f"Failed to get embedding provider: {e}")
-        raise
+    global _cohere_client
+    if _cohere_client is None:
+        api_key = os.getenv('COHERE_API_KEY')
+        if not api_key:
+            raise ValueError("COHERE_API_KEY environment variable is required")
+        
+        _cohere_client = Client(api_key=api_key)
+        logger.info(f"Initialized Cohere client with embedding model: {EMBEDDING_MODEL}")
+    
+    return _cohere_client
 
 
 def generate_embedding(text: str) -> List[float]:
     """
-    Generate an embedding for the given text using the configured provider.
+    Generate an embedding for the given text using Cohere.
 
     Args:
         text (str): The text to embed.
@@ -142,28 +119,74 @@ def generate_embedding(text: str) -> List[float]:
     """
     if not text or not text.strip():
         logger.warning("Received empty text for embedding")
-        # Get the correct embedding dimension from the provider
-        try:
-            provider_manager = get_provider_manager()
-            embedding_provider = provider_manager.get_embedding_provider()
-            dim = embedding_provider.get_embedding_dimension()
-            return [0.0] * dim
-        except:
-            return [0.0] * 384  # Fallback to 384 dimensions
+        return [0.0] * EMBEDDING_DIMENSIONS
 
     try:
-        provider_manager = get_provider_manager()
-        embedding_provider = provider_manager.get_embedding_provider()
+        client = get_cohere_client()
         
-        result = embedding_provider.generate_embeddings(
-            [text], 
-            input_type=EmbeddingInputType.SEARCH_DOCUMENT
+        response = client.embed(
+            texts=[text],
+            model=EMBEDDING_MODEL,
+            input_type="search_document",
+            embedding_types=['float']
         )
         
-        return result.embeddings[0]
+        return response.embeddings[0]
     except Exception as e:
-        logger.error(f"Error generating embedding: {e}")
+        logger.error(f"Error generating embedding with Cohere: {e}")
         raise
+
+
+def rerank_documents(query: str, documents: List[Dict], top_k: int = 5) -> List[Dict]:
+    """
+    Rerank documents using Cohere reranking model.
+
+    Args:
+        query (str): The search query.
+        documents (List[Dict]): List of documents with 'chunk' field.
+        top_k (int): Number of top results to return.
+
+    Returns:
+        List[Dict]: Reranked documents with relevance scores.
+    """
+    if not query or not documents:
+        logger.warning("Empty query or documents for reranking")
+        return documents[:top_k]
+
+    try:
+        client = get_cohere_client()
+        
+        # Extract text from documents
+        doc_texts = [doc.get('chunk', str(doc)) for doc in documents]
+        
+        # Cohere rerank API has a limit of 1000 documents
+        if len(doc_texts) > 1000:
+            logger.warning(f"Too many documents ({len(doc_texts)}), limiting to 1000")
+            doc_texts = doc_texts[:1000]
+            documents = documents[:1000]
+        
+        response = client.rerank(
+            query=query,
+            documents=doc_texts,
+            model=RERANKING_MODEL,
+            top_n=top_k,
+            return_documents=True
+        )
+        
+        # Combine reranked results with original document metadata
+        reranked_docs = []
+        for result in response.results:
+            original_doc = documents[result.index].copy()
+            original_doc['relevance_score'] = result.relevance_score
+            reranked_docs.append(original_doc)
+        
+        logger.info(f"Reranked {len(documents)} documents, returning top {len(reranked_docs)}")
+        return reranked_docs
+        
+    except Exception as e:
+        logger.error(f"Error reranking documents with Cohere: {e}")
+        # Return original documents on error
+        return documents[:top_k]
 
 
 @celery_app.task
@@ -236,9 +259,7 @@ def process_repository(
                                 continue
 
                             # Generate chunks and embeddings
-                            provider_manager = get_provider_manager()
-                            embedding_provider = provider_manager.get_embedding_provider()
-                            chunks = embedding_provider.chunk_text(text, max_tokens=512)
+                            chunks = chunk_code(text, max_tokens=512)
                             if not chunks:
                                 continue
 
@@ -312,16 +333,18 @@ async def search_similar_code_chunks(
     top_k: int = 5,
     user_id: Optional[str] = None,
     repo_url: Optional[str] = None,
+    use_reranking: bool = True,
 ) -> List[Dict]:
     """
     Search for code/document chunks most similar to the query using MongoDB vector search.
-    Optionally filter by user_id and/or repo_url.
+    Optionally apply Cohere reranking for better results.
 
     Args:
         query (str): The user query to embed and search for.
         top_k (int): Number of top results to return. Default is 5.
         user_id (Optional[str]): Filter results by user ID.
         repo_url (Optional[str]): Filter results by repository URL.
+        use_reranking (bool): Whether to apply Cohere reranking. Default is True.
 
     Returns:
         List[Dict]: List of matching code chunks with metadata and similarity score.
@@ -339,11 +362,9 @@ async def search_similar_code_chunks(
         # Generate query embedding
         query_embedding = generate_embedding(query)
 
-        # Build the aggregation pipeline
+        # Build the aggregation pipeline - get more candidates for reranking
         pipeline = []
-
-        # Add match stage if filters are provided
-        match_conditions = {}
+        initial_limit = max(top_k * 3, 50) if use_reranking else top_k  # Get more for reranking
 
         # Add vector search stage
         pipeline.append(
@@ -353,11 +374,13 @@ async def search_similar_code_chunks(
                     "queryVector": query_embedding,
                     "path": "embedding",
                     "numCandidates": 100,
-                    "limit": top_k,
+                    "limit": initial_limit,
                 }
             }
         )
 
+        # Add match stage if filters are provided
+        match_conditions = {}
         if user_id:
             match_conditions["user_id"] = user_id
         if repo_url:
@@ -387,9 +410,14 @@ async def search_similar_code_chunks(
             f"Executing vector search for query: '{query}' with filters: user_id={user_id}, repo_url={repo_url}"
         )
         results = list(collection.aggregate(pipeline))
-        logger.info(f"Found {len(results)} results for vector search")
+        logger.info(f"Found {len(results)} results from vector search")
 
-        return results
+        # Apply reranking if requested and we have results
+        if use_reranking and results:
+            results = rerank_documents(query, results, top_k)
+            logger.info(f"Reranked results, returning {len(results)} documents")
+
+        return results[:top_k]
 
     except Exception as e:
         logger.error(f"Error in vector search: {e}")

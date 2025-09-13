@@ -1,6 +1,3 @@
-# Standard Library Imports
-# (No standard library imports in this code)
-
 # Third-Party Imports
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
@@ -10,7 +7,7 @@ from ..prompt_manager import PromptManager
 from ..schemas import DiagramValidationOutput
 
 
-def save_information_retrieval_query_to_state(callback_context: CallbackContext):
+def before_agent_callback(callback_context: CallbackContext):
     """
     Callback to save the diagram and instructions into the session state.
     Runs before the agent's main logic.
@@ -35,5 +32,5 @@ def get_diagram_checker_agent():
         model="gemini-2.0-flash",
         output_schema=DiagramValidationOutput,
         output_key="diagram_validation_result",
-        before_agent_callback=save_information_retrieval_query_to_state,
+        before_agent_callback=before_agent_callback,
     )

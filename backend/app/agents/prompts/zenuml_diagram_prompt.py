@@ -67,10 +67,10 @@ zenuml
     
     while(jobs.hasNext()) {
         BatchProcessor->Worker: processJob(job)
-        Worker->Database: updateJobStatus(job.id, "processing")
+        Worker->Database: updateJobStatus(job.user_id, "processing")
         Worker->ExternalAPI: sendData(job.data)
         ExternalAPI->Worker: @return response
-        Worker->Database: updateJobStatus(job.id, "completed")
+        Worker->Database: updateJobStatus(job.user_id, "completed")
         Worker->BatchProcessor: @return success
     }
 ```

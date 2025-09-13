@@ -12,14 +12,12 @@ from google.adk.runners import Runner
 from google.genai import types
 from app.agents import get_chat_agent
 from app.repositories.implementations import ChatRepository
-from app.api.dependencies import get_chat_repository
+from app.dependencies.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
 from app.models.chat import Chat
 from app.models.user import User
-from app.core.langfuse.client import flush_langfuse
 from app.auth.dependencies import get_current_user
 from app.auth.authorization import require_chat_ownership, get_user_chats
-from langfuse import observe
 from settings import settings
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -158,7 +156,6 @@ async def delete_chat(
 
 
 @router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
-@observe(name="chat_message_processing")
 async def add_message(
     request: ChatRequest,
     chat: Annotated[Chat, Depends(require_chat_ownership)],
@@ -178,9 +175,6 @@ async def add_message(
 
         # Update the chat
         await chat_repo.update(str(chat.id), chat)
-        
-        # Flush Langfuse events
-        flush_langfuse()
 
         assistant_message = MessageResponse(
             role=assistant_message.role,
@@ -199,7 +193,6 @@ async def add_message(
         )
 
 
-@observe(name="ai_response_generation")
 async def generate_ai_response(request: ChatRequest, user_id: str) -> str:
     """
     Generate AI response using the chat agent with MCP connection parameters.

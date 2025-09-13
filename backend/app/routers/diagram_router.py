@@ -7,13 +7,13 @@ from fastapi import APIRouter, HTTPException, Depends, status
 
 # Application imports
 from app.agents.agent import get_diagram_agent
-from app.agents.diagram_typeDetector_agent import get_diagram_typeDetector_agent
+from app.agents.diagram_typeDetector_agent import get_diagram_type_detector_agent
 from app.dto.diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest
 from app.dto.diagram_type_dto import DiagramTypeDetectionRequest, DiagramTypeDetectionResponse
 from app.models.diagram import Diagram
 from app.models.user import User
 from app.repositories.implementations import DiagramRepository
-from app.api.dependencies import get_diagram_repository
+from app.dependencies.dependencies import get_diagram_repository
 from app.core.responses import create_response, create_error_response
 from app.auth.dependencies import get_current_user
 from app.auth.authorization import require_diagram_ownership, get_user_diagrams
@@ -22,7 +22,6 @@ from app.auth.authorization import require_diagram_ownership, get_user_diagrams
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
-from langfuse import observe
 from settings import settings
 from loguru import logger
 
@@ -34,7 +33,6 @@ def health_check() -> dict:
 
 
 @router.post("/detect-type")
-@observe(name="diagram_type_detection")
 async def detect_diagram_type(
     request: DiagramTypeDetectionRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -133,7 +131,6 @@ async def list_diagrams(
 
 # Diagram Generation Endpoint
 @router.post("/", status_code=status.HTTP_201_CREATED)
-@observe(name="diagram_creation")
 async def create_diagram(
     request: DiagramRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -183,7 +180,6 @@ async def create_diagram(
 
 
 @router.patch("/{diagram_id}")
-@observe(name="diagram_update")
 async def update_diagram(
     request: DiagramUpdateRequest,
     diagram: Annotated[Diagram, Depends(require_diagram_ownership)],
@@ -230,7 +226,6 @@ async def update_diagram(
         )
 
 
-@observe(name="diagram_type_detection")
 async def detect_diagram_type_content(user_input: str, user_id: str) -> str:
     """
     Detect diagram type using the diagram type detector agent.
@@ -246,7 +241,7 @@ async def detect_diagram_type_content(user_input: str, user_id: str) -> str:
         content = types.Content(role="user", parts=[types.Part(text=user_input)])
 
         runner = Runner(
-            agent=get_diagram_typeDetector_agent(),
+            agent=get_diagram_type_detector_agent(),
             app_name=settings.application_name,
             session_service=session_service,
         )
@@ -274,14 +269,10 @@ async def detect_diagram_type_content(user_input: str, user_id: str) -> str:
         return "flowchart"  # Default fallback
 
     except Exception as e:
-        return create_error_response(
-            code="detect_diagram_type_error",
-            message=str(e),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+        logger.error(f"Error detecting diagram type: {e}")
+        return ""
 
 
-@observe(name="diagram_content_generation")
 async def generate_diagram_content(request: DiagramRequest, user_id: str) -> str:
     """
     Generate diagram content using the diagram agent with MCP connection parameters.

@@ -1,5 +1,6 @@
 # --- Standard Library Imports ---
 import os
+from typing import Optional
 
 # --- Third-Party Imports ---
 from google.adk.agents import LlmAgent
@@ -8,89 +9,56 @@ from google.adk.agents.callback_context import CallbackContext
 from loguru import logger
 
 # --- Local Application Imports ---
-from app.utils.reranker import search_and_rerank_code_chunks
 from ..prompt_manager import PromptManager
 from app.agents.agent_errors import AgentOperationError
 from app.dto.connection_dto import BaseMCPConnectionRequest
-
-
-# --- Callback Functions ---
-def save_user_query_to_state(callback_context: CallbackContext):
-    """
-    Callback to save the user's initial query text into session state['query'].
-    Runs before the agent's main logic.
-    """
-    print(
-        f"[Callback] Running save_user_query_to_state for {callback_context.agent_name}"
-    )
-    refined_query = callback_context.state.get("refined_query", None)
-    callback_context.state["refined_query"] = refined_query
-
-    # Return None to allow the agent's normal execution to proceed
-    return None
+from ...utils.embedder import search_similar_code_chunks
 
 
 def create_callback_with_mcp_connection(
-    mcp_connection: BaseMCPConnectionRequest | None = None,
+    mcp_connection: Optional[BaseMCPConnectionRequest] = None,
 ):
     """
-    Factory function to create a callback with MCP connection parameters.
+    Factory to create a callback that saves refined query text
+    and MCP connection details into session state before agent logic runs.
     """
 
-    def save_refined_query_to_state(callback_context: CallbackContext):
+    def _extract_refined_query(ctx: CallbackContext) -> str:
+        """Get refined query from state or fall back to user_content."""
+        if ctx.state.get("refined_query"):
+            return ctx.state["refined_query"]
+
+        user_content = getattr(ctx, "user_content", None)
+        parts = getattr(user_content, "parts", []) if user_content else []
+        return getattr(parts[0], "text", "N/A") if parts else "N/A"
+
+    def _get_mcp_state() -> dict[str, str]:
+        """Return MCP connection info as a dict with safe defaults."""
+        if not mcp_connection:
+            return {
+                "repo_url": "N/A",
+                "github_username": "N/A",
+                "jira_project_name": "N/A",
+                "jira_url": "N/A",
+            }
+        return {
+            "repo_url": mcp_connection.repo_url or "N/A",
+            "github_username": mcp_connection.github_username or "N/A",
+            "jira_project_name": mcp_connection.jira_project_name or "N/A",
+            "jira_url": mcp_connection.jira_url or "N/A",
+        }
+
+    def save_refined_query_to_state(ctx: CallbackContext):
         """
-        Callback to save the refined query text and MCP connection info into session state.
+        Save refined query text and MCP connection info into session state.
         Runs before the agent's main logic.
         """
-        refined_query = callback_context.state.get("refined_query", None)
-
-        logger.debug(
-            f"[Callback] Running save_refined_query_to_state for {callback_context.agent_name}"
-        )
-        logger.debug(
-            f"[Callback] Current state: refined_query={refined_query}"
-        )
-
-        if refined_query is None:
-            logger.debug(
-                "[Callback] No refined query found in state, checking user content..."
-            )
-
-            # Safely access user_content.parts
-            user_content = getattr(callback_context, "user_content", None)
-            parts = getattr(user_content, "parts", []) if user_content else []
-
-            refined_query = (
-                parts[0].text if parts and hasattr(parts[0], "text") else "N/A"
-            )
-
-        # Store all relevant information in state
-        callback_context.state["refined_query"] = refined_query
-        
-        # Store MCP connection info for template variables
-        if mcp_connection:
-            callback_context.state["repo_url"] = mcp_connection.repo_url or "N/A"
-            callback_context.state["github_username"] = (
-                mcp_connection.github_username or "N/A"
-            )
-            callback_context.state["jira_project_name"] = (
-                mcp_connection.jira_project_name or "N/A"
-            )
-            callback_context.state["jira_url"] = mcp_connection.jira_url or "N/A"
-        else:
-            callback_context.state["repo_url"] = "N/A"
-            callback_context.state["github_username"] = "N/A"
-            callback_context.state["jira_project_name"] = "N/A"
-            callback_context.state["jira_url"] = "N/A"
-
-        logger.info(
-            f"[Callback] Saved query '{refined_query}' and repo_url={callback_context.state.get('repo_url', 'N/A')} to state"
-        )
-
-        # Return None to allow the agent's normal execution to proceed
-        return None
+        ctx.state["refined_query"] = _extract_refined_query(ctx)
+        ctx.state.update(_get_mcp_state())
+        return None  # allow agent execution to proceed
 
     return save_refined_query_to_state
+
 
 
 # --- Agent Definition ---
@@ -159,7 +127,7 @@ def get_information_retrieval_agent(
         information_retrieval_prompt = PromptManager.get_prompt("information_retrieval_agent")
 
         # Build tools list based on available connections
-        tools = [search_and_rerank_code_chunks]
+        tools = [search_similar_code_chunks]
         if jira_tools:
             tools.append(jira_tools)
         if github_tools:

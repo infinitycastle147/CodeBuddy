@@ -1,17 +1,8 @@
 from __future__ import annotations
-
 from datetime import datetime
 from typing import Any, Dict, Optional
-
 from pydantic import BaseModel, Field, ConfigDict
-
-# ──────────────────────────────────────────────────────────
-# Optional: Mongo‑style ObjectId support
-# (↓ remove this block if you don’t talk to Mongo / BSON)
-try:
-    from bson import ObjectId
-except ImportError:         # pragma: no cover
-    ObjectId = str  # type: ignore
+from bson import ObjectId
 
 
 class PyObjectId(str):
@@ -33,13 +24,7 @@ class PyObjectId(str):
 
 
 class BaseModelWithId(BaseModel):
-    """
-    Pydantic‑v2 base model:
-    • Works with both SQL (ORM) & NoSQL (ODM) sources
-    • Uses Mongo‑friendly `_id` alias
-    • Forbids unknown keys
-    • Serialises datetimes as ISO‑8601
-    """
+    """Base model with MongoDB‑style ObjectId and timestamps."""
 
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     created_at: datetime = Field(default_factory=datetime.utcnow, alias="createdAt")

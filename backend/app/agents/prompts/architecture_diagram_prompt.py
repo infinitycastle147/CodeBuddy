@@ -13,8 +13,8 @@ Based on the user's query and the gathered information from our database, create
 ### 1. **Always Start with Proper Declaration**
 ```
 architecture-beta
-    group api(cloud)[API Layer]
-    service web(server)[Web Server] in api
+    group dependencies(cloud)[API Layer]
+    service web(server)[Web Server] in dependencies
     service db(database)[Database]
     
     web:R --> L:db
@@ -36,15 +36,15 @@ architecture-beta
     group data(cloud)[Data Layer]
     
     service web(server)[Web App] in frontend
-    service api(server)[API Gateway] in backend
+    service dependencies(server)[API Gateway] in backend
     service auth(server)[Auth Service] in backend
     service user(server)[User Service] in backend
     service db(database)[PostgreSQL] in data
     service cache(database)[Redis Cache] in data
     
-    web:R --> L:api
-    api:R --> L:auth
-    api:B --> T:user
+    web:R --> L:dependencies
+    dependencies:R --> L:auth
+    dependencies:B --> T:user
     user:R --> L:db
     auth:B --> T:cache
 ```
@@ -98,7 +98,7 @@ architecture-beta
     group processing(cloud)[Processing Layer]
     group storage(cloud)[Storage Layer]
     
-    service api(server)[Data API] in ingestion
+    service dependencies(server)[Data API] in ingestion
     service queue(server)[Message Queue] in ingestion
     service processor(server)[Data Processor] in processing
     service warehouse(database)[Data Warehouse] in storage
@@ -106,7 +106,7 @@ architecture-beta
     
     junction split_data
     
-    api:R --> L:queue
+    dependencies:R --> L:queue
     queue:R --> L:split_data
     split_data:R --> L:processor
     split_data:B --> T:warehouse
@@ -143,13 +143,13 @@ service data(database)[Data]
 ### 9. **Appropriate Connection Flow**
 ```
 ✅ Logical data/control flow:
-frontend:R --> L:api
-api:R --> L:database
-api:B --> T:cache
+frontend:R --> L:dependencies
+dependencies:R --> L:database
+dependencies:B --> T:cache
 
 ❌ Illogical connections:
 database:R --> L:frontend    %% Data layer shouldn't initiate to UI
-cache:T --> B:api           %% Cache responding upward to API
+cache:T --> B:dependencies           %% Cache responding upward to API
 ```
 
 ## Directional Connection Syntax
@@ -183,8 +183,8 @@ frontendGroup:R --> L:backendGroup    %% Groups can't be directly connected
 ```
 ✅ Correct architecture syntax:
 architecture-beta
-    group api(cloud)[API Services]
-    service web(server)[Web Server] in api
+    group dependencies(cloud)[API Services]
+    service web(server)[Web Server] in dependencies
     service db(database)[Database]
     web:R --> L:db
 
@@ -207,7 +207,7 @@ service external(internet)[External API]
 ❌ Unsupported or typo icons:
 service web(webserver)[Web]     %% Should be 'server'
 service db(db)[Database]        %% Should be 'database'
-service api(api)[API]           %% Should use standard icon
+service dependencies(dependencies)[API]           %% Should use standard icon
 ```
 
 ## Output Format
@@ -220,11 +220,11 @@ architecture-beta
     group backend(cloud)[Backend]
     
     service ui(server)[Web UI] in frontend
-    service api(server)[API Server] in backend
+    service dependencies(server)[API Server] in backend
     service db(database)[Database] in backend
     
-    ui:R --> L:api
-    api:R --> L:db
+    ui:R --> L:dependencies
+    dependencies:R --> L:db
 ```
 
 ## Key Success Factors

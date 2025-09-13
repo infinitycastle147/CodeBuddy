@@ -2,24 +2,18 @@ import git
 from pathlib import Path
 import shutil
 import uuid
-import os
 from loguru import logger
 from typing import Optional
 
 def create_secure_temp_dir() -> Path:
-    """
-    Create a secure temporary directory for cloning repositories.
-    
-    Returns:
-        Path: The path to the created temporary directory.
-    """
+    """Create a secure temporary directory for cloning repositories."""
+
     # Use environment variable for base directory if available, otherwise use default
-    base_dir = os.getenv("CODEBUDDY_CLONE_DIR", "./clones")
+    base_dir = "./clones"
     temp_dir = Path(base_dir) / str(uuid.uuid4())
     
     try:
         temp_dir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Created temporary directory: {temp_dir}")
         return temp_dir
     except Exception as e:
         logger.error(f"Failed to create temporary directory: {e}")
@@ -27,21 +21,7 @@ def create_secure_temp_dir() -> Path:
 
 
 def clone_repo(repo_url: str, access_token: Optional[str] = None, max_size_mb: int = 100) -> str:
-    """
-    Clone a GitHub repository to a secure temporary directory.
-    
-    Args:
-        repo_url (str): The URL of the GitHub repository to clone.
-        access_token (Optional[str]): Optional access token for private repositories.
-        max_size_mb (int): Maximum allowed repository size in MB. Default is 100MB.
-        
-    Returns:
-        str: The path to the cloned repository.
-        
-    Raises:
-        ValueError: If the repository size exceeds the maximum allowed size.
-        RuntimeError: If the cloning process fails.
-    """
+    """Clone a GitHub repository to a secure temporary directory."""
     
     # Create a secure temporary directory
     temp_dir = create_secure_temp_dir()

@@ -8,6 +8,7 @@ from typing import List, Dict, Optional
 
 # Third-party imports
 import git
+import cohere
 from dotenv import load_dotenv
 from loguru import logger
 from pymongo.errors import OperationFailure
@@ -17,15 +18,12 @@ from app.utils.github_handler import clone_repo
 from app.celery_app import celery_app
 from app.db.mongodb import get_mongo_client
 from app.constants.collections import CODE_EMBEDDINGS_COLLECTION
-from app.utils.providers.factory import ProviderManager
-from app.utils.providers.base import EmbeddingInputType
 from settings import settings
 
 # Load environment variables
 load_dotenv()
 
 # Constants
-MODEL_NAME = "all-MiniLM-L6-v2"
 SUPPORTED_EXTENSIONS = [".py", ".js", ".ts", ".java", ".go", ".cpp", ".cs"]
 EXCLUDED_DIRS = [
     "node_modules",
@@ -42,16 +40,8 @@ EXCLUDED_DIRS = [
 
 
 def chunk_code(content: str, max_tokens: int = 512) -> List[str]:
-    """
-    Split code content into chunks of approximately max_tokens size.
+    """Split code content into chunks of approximately max_tokens size."""
 
-    Args:
-        content (str): The code content to chunk.
-        max_tokens (int): Maximum number of tokens per chunk (approximate).
-
-    Returns:
-        List[str]: List of code chunks.
-    """
     if not content or not content.strip():
         logger.warning("Received empty content for chunking")
         return []
@@ -74,96 +64,59 @@ def chunk_code(content: str, max_tokens: int = 512) -> List[str]:
         return [content]
 
 
-# Initialize the provider manager
-_provider_manager = None
+def generate_embedding(text: str, is_query: bool) -> List[float]:
+    """Generate an embedding for the given text using the configured provider."""
 
+    co = cohere.ClientV2(api_key=settings.COHERE_API_KEY)
 
-def get_provider_manager():
-    """
-    Get or initialize the provider manager.
-
-    Returns:
-        ProviderManager: The initialized provider manager.
-    """
-    global _provider_manager
-    if _provider_manager is None:
-        try:
-            # Get provider configuration from settings
-            provider_config = {
-                'embedding_provider': getattr(settings, 'EMBEDDING_PROVIDER', 'cohere'),
-                'reranking_provider': getattr(settings, 'RERANKING_PROVIDER', 'cohere'),
-                'embedding_config': {
-                    'model': getattr(settings, 'EMBEDDING_MODEL', MODEL_NAME),
-                    'max_tokens': 512,
-                    'api_key': os.getenv('COHERE_API_KEY')
-                },
-                'reranking_config': {
-                    'model': getattr(settings, 'RERANKING_MODEL', 'cross-encoder/ms-marco-MiniLM-L6-v2'),
-                    'max_documents': 1000,
-                    'api_key': os.getenv('COHERE_API_KEY')
-                }
-            }
-            
-            _provider_manager = ProviderManager(provider_config)
-            logger.info(f"Initialized provider manager with embedding: {provider_config['embedding_provider']}, reranking: {provider_config['reranking_provider']}")
-        except Exception as e:
-            logger.error(f"Failed to initialize provider manager: {e}")
-            raise
-    return _provider_manager
-
-
-def get_model():
-    """
-    Legacy function for backward compatibility.
-    Now returns the embedding provider instead of a model.
-
-    Returns:
-        BaseEmbeddingProvider: The initialized embedding provider.
-    """
-    try:
-        provider_manager = get_provider_manager()
-        embedding_provider = provider_manager.get_embedding_provider()
-        logger.info(f"Using embedding provider: {embedding_provider.get_model_name()}")
-        return embedding_provider
-    except Exception as e:
-        logger.error(f"Failed to get embedding provider: {e}")
-        raise
-
-
-def generate_embedding(text: str) -> List[float]:
-    """
-    Generate an embedding for the given text using the configured provider.
-
-    Args:
-        text (str): The text to embed.
-
-    Returns:
-        List[float]: The embedding vector.
-    """
     if not text or not text.strip():
         logger.warning("Received empty text for embedding")
-        # Get the correct embedding dimension from the provider
-        try:
-            provider_manager = get_provider_manager()
-            embedding_provider = provider_manager.get_embedding_provider()
-            dim = embedding_provider.get_embedding_dimension()
-            return [0.0] * dim
-        except:
-            return [0.0] * 384  # Fallback to 384 dimensions
+        return [0.0] * settings.EMBEDDING_SIZE
+
+    input_type =  "search_query" if is_query else "search_document"
 
     try:
-        provider_manager = get_provider_manager()
-        embedding_provider = provider_manager.get_embedding_provider()
+
+        # Embed the documents
+        doc_emb = co.embed(
+            model="embed-v4.0",
+            input_type= input_type,
+            texts=[text],
+            embedding_types=["float"],
+            output_dimension=settings.EMBEDDING_SIZE,
+        ).embeddings.float
         
-        result = embedding_provider.generate_embeddings(
-            [text], 
-            input_type=EmbeddingInputType.SEARCH_DOCUMENT
-        )
-        
-        return result.embeddings[0]
+        return doc_emb
     except Exception as e:
         logger.error(f"Error generating embedding: {e}")
-        raise
+        return [0.0] * settings.EMBEDDING_SIZE
+
+def perform_reranking(query: str, results: List[Dict], top_k:int):
+    """
+    Perform reranking based on given query and documents.
+    """
+    co = cohere.ClientV2(api_key=settings.COHERE_API_KEY)
+
+    # Prepare documents for reranking
+    documents = []
+    for result in results:
+        doc_text = f"File: {result['file_path']}\n\n{result['chunk']}"
+        documents.append(doc_text)
+
+    try:
+
+        # Embed the documents
+        results = co.rerank(
+            model="rerank-v3.5",
+            query=query,
+            documents=documents,
+            top_n=top_k,
+        )
+
+        return results.results
+    except Exception as e:
+        logger.error(f"Error generating embedding: {e}")
+        return []
 
 
 @celery_app.task
@@ -176,17 +129,13 @@ def process_repository(
     """
     Process a Git repository by cloning it, extracting code chunks, generating embeddings,
     and storing them in MongoDB.
-
-    Args:
-        user_id (str): The ID of the user who owns the repository.
-        repo_url (str): The URL of the repository to process.
-        access_token (Optional[str]): GitHub access token for private repositories.
-        max_size_mb (int): Maximum repository size in MB to process.
     """
+
     repo_path = None
     processed_files = 0
     processed_chunks = 0
     try:
+
         # Ensure MongoDB connection is available
         mongo_client = get_mongo_client()
         db = mongo_client[settings.mongo_db]
@@ -236,16 +185,16 @@ def process_repository(
                                 continue
 
                             # Generate chunks and embeddings
-                            provider_manager = get_provider_manager()
-                            embedding_provider = provider_manager.get_embedding_provider()
-                            chunks = embedding_provider.chunk_text(text, max_tokens=512)
+                            chunks = chunk_code(text, max_tokens=512)
                             if not chunks:
                                 continue
+
+                            # TODO: Extract project name from repo_url and create file path accordingly for document storage , we will need correct path for that (Not the cloned one)
 
                             # Process each chunk
                             for i, chunk in enumerate(chunks):
                                 # Generate embedding for the chunk
-                                embedding = generate_embedding(chunk)
+                                embedding = generate_embedding(chunk, False)
 
                                 # Create a document for MongoDB
                                 document = {
@@ -270,12 +219,6 @@ def process_repository(
                                     continue
 
                             processed_files += 1
-
-                            # Log progress periodically
-                            if processed_files % 10 == 0:
-                                logger.info(
-                                    f"[{branch_name}] Processed {processed_files} files, {processed_chunks} chunks"
-                                )
 
                         except Exception as e:
                             logger.error(
@@ -313,19 +256,8 @@ async def search_similar_code_chunks(
     user_id: Optional[str] = None,
     repo_url: Optional[str] = None,
 ) -> List[Dict]:
-    """
-    Search for code/document chunks most similar to the query using MongoDB vector search.
-    Optionally filter by user_id and/or repo_url.
+    """Search for code/document chunks most similar to the query using MongoDB vector search."""
 
-    Args:
-        query (str): The user query to embed and search for.
-        top_k (int): Number of top results to return. Default is 5.
-        user_id (Optional[str]): Filter results by user ID.
-        repo_url (Optional[str]): Filter results by repository URL.
-
-    Returns:
-        List[Dict]: List of matching code chunks with metadata and similarity score.
-    """
     if not query or not query.strip():
         logger.warning("Empty query provided for vector search")
         return []
@@ -337,7 +269,7 @@ async def search_similar_code_chunks(
         collection = db[CODE_EMBEDDINGS_COLLECTION]
 
         # Generate query embedding
-        query_embedding = generate_embedding(query)
+        query_embedding = generate_embedding(query, True)
 
         # Build the aggregation pipeline
         pipeline = []
@@ -353,7 +285,7 @@ async def search_similar_code_chunks(
                     "queryVector": query_embedding,
                     "path": "embedding",
                     "numCandidates": 100,
-                    "limit": top_k,
+                    "limit": top_k * 4,
                 }
             }
         )
@@ -389,9 +321,30 @@ async def search_similar_code_chunks(
         results = list(collection.aggregate(pipeline))
         logger.info(f"Found {len(results)} results for vector search")
 
-        return results
+        # Perform reranking
+        reranked_results = perform_reranking(
+            query=query,
+            results=results,
+            top_k=top_k
+        )
+
+        # Convert back to original format
+        final_results = []
+        for rerank_result in reranked_results:
+            original_result = results[rerank_result.index]
+            result_dict = {
+                'user_id': original_result['user_id'],
+                'repo_url': original_result['repo_url'],
+                'branch': original_result['branch'],
+                'file_path': original_result['file_path'],
+                'chunk_index': original_result['chunk_index'],
+                'chunk': original_result['chunk']
+            }
+            final_results.append(result_dict)
+
+        logger.info(f"Reranking complete. Returning {len(final_results)} results")
+        return final_results
 
     except Exception as e:
         logger.error(f"Error in vector search: {e}")
-        # Return empty list on error instead of raising to avoid breaking the API
         return []

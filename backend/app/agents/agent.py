@@ -1,6 +1,7 @@
 """
 This module contains the agents responsible for handling the user's request and returning the appropriate response.
 """
+from typing import Optional
 
 # --- Third-Party Imports ---
 from app.dto.diagram_dto import DiagramRequest
@@ -51,19 +52,17 @@ def get_diagram_agent(request: DiagramRequest):
     return SequentialAgent(
         name="diagram_agent",
         sub_agents=[
-            get_security_checker_agent(),  # Security validation
-            get_diagram_query_generator_agent(),  # Query refinement
-            get_information_retrieval_agent(mcp_connection),  # Information gathering
-            get_diagram_generation_agent(
-                diagram_type
-            ),  # Type-specific diagram generation
-            get_diagram_checker_agent(),  # Diagram validation
+            get_security_checker_agent(),
+            get_diagram_query_generator_agent(),
+            get_information_retrieval_agent(mcp_connection),
+            get_diagram_generation_agent(diagram_type),
+            get_diagram_checker_agent(),
         ],
         description="Sequential agent pipeline for generating type-specific diagrams with information retrieval and validation.",
     )
 
 
-def get_chat_agent(mcp_connection: BaseMCPConnectionRequest | None = None):
+def get_chat_agent(mcp_connection: Optional[BaseMCPConnectionRequest] = None):
     """
     Creates and returns a chat agent with optional MCP connection parameters.
     """

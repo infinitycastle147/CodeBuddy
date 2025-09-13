@@ -1,18 +1,18 @@
+"""
+User Router
+"""
+
 from fastapi import APIRouter, Depends, status, Path
 from typing import Annotated
 from app.models.user import User
 from app.dto.user_dto import UserResponseDto
 from app.repositories.implementations import UserRepository
-from app.api.dependencies import get_user_repository
+from app.dependencies.dependencies import get_user_repository
 from app.core.responses import create_response, create_error_response
-from app.auth.dependencies import get_current_user
 from app.auth.authorization import require_same_user
 from pydantic import EmailStr
 
-router = APIRouter(
-    prefix="/user",
-    tags=["user"],
-)
+router = APIRouter(prefix="/user",tags=["user"])
 
 
 @router.get(
@@ -21,13 +21,8 @@ router = APIRouter(
     description="Check if the user router is healthy and responding.",
 )
 def health_check() -> dict:
-    """
-    Perform a health check on the user router.
-
-    Returns:
-        dict: A response indicating the health status of the user router.
-    """
-    return create_response(message="User router is healthy")
+    """Perform a health check on the user router."""
+    return create_response(message="User router is healthy", success=True)
 
 
 @router.post(
@@ -60,7 +55,8 @@ async def create_user(
     """
     try:
         # Check if user already exists
-        existing_user = await user_repo.find_by_email(user.email)
+        existing_user = await user_repo.find_by_email(str(user.email))
+
         if existing_user:
             return create_error_response(
                 code="user_exists",
@@ -69,9 +65,8 @@ async def create_user(
             )
 
         # Create new user
-        new_user = await user_repo.create(user.dict(by_alias=True))
-
-        new_user = UserResponseDto(**new_user)
+        new_user: User = await user_repo.create(user)
+        new_user = UserResponseDto.model_dump(new_user)
 
         return create_response(message="User created successfully", data=new_user)
     except Exception as e:
@@ -111,8 +106,16 @@ async def get_user(
         HTTPException: If access denied or server error.
     """
     try:
-        user_response = UserResponseDto(**current_user.model_dump())
-        return create_response(message="User retrieved successfully", data=user_response)
+        user = UserResponseDto.model_dump(current_user)
+
+        if user.get(user_id) != user_id:
+            return create_error_response(
+                code="403",
+                message="User with this ID doesn't exist",
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+
+        return create_response(message="User retrieved successfully", data=user)
     except Exception as e:
         return create_error_response(
             code="get_user_error",
@@ -150,8 +153,7 @@ async def list_users(
         if not users:
             return create_response(message="No users found", data=[])
 
-        users = [UserResponseDto(**user.model_dump()) for user in users]
-
+        users = [UserResponseDto.model_dump(user) for user in users]
         return create_response(message="Users retrieved successfully", data=users)
     except Exception as e:
         return create_error_response(
@@ -191,7 +193,7 @@ async def get_user_by_email(
         HTTPException: If user is not found or if there's a server error.
     """
     try:
-        user = await user_repo.find_by_email(email)
+        user = await user_repo.find_by_email(str(email))
 
         if not user:
             return create_error_response(
@@ -200,8 +202,9 @@ async def get_user_by_email(
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        user = UserResponseDto(**user.model_dump())
+        user = UserResponseDto.model_dump(user)
         return create_response(message="User retrieved successfully", data=user)
+
     except Exception as e:
         return create_error_response(
             code="get_user_by_email_error",

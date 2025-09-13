@@ -63,12 +63,12 @@ gantt
         Story Estimation       :done, estimation, 2024-02-01, 1d
         
     section Development
-        User Registration API  :active, reg-api, 2024-02-02, 3d
-        Login System          :login-sys, after reg-api, 2d
+        User Registration API  :active, reg-dependencies, 2024-02-02, 3d
+        Login System          :login-sys, after reg-dependencies, 2d
         Password Reset        :pwd-reset, after login-sys, 2d
         
     section Testing
-        Unit Testing          :unit-test, after reg-api, 4d
+        Unit Testing          :unit-test, after reg-dependencies, 4d
         Integration Testing   :int-test, after login-sys pwd-reset, 2d
         
     section Deployment
@@ -320,9 +320,9 @@ gantt
         Performance Optimization :fe-opt, after fe-test, 7d
         
     section Team B Tasks
-        Backend API         :be-api, 2024-01-01, 20d
+        Backend API         :be-dependencies, 2024-01-01, 20d
         Database Setup      :db-setup, 2024-01-01, 8d
-        API Testing        :be-test, after be-api, 6d
+        API Testing        :be-test, after be-dependencies, 6d
         
     section Integration Team
         Integration Planning :int-plan, after db-setup, 3d
@@ -458,9 +458,9 @@ gantt
     axisFormat %d/%m
     
     section Development
-        Backend API    :api, 15-01-2024, 20d
+        Backend API    :dependencies, 15-01-2024, 20d
         Frontend UI    :ui, 01-02-2024, 15d
-        Integration    :integration, after api ui, 10d
+        Integration    :integration, after dependencies ui, 10d
 ```
 
 #### **Exclusions and Weekends**
@@ -501,10 +501,10 @@ gantt
     dateFormat YYYY-MM-DD
     
     section Development
-        API Development    :api, 2024-01-01, 15d
-        Frontend Work     :frontend, after api, 12d
+        API Development    :dependencies, 2024-01-01, 15d
+        Frontend Work     :frontend, after dependencies, 12d
         
-    click api href "https://github.com/project/api"
+    click dependencies href "https://github.com/project/api"
     click frontend call showDetails("frontend")
 ```
 

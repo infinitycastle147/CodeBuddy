@@ -1,10 +1,14 @@
+"""
+Setup Router
+"""
+
 from fastapi import APIRouter, status, Depends
 from typing import Annotated
 from app.core.responses import create_error_response, create_response
 from celery.result import AsyncResult
-from app.dto.tools_dto import RepoRequest
+from app.dto.setup_dto import RepoRequest
 from app.utils.embedder import process_repository
-from app.celery.worker import celery_app
+from app.celery_config.worker import celery_app
 from app.models.user import User
 from app.auth.dependencies import get_current_user
 
@@ -19,8 +23,8 @@ def health_check() -> dict:
 
 @router.post("/setup", summary="Setup Repository", tags=["tools"])
 async def setup_repo(
-    request: RepoRequest,
-    current_user: Annotated[User, Depends(get_current_user)]
+        request: RepoRequest,
+        current_user: Annotated[User, Depends(get_current_user)]
 ) -> dict:
     """
     Initiate repository processing as a background Celery task for the current user.
@@ -32,11 +36,12 @@ async def setup_repo(
         )
     except Exception as e:
         return create_error_response(
-            code=500,
+            code="500",
             message="Failed to start repository processing task.",
             details=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.get("/task-status/{task_id}", summary="Get Task Status", tags=["tools"])
 def get_task_status(task_id: str) -> dict:

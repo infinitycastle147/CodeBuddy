@@ -1,1 +1,0 @@
-# Providers package for pluggable embedding and reranking services

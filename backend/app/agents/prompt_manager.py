@@ -1,12 +1,3 @@
-# PromptManager for managing agent prompts
-
-# Standard Library Imports
-# (None in this case)
-
-# Third-Party Imports
-# (None in this case)
-
-# Local Application Imports
 from app.constants.diagram_types import DiagramType
 from .prompts.information_retrieval_agent_prompt import (
     INFORMATION_RETRIEVAL_AGENT_PROMPT,
@@ -93,63 +84,13 @@ class PromptManager:
 
     @classmethod
     def get_prompt(cls, agent_name: str) -> str:
-        """
-        Retrieve the prompt for a given agent name.
-
-        Args:
-            agent_name (str): The name of the agent.
-
-        Returns:
-            str: The prompt string for the agent.
-
-        Raises:
-            KeyError: If the agent name is not found in the prompt map.
-        """
         if agent_name not in cls._PROMPT_MAP:
             raise KeyError(f"Prompt for agent '{agent_name}' not found.")
         return cls._PROMPT_MAP[agent_name]
 
-    @classmethod
-    def get_diagram_prompt(cls, diagram_type: str) -> str:
-        """
-        Retrieve the specialized prompt for a specific diagram type.
-
-        Args:
-            diagram_type (str): The diagram type (e.g., 'flowchart', 'sequence')
-
-        Returns:
-            str: The specialized prompt for the diagram type
-
-        Raises:
-            KeyError: If the diagram type is not found
-        """
-        if diagram_type not in cls._DIAGRAM_TYPE_PROMPTS:
-            raise KeyError(f"Prompt for diagram type '{diagram_type}' not found.")
-        return cls._DIAGRAM_TYPE_PROMPTS[diagram_type]
 
     @classmethod
     def get_diagram_prompt_safe(cls, diagram_type: DiagramType) -> str:
-        """
-        Safely retrieve the specialized prompt for a diagram type with fallback.
-
-        Args:
-            diagram_type (str): The diagram type
-
-        Returns:
-            str: The specialized prompt or default diagram generation prompt
-        """
-        try:
-            return cls.get_diagram_prompt(diagram_type.value)
-        except KeyError:
-            # Fallback to default diagram generation prompt
+        if diagram_type not in cls._DIAGRAM_TYPE_PROMPTS:
             return cls.get_prompt("diagram_generation_agent")
-
-    @classmethod
-    def get_available_diagram_types(cls) -> list[str]:
-        """
-        Get list of all available diagram types.
-
-        Returns:
-            list[str]: List of supported diagram type strings
-        """
-        return list(cls._DIAGRAM_TYPE_PROMPTS.keys())
+        return cls._DIAGRAM_TYPE_PROMPTS[diagram_type]

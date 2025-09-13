@@ -1,8 +1,6 @@
 from typing import AsyncGenerator
-
 from fastapi import Depends
 from pymongo import MongoClient
-
 from app.repositories.implementations import (
     UserRepository,
     ChatRepository,
@@ -17,8 +15,6 @@ async def get_mongo_db() -> AsyncGenerator[MongoClient, None]:
     try:
         yield client
     finally:
-        # We don't close the client here as it's a singleton
-        # The connection will be returned to the pool
         pass
 
 

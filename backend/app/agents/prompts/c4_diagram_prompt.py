@@ -52,16 +52,16 @@ C4Container
     
     Container_Boundary(banking, "Online Banking System") {
         Container(web, "Web Application", "React", "Delivers banking UI")
-        Container(api, "API Gateway", "Spring Boot", "Provides banking API")
+        Container(dependencies, "API Gateway", "Spring Boot", "Provides banking API")
         Container(db, "Database", "PostgreSQL", "Stores user accounts")
     }
     
     System_Ext(email, "Email System", "Sends notifications")
     
     Rel(customer, web, "Uses", "HTTPS")
-    Rel(web, api, "Makes API calls", "JSON/HTTPS")
-    Rel(api, db, "Reads/Writes", "SQL/TCP")
-    Rel(api, email, "Sends emails", "SMTP")
+    Rel(web, dependencies, "Makes API calls", "JSON/HTTPS")
+    Rel(dependencies, db, "Reads/Writes", "SQL/TCP")
+    Rel(dependencies, email, "Sends emails", "SMTP")
 ```
 
 ### 5. **Component Diagram (C4Component)**
@@ -69,7 +69,7 @@ C4Container
 C4Component
     title Component View - API Gateway
     
-    Container_Boundary(api, "API Gateway") {
+    Container_Boundary(dependencies, "API Gateway") {
         Component(controller, "Account Controller", "Spring MVC", "Handles account requests")
         Component(service, "Account Service", "Spring Bean", "Business logic")
         Component(repository, "Account Repository", "Spring Data", "Data access")
@@ -123,7 +123,7 @@ System_Ext(email, "Email Service", "Customer notifications")
 
 ✅ Container level - deployable units:
 Container(web, "Web Application", "React", "Customer-facing UI")
-Container(api, "API Gateway", "Spring Boot", "REST API services")
+Container(dependencies, "API Gateway", "Spring Boot", "REST API services")
 
 ✅ Component level - code modules:
 Component(controller, "User Controller", "Spring MVC", "Handles user requests")
@@ -134,8 +134,8 @@ Component(service, "User Service", "Spring Bean", "User business logic")
 ```
 ✅ Clear data/control flow:
 Rel(customer, web, "Uses banking features", "HTTPS")
-Rel(web, api, "Makes API calls", "JSON/HTTPS")
-Rel(api, database, "Stores/retrieves data", "SQL/TCP")
+Rel(web, dependencies, "Makes API calls", "JSON/HTTPS")
+Rel(dependencies, database, "Stores/retrieves data", "SQL/TCP")
 
 ❌ Unclear or missing flow:
 Rel(customer, database, "Uses")  %% No direct user-to-database connection

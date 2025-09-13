@@ -15,7 +15,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 docker-compose up --build
 
 # Background tasks
-celery -A app.celery.worker.celery_app worker --loglevel=info
+celery_config -A app.celery_config.worker.celery_app worker --loglevel=info
 docker run -p 6379:6379 redis
 
 # Testing

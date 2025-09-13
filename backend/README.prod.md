@@ -138,7 +138,7 @@ Scale specific services:
 docker-compose up -d --scale app=3
 
 # Scale Celery workers
-docker-compose up -d --scale celery-worker=2
+docker-compose up -d --scale celery_config-worker=2
 ```
 
 ### Load Balancing

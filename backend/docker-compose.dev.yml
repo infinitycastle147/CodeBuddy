@@ -72,7 +72,7 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
-    command: ["celery", "-A", "app.celery.worker.celery_app", "worker", "--loglevel=debug", "--concurrency=1"]
+    command: ["celery_config", "-A", "app.celery_config.worker.celery_app", "worker", "--loglevel=debug", "--concurrency=1"]
     networks:
       - codebuddy-dev
 

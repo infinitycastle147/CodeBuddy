@@ -1,6 +1,3 @@
-# Standard Library Imports
-# (No standard library imports in this file)
-
 # Third-Party Imports
 from app.constants.diagram_types import DiagramType
 from google.adk.agents import LlmAgent
@@ -10,18 +7,9 @@ from google.adk.agents.callback_context import CallbackContext
 from ..prompt_manager import PromptManager
 
 
-def save_information_retrieval_query_to_state(callback_context: CallbackContext):
+def before_agent_callback(callback_context: CallbackContext):
     """
     Callback to save user query and retrieved information into session state for diagram generation.
-    
-    This function extracts the user's original query and information retrieved by previous agents,
-    making them available as {{user_query}} and {{information}} placeholders in diagram prompts.
-    
-    Args:
-        callback_context (CallbackContext): Contains session state and user content
-        
-    Returns:
-        None: Allows normal agent execution to proceed
     """
     # Retrieve user query from the callback context state
     user_query = callback_context.state.get("query")
@@ -46,18 +34,6 @@ def save_information_retrieval_query_to_state(callback_context: CallbackContext)
 
 
 def get_diagram_generation_agent(diagram_type: str):
-    """
-    Creates and returns a type-specific diagram generation agent.
-
-    This agent uses type-specific prompts with context placeholders for user queries
-    and retrieved information to generate accurate Mermaid diagrams.
-
-    Args:
-        diagram_type (str): Validated diagram type (e.g., "flowchart", "sequence", "class")
-
-    Returns:
-        LlmAgent: Configured agent with type-specific prompt and context injection
-    """
 
     diagram_generation_prompt = PromptManager.get_diagram_prompt_safe(
         diagram_type=DiagramType.from_string(diagram_type)
@@ -70,7 +46,7 @@ def get_diagram_generation_agent(diagram_type: str):
         description="Handles user requests and generates appropriate diagram responses.",
         model="gemini-2.0-flash",
         output_key="diagram",
-        before_agent_callback=save_information_retrieval_query_to_state,
+        before_agent_callback=before_agent_callback,
     )
 
     return diagram_generation_agent

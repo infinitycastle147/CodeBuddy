@@ -5,8 +5,8 @@ from .connection_dto import (
     ConnectionResponse,
 )
 from .diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest
-from .tools_dto import RepoRequest
-from .user_dto import UserDto, UserResponseDto, UserCreateDto, UserUpdateDto, AccountDto
+from .setup_dto import RepoRequest
+from .user_dto import UserResponseDto
 
 __all__ = [
     "ChatRequest",
@@ -20,9 +20,5 @@ __all__ = [
     "DiagramResponse",
     "RepoRequest",
     "DiagramUpdateRequest",
-    "UserDto",
     "UserResponseDto",
-    "UserCreateDto",
-    "UserUpdateDto",
-    "AccountDto",
 ]

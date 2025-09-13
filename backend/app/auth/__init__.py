@@ -1,6 +1,6 @@
 # Authentication and Authorization module for NextAuth session validation and resource access control
 
-from .dependencies import get_current_user, get_current_active_user
+from .dependencies import get_current_user
 from .authorization import (
     require_chat_ownership,
     require_diagram_ownership,
@@ -13,7 +13,6 @@ from .authorization import (
 
 __all__ = [
     "get_current_user",
-    "get_current_active_user", 
     "require_chat_ownership",
     "require_diagram_ownership",
     "require_same_user",

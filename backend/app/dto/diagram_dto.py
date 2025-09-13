@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field, validator
 from typing import Optional
-from datetime import datetime
 from app.dto.connection_dto import BaseMCPConnectionRequest
 from app.constants.diagram_types import validate_diagram_type
+from app.models import BaseModelWithId
+
 
 class DiagramRequest(BaseMCPConnectionRequest):
     user_input: str = Field(..., description="User input for generating the diagram")
@@ -18,12 +19,10 @@ class DiagramRequest(BaseMCPConnectionRequest):
 
 class DiagramUpdateRequest(BaseModel):
     content: str = Field(..., description="Updated Content of the diagram in mermaid format")
-class DiagramResponse(BaseModel):
-    id: str = Field(..., description="ID of the diagram")
+
+class DiagramResponse(BaseModelWithId):
     user_id: str = Field(..., description="ID of the user who owns the diagram")
     title: str = Field(..., description="Title of the diagram")
     type: str = Field(..., description="Type of the diagram")
     description: str = Field(..., description="Description of the diagram")
     content: str = Field(..., description="Content of the diagram in mermaid format")
-    created_at: datetime = Field(..., description="Creation timestamp of the diagram")
-    updated_at: datetime = Field(..., description="Last update timestamp of the diagram")

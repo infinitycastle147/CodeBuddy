@@ -5,7 +5,7 @@ from fastapi import Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from .jwt_handler import session_handler
+from .nextauth_session import session_handler
 from .token_utils import extract_user_data_from_session
 
 # Paths that don't require authentication
@@ -60,15 +60,12 @@ async def auth_middleware(request: Request, call_next):
     3. Sets request.state.user for downstream dependencies
     4. Returns 401 if authentication fails
     """
+
     path = request.url.path
     method = request.method
-    
-    logger.info(f"Auth middleware: {method} {path}")
-    logger.debug(f"Request cookies: {list(request.cookies.keys())}")
-    
+
     # Skip authentication for public paths
     if is_public_path(path, method):
-        logger.info(f"Public path, skipping auth: {path}")
         return await call_next(request)
     
     # Authenticate user by validating NextAuth session

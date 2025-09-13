@@ -1,32 +1,39 @@
+from typing import Optional
+
 from pymongo import MongoClient
 from app.models.user import User
 from app.models.chat import Chat
 from app.models.diagram import Diagram
 from settings import settings
-from .base import BaseRepository
+from base import BaseRepository
 from app.db.mongodb import async_find_one, async_find
 
 db_name = settings.mongo_db
 
+#############################################################
+# User Repository
+#############################################################
+
 class UserRepository(BaseRepository[User]):
+
     def __init__(self, mongo_client: MongoClient):
         super().__init__(mongo_client, db_name, "users")
         self.model_class = User
 
-    async def find_by_email(self, email: str) -> User | None:
+    async def find_by_email(self, email: str) -> Optional[User]:
         """Find a user by email address."""
         document = await async_find_one(self.collection, {"email": email})
         return User(**document) if document else None
 
+#############################################################
+# Chat Repository
+#############################################################
+
 class ChatRepository(BaseRepository[Chat]):
+
     def __init__(self, mongo_client: MongoClient):
         super().__init__(mongo_client, db_name, "chats")
         self.model_class = Chat
-
-    async def find_by_title(self, title: str) -> list[Chat]:
-        """Find all chats by title."""
-        documents = await async_find(self.collection, {"title": title})
-        return [Chat(**doc) for doc in documents]
     
     async def find_by_user_id(self, user_id: str) -> list[Chat]:
         """Find all chats by user ID."""
@@ -48,15 +55,15 @@ class ChatRepository(BaseRepository[Chat]):
         
         return updated_chat
 
+#############################################################
+# Diagram Repository
+#############################################################
+
 class DiagramRepository(BaseRepository[Diagram]):
+
     def __init__(self, mongo_client: MongoClient):
         super().__init__(mongo_client, db_name, "diagrams")
         self.model_class = Diagram
-
-    async def find_by_title(self, title: str) -> Diagram | None:
-        """Find a diagram by its title."""
-        document = await async_find_one(self.collection, {"title": title})
-        return Diagram(**document) if document else None
     
     async def find_by_user_id(self, user_id: str) -> list[Diagram]:
         """Find all diagrams by user ID."""

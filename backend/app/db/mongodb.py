@@ -55,19 +55,7 @@ def create_mongo_client() -> MongoClient:
                 
             except (ConnectionFailure, ServerSelectionTimeoutError) as local_e:
                 logger.error(f"❌ Local MongoDB fallback also failed: {local_e}")
-                logger.error("💡 Make sure you have MongoDB running locally:")
-                logger.error("   - macOS: brew services start mongodb/brew/mongodb-community")
-                logger.error("   - Docker: docker run -d -p 27017:27017 mongo")
-                logger.error("   - Or fix your Atlas connection")
                 raise local_e
-        
-        # If not Atlas or no fallback available, re-raise original error
-        if is_atlas:
-            logger.error("🔧 MongoDB Atlas connection tips:")
-            logger.error("   1. Check username/password in connection string")
-            logger.error("   2. Whitelist your IP in Atlas Network Access")
-            logger.error("   3. Ensure cluster is running (not paused)")
-            logger.error("   4. Try: pip install --upgrade pymongo")
         
         raise e
 
@@ -215,20 +203,3 @@ async def async_delete_one(collection: Collection, filter: Dict[str, Any], *args
         pymongo.results.DeleteResult: Delete result
     """
     return await async_mongo_operation(collection.delete_one, filter, *args, **kwargs)
-
-
-async def async_aggregate(collection: Collection, pipeline: List[Dict[str, Any]], *args, **kwargs) -> List[Dict[str, Any]]:
-    """
-    Asynchronously execute an aggregate operation and return results as a list.
-    
-    Args:
-        collection (Collection): MongoDB collection
-        pipeline (List[Dict[str, Any]]): Aggregation pipeline
-        *args: Additional arguments for aggregate
-        **kwargs: Additional keyword arguments for aggregate
-    
-    Returns:
-        List[Dict[str, Any]]: List of aggregation results
-    """
-    cursor = collection.aggregate(pipeline, *args, **kwargs)
-    return await async_mongo_operation(list, cursor)

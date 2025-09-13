@@ -1,4 +1,4 @@
-# CodeBuddy Backend - Development Guide
+wha# CodeBuddy Backend - Development Guide
 
 Quick guide for local development setup.
 

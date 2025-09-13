@@ -1,5 +1,5 @@
-from .agent import get_diagram_typeDetector_agent
+from .agent import get_diagram_type_detector_agent
 
 __all__ = [
-    "get_diagram_typeDetector_agent"
+    "get_diagram_type_detector_agent"
 ]

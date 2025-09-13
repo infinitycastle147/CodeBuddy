@@ -1,7 +1,3 @@
-"""
-Diagram Types Constants
-"""
-
 from enum import Enum
 
 
@@ -33,18 +29,7 @@ class DiagramType(Enum):
 
     @classmethod
     def from_string(cls, diagram_type: str) -> "DiagramType":
-        """
-        Convert a string to a DiagramType enum.
-        
-        Args:
-            diagram_type (str): The string representation of the diagram type.
-        
-        Returns:
-            DiagramType: The corresponding DiagramType enum.
-        
-        Raises:
-            ValueError: If the provided string does not match any DiagramType.
-        """
+        """Convert a string to a DiagramType enum."""
         for dt in cls:
             if dt.value == diagram_type:
                 return dt

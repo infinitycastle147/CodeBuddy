@@ -154,7 +154,7 @@ docker run -p 6379:6379 redis
 docker run -p 27017:27017 mongo
 
 # Terminal 3: Start Celery Worker
-celery -A app.celery.worker.celery_app worker --loglevel=info
+celery_config -A app.celery_config.worker.celery_app worker --loglevel=info
 
 # Terminal 4: Start FastAPI Application
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -406,8 +406,9 @@ PROTECTED_PATH_PREFIXES = {
 
 ```python
 from fastapi import Depends
-from app.api.dependencies import get_current_user
+from app.dependencies.dependencies import get_current_user
 from app.models.user import User
+
 
 @router.get("/my-endpoint")
 async def my_endpoint(current_user: User = Depends(get_current_user)):
@@ -677,10 +678,10 @@ docker run -p 6379:6379 redis
 #### **Celery Worker Issues**
 ```bash
 # Check worker status
-celery -A app.celery.worker.celery_app inspect active
+celery_config -A app.celery_config.worker.celery_app inspect active
 
 # Restart worker
-celery -A app.celery.worker.celery_app worker --loglevel=info
+celery_config -A app.celery_config.worker.celery_app worker --loglevel=info
 ```
 
 #### **Import Errors**
@@ -718,7 +719,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 # Celery worker
-celery -A app.celery.worker.celery_app worker --loglevel=info
+celery_config -A app.celery_config.worker.celery_app worker --loglevel=info
 
 # Run tests
 pytest app/tests/

@@ -26,56 +26,56 @@ gitGraph
 - `branch branchName` - Create and switch to new branch
 - `checkout branchName` - Switch to existing branch  
 - `merge branchName` - Merge branch into current branch
-- `cherry-pick id: "commitId"` - Cherry-pick specific commit
+- `cherry-pick user_id: "commitId"` - Cherry-pick specific commit
 
 ## Git Workflow Patterns
 
 ### 3. **Feature Branch Workflow**
 ```
 gitGraph
-    commit id: "Initial setup"
-    commit id: "Base features"
+    commit user_id: "Initial setup"
+    commit user_id: "Base features"
     
     branch feature-auth
     checkout feature-auth
-    commit id: "Add login"
-    commit id: "Add validation"
+    commit user_id: "Add login"
+    commit user_id: "Add validation"
     
     checkout main
-    commit id: "Bug fix"
+    commit user_id: "Bug fix"
     
     checkout feature-auth
-    commit id: "Tests added"
+    commit user_id: "Tests added"
     
     checkout main
-    merge feature-auth id: "Merge auth feature"
-    commit id: "Deploy v1.1"
+    merge feature-auth user_id: "Merge auth feature"
+    commit user_id: "Deploy v1.1"
 ```
 
 ### 4. **Git Flow Strategy**
 ```
 gitGraph
-    commit id: "v1.0.0"
+    commit user_id: "v1.0.0"
     
     branch develop
     checkout develop
-    commit id: "Start v1.1"
+    commit user_id: "Start v1.1"
     
     branch feature-payments
     checkout feature-payments
-    commit id: "Payment API"
-    commit id: "Payment UI"
+    commit user_id: "Payment API"
+    commit user_id: "Payment UI"
     
     checkout develop
     merge feature-payments
     
     branch release-1.1
     checkout release-1.1
-    commit id: "Version bump"
-    commit id: "Bug fixes"
+    commit user_id: "Version bump"
+    commit user_id: "Bug fixes"
     
     checkout main
-    merge release-1.1 id: "Release v1.1.0" tag: "v1.1.0"
+    merge release-1.1 user_id: "Release v1.1.0" tag: "v1.1.0"
     
     checkout develop
     merge release-1.1
@@ -84,36 +84,36 @@ gitGraph
 ### 5. **Hotfix Workflow**
 ```
 gitGraph
-    commit id: "v1.0.0" tag: "v1.0.0"
-    commit id: "Normal dev"
+    commit user_id: "v1.0.0" tag: "v1.0.0"
+    commit user_id: "Normal dev"
     
     branch hotfix-security
     checkout hotfix-security
-    commit id: "Security patch" type: HIGHLIGHT
+    commit user_id: "Security patch" type: HIGHLIGHT
     
     checkout main
-    merge hotfix-security id: "Emergency fix" tag: "v1.0.1"
+    merge hotfix-security user_id: "Emergency fix" tag: "v1.0.1"
     
     branch develop
     checkout develop
-    merge hotfix-security id: "Sync hotfix"
+    merge hotfix-security user_id: "Sync hotfix"
 ```
 
 ### 6. **Advanced Cherry-Pick Example**
 ```
 gitGraph
-    commit id: "base"
+    commit user_id: "base"
     
     branch feature-a
     checkout feature-a
-    commit id: "feat-a-1"
-    commit id: "feat-a-2"
+    commit user_id: "feat-a-1"
+    commit user_id: "feat-a-2"
     
     branch feature-b
     checkout feature-b
-    commit id: "feat-b-1"
-    cherry-pick id: "feat-a-1"
-    commit id: "feat-b-2"
+    commit user_id: "feat-b-1"
+    cherry-pick user_id: "feat-a-1"
+    commit user_id: "feat-b-2"
     
     checkout main
     merge feature-b
@@ -124,33 +124,33 @@ gitGraph
 ### 7. **Commit Types and Styling**
 ```
 gitGraph
-    commit id: "Normal commit"
-    commit id: "Important fix" type: HIGHLIGHT
-    commit id: "Revert change" type: REVERSE
-    commit id: "Release" tag: "v2.0.0"
-    commit id: "Tagged commit" tag: "milestone-1" type: HIGHLIGHT
+    commit user_id: "Normal commit"
+    commit user_id: "Important fix" type: HIGHLIGHT
+    commit user_id: "Revert change" type: REVERSE
+    commit user_id: "Release" tag: "v2.0.0"
+    commit user_id: "Tagged commit" tag: "milestone-1" type: HIGHLIGHT
 ```
 
 ### 8. **Branch Organization**
 ```
 gitGraph
-    commit id: "Start"
+    commit user_id: "Start"
     
     branch develop order: 1
     checkout develop
-    commit id: "Dev work"
+    commit user_id: "Dev work"
     
     branch feature-ui order: 2  
     checkout feature-ui
-    commit id: "UI changes"
+    commit user_id: "UI changes"
     
-    branch feature-api order: 3
-    checkout feature-api
-    commit id: "API work"
+    branch feature-dependencies order: 3
+    checkout feature-dependencies
+    commit user_id: "API work"
     
     checkout develop
     merge feature-ui
-    merge feature-api
+    merge feature-dependencies
 ```
 
 ## Configuration Options
@@ -168,9 +168,9 @@ gitGraph
 ### 10. **Orientation Options**
 ```
 gitGraph TB:
-    commit id: "Top to bottom"
+    commit user_id: "Top to bottom"
     branch feature
-    commit id: "Feature work"
+    commit user_id: "Feature work"
     checkout main
     merge feature
 ```
@@ -180,14 +180,14 @@ gitGraph TB:
 ### 11. **Meaningful Commit Messages**
 ```
 ✅ Descriptive commits:
-commit id: "Add user authentication"
-commit id: "Fix login validation bug"
-commit id: "Implement payment processing"
+commit user_id: "Add user authentication"
+commit user_id: "Fix login validation bug"
+commit user_id: "Implement payment processing"
 
 ❌ Generic commits:
-commit id: "Update"
-commit id: "Fix"
-commit id: "Changes"
+commit user_id: "Update"
+commit user_id: "Fix"
+commit user_id: "Changes"
 ```
 
 ### 12. **Logical Branch Names**
@@ -207,7 +207,7 @@ branch new-stuff
 ```
 ✅ Strategic merging:
 checkout main
-merge feature-auth id: "Add authentication system"
+merge feature-auth user_id: "Add authentication system"
 
 ✅ Hotfix pattern:
 checkout main
@@ -224,7 +224,7 @@ merge branch1
 ```
 ✅ Correct syntax:
 gitGraph
-    commit id: "message"
+    commit user_id: "message"
     branch feature-name
     checkout feature-name
     merge feature-name
@@ -253,14 +253,14 @@ Always provide complete, ready-to-use Mermaid code:
 
 ```mermaid
 gitGraph
-    commit id: "Initial commit"
+    commit user_id: "Initial commit"
     
     branch develop
     checkout develop
-    commit id: "Development work"
+    commit user_id: "Development work"
     
     checkout main
-    merge develop id: "Merge to main"
+    merge develop user_id: "Merge to main"
 ```
 
 ## Key Success Factors

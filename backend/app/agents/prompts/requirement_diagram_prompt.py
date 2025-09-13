@@ -14,7 +14,7 @@ Based on the user's query and the gathered information from our database, create
 ```
 requirementDiagram
     requirement UserAuth {
-        id: REQ-001
+        user_id: REQ-001
         text: User must authenticate with valid credentials
         risk: High
         verifymethod: Test
@@ -39,21 +39,21 @@ requirementDiagram
 ```
 requirementDiagram
     functionalRequirement UserManagement {
-        id: FR-001
+        user_id: FR-001
         text: System shall allow users to create, modify, and delete accounts
         risk: Medium
         verifymethod: Test
     }
     
     performanceRequirement ResponseTime {
-        id: PR-001
+        user_id: PR-001
         text: System shall respond to user requests within 2 seconds
         risk: High
         verifymethod: Test
     }
     
     interfaceRequirement APIEndpoint {
-        id: IR-001
+        user_id: IR-001
         text: System shall provide RESTful API endpoints
         risk: Low
         verifymethod: Inspection
@@ -79,21 +79,21 @@ requirementDiagram
 ```
 requirementDiagram
     requirement SafetyBraking {
-        id: SAFE-001
+        user_id: SAFE-001
         text: Vehicle shall automatically brake when obstacle detected within 5 meters
         risk: High
         verifymethod: Test
     }
     
     performanceRequirement BrakeResponse {
-        id: PERF-001
+        user_id: PERF-001
         text: Braking system shall activate within 200ms of detection
         risk: High
         verifymethod: Analysis
     }
     
     physicalRequirement SensorRange {
-        id: PHYS-001
+        user_id: PHYS-001
         text: Proximity sensors shall detect objects up to 10 meters
         risk: Medium
         verifymethod: Test
@@ -119,21 +119,21 @@ requirementDiagram
 ```
 requirementDiagram
     requirement PatientSafety {
-        id: MED-001
+        user_id: MED-001
         text: Device shall not deliver more than maximum safe dosage
         risk: High
         verifymethod: Test
     }
     
     designConstraint RegulatoryCompliance {
-        id: REG-001
+        user_id: REG-001
         text: Device shall comply with FDA Class II medical device standards
         risk: High
         verifymethod: Inspection
     }
     
     functionalRequirement DosageCalculation {
-        id: FUNC-001
+        user_id: FUNC-001
         text: System shall calculate dosage based on patient weight and condition
         risk: Medium
         verifymethod: Analysis
@@ -159,21 +159,21 @@ requirementDiagram
 ```
 requirementDiagram
     functionalRequirement PaymentProcessing {
-        id: ECOM-001
+        user_id: ECOM-001
         text: Platform shall process payments securely using encrypted connections
         risk: High
         verifymethod: Test
     }
     
     performanceRequirement Scalability {
-        id: ECOM-002
+        user_id: ECOM-002
         text: System shall handle 10000 concurrent users
         risk: Medium
         verifymethod: Test
     }
     
     interfaceRequirement ThirdPartyAPI {
-        id: ECOM-003
+        user_id: ECOM-003
         text: Platform shall integrate with payment gateway APIs
         risk: Medium
         verifymethod: Demonstration
@@ -240,7 +240,7 @@ Component - derives -> Component          %% Components don't derive from compon
 ✅ Correct requirement syntax:
 requirementDiagram
     requirement Name {
-        id: REQ-001
+        user_id: REQ-001
         text: Requirement description
         risk: Medium
         verifymethod: Test
@@ -283,7 +283,7 @@ Always provide complete, ready-to-use Mermaid code:
 ```mermaid
 requirementDiagram
     functionalRequirement Authentication {
-        id: AUTH-001
+        user_id: AUTH-001
         text: Users must authenticate with username and password
         risk: High
         verifymethod: Test

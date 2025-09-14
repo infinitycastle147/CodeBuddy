@@ -67,7 +67,7 @@ def chunk_code(content: str, max_tokens: int = 512) -> List[str]:
 def generate_embedding(text: str, is_query: bool) -> List[float]:
     """Generate an embedding for the given text using the configured provider."""
 
-    co = cohere.ClientV2(api_key=settings.COHERE_API_KEY)
+    co = cohere.ClientV2(api_key=settings.cohere_api_key)
 
     if not text or not text.strip():
         logger.warning("Received empty text for embedding")
@@ -95,7 +95,7 @@ def perform_reranking(query: str, results: List[Dict], top_k:int):
     """
     Perform reranking based on given query and documents.
     """
-    co = cohere.ClientV2(api_key=settings.COHERE_API_KEY)
+    co = cohere.ClientV2(api_key=settings.cohere_api_key)
 
     # Prepare documents for reranking
     documents = []

@@ -5,18 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 ## Development Commands
 
 ```bash
-# Development server
+# Docker Compose (recommended for development)
+docker-compose up --build
+
+# Development server (standalone)
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 # Production
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
-# Docker Compose (recommended)
-docker-compose up --build
-
-# Background tasks
-celery_config -A app.celery_config.worker.celery_app worker --loglevel=info
-docker run -p 6379:6379 redis
+# Background tasks (if not using Docker)
+celery -A app.celery_config.worker.celery_app worker --loglevel=info --concurrency=2
 
 # Testing
 pytest app/tests/
@@ -30,7 +29,7 @@ pip install -r requirements.txt
 **Core Stack**: FastAPI + MongoDB + Redis + Celery + Google ADK
 
 ### Key Components
-- **API Layer** (`app/routers/`): Tools, Chat, Diagram, User endpoints
+- **API Layer** (`app/routers/`): Chat, Diagram, User, and Setup endpoints
 - **Agent System** (`app/agents/`): Multi-agent AI workflows for chat and diagram generation
 - **Data Layer** (`app/models/`, `app/repositories/`): Pydantic models with repository pattern
 - **Authentication** (`app/auth/`): NextAuth session validation with resource ownership
@@ -48,21 +47,26 @@ pip install -r requirements.txt
 
 ```bash
 # Database
-APPLICATION_MONGO_URI=mongodb://localhost:27017
+APPLICATION_MONGO_URI=mongodb://localhost:27017  # Docker: mongodb://mongo:27017
 APPLICATION_MONGO_DB=codebuddy
 
-# Redis & Security
-APPLICATION_REDIS_URL=redis://localhost:6379
-APPLICATION_ENCRYPTION_KEY=your-key
+# Redis
+APPLICATION_REDIS_URL=redis://localhost:6379  # Docker: redis://redis:6379
+
+# Security
+APPLICATION_ENCRYPTION_KEY=your-encryption-key  # Generate with: openssl rand -hex 32
 
 # Server
 APPLICATION_HOST=0.0.0.0
 APPLICATION_PORT=8000
-APPLICATION_CORS_ALLOW_ORIGINS=http://localhost:3000
+APPLICATION_CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# Authentication  
-NEXTAUTH_SECRET=your-secret
-NEXTAUTH_URL=http://localhost:3000  # Use your frontend URL in production
+# Authentication
+NEXTAUTH_SECRET=your-nextauth-secret  # Must match frontend
+NEXTAUTH_URL=http://localhost:3000  # Frontend URL
+
+# API Keys (for AI agents)
+# Configure in app/agents/ configuration files
 ```
 
 ## Authentication Flow
@@ -90,10 +94,29 @@ app/
 └── tests/               # Test suite
 ```
 
+## Docker Services
+
+The `docker-compose.yml` includes:
+- **app**: FastAPI application (port 8000)
+- **celery-worker**: Background task processor
+- **redis**: Cache and message broker (port 6379)
+- **mongo**: MongoDB database (port 27017)
+
+## API Endpoints
+
+- `/api/health` - Health check
+- `/api/setup/*` - Initial setup endpoints
+- `/api/chat/*` - Chat functionality
+- `/api/diagram/*` - Diagram generation
+- `/api/user/*` - User management
+- `/docs` - Interactive API documentation
+
 ## Development Notes
 
-- MongoDB Atlas with local fallback
-- Logs output to `logs/` directory
-- Repository cloning in `clones/` directory
+- Docker Compose provides all services for local development
+- MongoDB and Redis data persisted in Docker volumes
+- Repository cloning in `clones/` directory (volume mounted)
 - All routers use type hints and consistent error handling
 - Resource ownership enforced via middleware
+- Logs output to `logs/` directory
+- Background tasks handled by Celery workers

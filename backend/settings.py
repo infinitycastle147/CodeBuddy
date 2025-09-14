@@ -1,5 +1,5 @@
 from cryptography.fernet import Fernet
-from typing import List, Union, Optional
+from typing import Optional
 from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -15,27 +15,10 @@ class Settings(BaseSettings):
     host: str = Field("0.0.0.0", alias="APPLICATION_HOST")
     port: int = Field(8000, alias="APPLICATION_PORT")
 
-    # Uvicorn settings
-    timeout: int = Field(120, alias="APPLICATION_UVICORN_TIMEOUT")
-    graceful_timeout: int = Field(30, alias="APPLICATION_UVICORN_GRACEFUL_TIMEOUT")
-    keep_alive: int = Field(2, alias="APPLICATION_UVICORN_KEEP_ALIVE")
-    reload: bool = Field(False, alias="APPLICATION_AUTO_RELOAD")
-
-    # Current environment
-    environment: str = Field("dev", alias="APPLICATION_ENVIRONMENT")
-
     # CORS settings
-    cors_allow_origins: Union[List[str], str] = Field(["*"], alias="APPLICATION_CORS_ALLOW_ORIGINS")
-    cors_allow_methods: Union[List[str], str] = Field(["*"], alias="APPLICATION_CORS_ALLOW_METHODS")
-    cors_allow_headers: Union[List[str], str] = Field(["*"], alias="APPLICATION_CORS_ALLOW_HEADERS")
-    
-    def _parse_cors_setting(self, value: Union[List[str], str]) -> List[str]:
-        """Parse CORS setting to ensure it's always a list."""
-        if isinstance(value, str):
-            if value == "*":
-                return ["*"]
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
+    cors_allow_origins: str = Field("*", alias="APPLICATION_CORS_ALLOW_ORIGINS")
+    cors_allow_methods: str =  Field("*", alias="APPLICATION_CORS_ALLOW_METHODS")
+    cors_allow_headers: str =  Field("*", alias="APPLICATION_CORS_ALLOW_HEADERS")
 
     # This variable is used to override the workers count.
     workers_count_override: Optional[int] = Field(None, alias="APPLICATION_UVICORN_WORKERS_COUNT")

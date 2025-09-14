@@ -5,7 +5,7 @@ from app.models.user import User
 from app.models.chat import Chat
 from app.models.diagram import Diagram
 from settings import settings
-from base import BaseRepository
+from .base import BaseRepository
 from app.db.mongodb import async_find_one, async_find
 
 db_name = settings.mongo_db

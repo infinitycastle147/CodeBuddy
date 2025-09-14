@@ -1,4 +1,4 @@
-# Production-ready Docker Compose for CodeBuddy
+# Development Docker Compose for CodeBuddy
 version: "3.9"
 
 services:
@@ -6,183 +6,84 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
     ports:
       - "8000:8000"
     environment:
-      - APPLICATION_NAME=CodeBuddy
-      - APPLICATION_HOST=0.0.0.0
-      - APPLICATION_PORT=8000
-      - APPLICATION_ENVIRONMENT=production
-      - APPLICATION_AUTO_RELOAD=false
-      - APPLICATION_UVICORN_WORKERS_COUNT=4
-      - APPLICATION_UVICORN_TIMEOUT=120
-      - APPLICATION_UVICORN_GRACEFUL_TIMEOUT=30
-      - APPLICATION_UVICORN_KEEP_ALIVE=2
-      - APPLICATION_CORS_ALLOW_ORIGINS=*
-      - APPLICATION_CORS_ALLOW_METHODS=*
-      - APPLICATION_CORS_ALLOW_HEADERS=*
-      - APPLICATION_REDIS_URL=redis://redis:6379/0
-      - APPLICATION_MONGO_URI=mongodb://mongo:27017/
-      - APPLICATION_MONGO_DB=CodeBuddy
-      - APPLICATION_ENCRYPTION_KEY=${APPLICATION_ENCRYPTION_KEY:-}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
-      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://cloud.langfuse.com}
-      - LANGFUSE_ENABLED=${LANGFUSE_ENABLED:-true}
+      - APPLICATION_REDIS_URL=${APPLICATION_REDIS_URL}
+      - APPLICATION_MONGO_URI=${APPLICATION_MONGO_URI}
+      - APPLICATION_MONGO_DB=${APPLICATION_MONGO_DB}
+      - APPLICATION_ENCRYPTION_KEY=${APPLICATION_ENCRYPTION_KEY}
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
     volumes:
-      - app_logs:/app/logs
-      - app_clones:/app/clones
+      - .:/app
+      - /app/__pycache__
+      - dev_clones:/app/clones
     depends_on:
-      redis:
-        condition: service_healthy
-      mongo:
-        condition: service_healthy
+      - redis
+      - mongo
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 60s
-      retries: 3
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.0'
-        reservations:
-          memory: 1G
-          cpus: '0.5'
     networks:
-      - codebuddy-network
+      - codebuddy-dev
 
   celery-worker:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
     environment:
-      - APPLICATION_NAME=CodeBuddy-Worker
-      - APPLICATION_REDIS_URL=redis://redis:6379/0
-      - APPLICATION_MONGO_URI=mongodb://mongo:27017/
-      - APPLICATION_MONGO_DB=CodeBuddy
-      - APPLICATION_ENCRYPTION_KEY=${APPLICATION_ENCRYPTION_KEY:-}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
-      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://cloud.langfuse.com}
-      - LANGFUSE_ENABLED=${LANGFUSE_ENABLED:-true}
+      - APPLICATION_REDIS_URL=${APPLICATION_REDIS_URL}
+      - APPLICATION_MONGO_URI=${APPLICATION_MONGO_URI}
+      - APPLICATION_MONGO_DB=${APPLICATION_MONGO_DB}
+      - APPLICATION_ENCRYPTION_KEY=${APPLICATION_ENCRYPTION_KEY}
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
     volumes:
-      - app_logs:/app/logs
-      - app_clones:/app/clones
+      - .:/app
+      - /app/__pycache__
+      - dev_clones:/app/clones
     depends_on:
-      redis:
-        condition: service_healthy
-      mongo:
-        condition: service_healthy
+      - redis
     restart: unless-stopped
-    command: ["celery_config", "-A", "app.celery_config.worker.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+    command: ["celery", "-A", "app.celery_config.worker.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
     healthcheck:
-      test: ["CMD-SHELL", "celery_config -A app.celery_config.worker.celery_app inspect ping"]
+      test: ["CMD-SHELL", "celery -A app.celery_config.worker.celery_app inspect ping -d celery@$${HOSTNAME} || exit 1"]
       interval: 30s
       timeout: 10s
       start_period: 60s
       retries: 3
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
     networks:
-      - codebuddy-network
+      - codebuddy-dev
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+      - dev_redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.25'
-        reservations:
-          memory: 256M
-          cpus: '0.1'
     networks:
-      - codebuddy-network
+      - codebuddy-dev
 
   mongo:
     image: mongo:7
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
-      - mongo_config:/data/configdb
+      - dev_mongo_data:/data/db
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-}
-      - MONGO_INITDB_DATABASE=CodeBuddy
-    command: mongod --auth --bind_ip_all
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - MONGO_INITDB_DATABASE=${APPLICATION_MONGO_DB}
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
     networks:
-      - codebuddy-network
+      - codebuddy-dev
 
 volumes:
-  redis_data:
-    driver: local
-  mongo_data:
-    driver: local
-  mongo_config:
-    driver: local
-  app_logs:
-    driver: local
-  app_clones:
-    driver: local
+  dev_redis_data:
+  dev_mongo_data:
+  dev_clones:
 
 networks:
-  codebuddy-network:
+  codebuddy-dev:
     driver: bridge

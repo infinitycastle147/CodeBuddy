@@ -149,29 +149,8 @@ export const diagramQueries: DiagramQuery[] = [
   }
 ];
 
-/**
- * Get predefined query for a specific diagram type
- * @param diagramType - The diagram type ID
- * @returns The predefined query string or null if not found
- */
+
 export function getDiagramQuery(diagramType: string): string | null {
   const query = diagramQueries.find(q => q.id === diagramType);
   return query ? query.query : null;
-}
-
-/**
- * Get all queries for a specific category
- * @param category - The category name
- * @returns Array of queries for that category
- */
-export function getQueriesByCategory(category: string): DiagramQuery[] {
-  return diagramQueries.filter(q => q.category === category);
-}
-
-/**
- * Get all available diagram types with their queries
- * @returns Array of all diagram queries
- */
-export function getAllDiagramQueries(): DiagramQuery[] {
-  return diagramQueries;
 }

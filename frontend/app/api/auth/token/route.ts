@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const token = await getToken({ 
       req: request,
-      secret: process.env.AUTH_SECRET 
+      secret: process.env.NEXTAUTH_SECRET
     })
     
     if (!token) {

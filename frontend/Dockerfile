@@ -2,59 +2,60 @@
 # Multi-stage build for optimized production deployment
 
 FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat curl
 
-# Install dependencies only when needed
+# Dependencies stage - like organizing your toolbox
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
-
 WORKDIR /app
+COPY package.json package-lock.json* .dockerignore* ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production --legacy-peer-deps
-
-# Rebuild the source code only when needed
+# Builder stage - the assembly line
 FROM base AS builder
 WORKDIR /app
 
-# Copy dependencies from deps stage
+# Copy dependencies and source
 COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source code
 COPY . .
 
-# Set production environment
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Production environment setup
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1
 
-# Build the application
+# Build the application (ensure next.config.js has output: 'standalone')
 RUN npm run build
 
-# Production image, copy all the files and run next start
+# Production runner - the final race car
 FROM base AS runner
+
+# Metadata labels
+LABEL maintainer="codebuddy-team" \
+      version="1.0" \
+      description="CodeBuddy Frontend Production" \
+      environment="production"
+
 WORKDIR /app
 
-# Set production environment
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Production environment
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Copy built application from builder stage
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy production files
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Set proper permissions
-RUN chown -R nextjs:nodejs /app
+# Switch to non-root user
 USER nextjs
 
 # Expose port
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
 
-# Start the production server
+# Start engines!
 CMD ["node", "server.js"]

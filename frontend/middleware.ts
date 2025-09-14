@@ -11,17 +11,6 @@ const publicRoutes = [
   '/resetPassword'
 ]
 
-// Define protected routes that require authentication
-const protectedRoutes = [
-  '/dashboard',
-  '/chat',
-  '/explorer',
-  '/diagrams',
-  '/settings',
-  '/profile',
-  '/timeline'
-]
-
 export async function middleware(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl
@@ -40,20 +29,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    const token = await getToken({ 
-      req: request,
-      secret: process.env.AUTH_SECRET 
-    })
-
     // Check if current path is a public route
-    const isPublicRoute = publicRoutes.some(route => 
+    const isPublicRoute = publicRoutes.some(route =>
       pathname === route || pathname.startsWith(route + '/')
     )
 
-    // Check if current path is a protected route
-    const isProtectedRoute = protectedRoutes.some(route => 
-      pathname.startsWith(route)
-    )
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
+    })
 
     // Redirect authenticated users from auth pages to dashboard
     if (token && isPublicRoute && pathname !== '/') {
@@ -61,14 +45,16 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect unauthenticated users from protected routes to login
-    if (!token && isProtectedRoute) {
+    if (!token) {
       const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(loginUrl)
+        loginUrl.searchParams.set('callbackUrl', pathname + request.nextUrl.search);
+        return NextResponse.redirect(loginUrl)
     }
 
     return NextResponse.next()
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error('Middleware Error:', error)
     // Don't redirect on error, just continue
     return NextResponse.next()

@@ -19,7 +19,7 @@ cp .env.example .env
 2. Update `.env` with your configuration:
 ```bash
 # NextAuth Configuration
-AUTH_SECRET="your-secret-key"  # Generate with: openssl rand -base64 32
+NEXTAUTH_SECRET="your-secret-key"  # Generate with: openssl rand -base64 32
 NEXTAUTH_URL="http://localhost:3000"
 
 # Database
@@ -92,7 +92,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 fix: modernize NextAuth configuration for proper authentication flow
 
-- Update environment variables to use standard NextAuth naming (AUTH_SECRET, AUTH_GITHUB_ID)
+- Update environment variables to use standard NextAuth naming (NEXTAUTH_SECRET, AUTH_GITHUB_ID)
 - Add MongoDB adapter for proper session and user data persistence
 - Fix JWT and session callbacks with correct type mapping (user.id vs user._id)
 - Improve credentials provider with single identifier field for email/username

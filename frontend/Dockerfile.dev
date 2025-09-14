@@ -5,21 +5,30 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat curl
 
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci --legacy-peer-deps
+# Copy package files and dockerignore
+COPY package.json package-lock.json* .dockerignore* ./
+
+# Install dependencies (removed legacy flag - fix deps instead)
+RUN npm ci
 
 # Development image, copy all the files and run next dev
 FROM base AS dev
+
+# Add metadata labels
+LABEL maintainer="codebuddy-team" \
+      version="1.0" \
+      description="CodeBuddy Frontend Development Environment" \
+      environment="development"
+
 WORKDIR /app
 
 # Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -27,19 +36,20 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy source code
 COPY . .
 
-# Change ownership to nextjs user and create .next directory
+# Set proper ownership and create necessary directories
 RUN chown -R nextjs:nodejs /app && \
-    mkdir -p /app/.next && \
+    mkdir -p /app/.next /app/.next/cache && \
     chown -R nextjs:nodejs /app/.next
+
+# Switch to non-root user
 USER nextjs
 
-# Expose port
+# Environment variables
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000 \
+    HOSTNAME="0.0.0.0" \
+    NEXT_TELEMETRY_DISABLED=0 \
+    NODE_ENV=development
 
-# Enable Next.js telemetry
-ENV NEXT_TELEMETRY_DISABLED 0
-
-# Start the development server
+# Fire up the engine
 CMD ["npm", "run", "dev"]

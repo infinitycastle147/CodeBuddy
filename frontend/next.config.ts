@@ -9,14 +9,9 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
       },
     ];
-  },
-  
-  // Environment variables
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   },
   
   // Webpack configuration for Monaco Editor

@@ -66,7 +66,8 @@ async def create_user(
 
         # Create new user
         new_user: User = await user_repo.create(user)
-        new_user = UserResponseDto.model_dump(new_user)
+        user_response = UserResponseDto.from_odm(new_user)
+        new_user = user_response.model_dump(by_alias=True)
 
         return create_response(message="User created successfully", data=new_user)
     except Exception as e:
@@ -106,7 +107,8 @@ async def get_user(
         HTTPException: If access denied or server error.
     """
     try:
-        user = UserResponseDto.model_dump(current_user)
+        user_response = UserResponseDto.from_odm(current_user)
+        user = user_response.model_dump(by_alias=True)
 
         if user.get(user_id) != user_id:
             return create_error_response(
@@ -153,7 +155,7 @@ async def list_users(
         if not users:
             return create_response(message="No users found", data=[])
 
-        users = [UserResponseDto.model_dump(user) for user in users]
+        users = [UserResponseDto.from_odm(user).model_dump(by_alias=True) for user in users]
         return create_response(message="Users retrieved successfully", data=users)
     except Exception as e:
         return create_error_response(
@@ -202,7 +204,8 @@ async def get_user_by_email(
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        user = UserResponseDto.model_dump(user)
+        user_response = UserResponseDto.from_odm(user)
+        user = user_response.model_dump(by_alias=True)
         return create_response(message="User retrieved successfully", data=user)
 
     except Exception as e:

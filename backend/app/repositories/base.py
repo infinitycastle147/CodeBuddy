@@ -32,7 +32,7 @@ class BaseRepository(Generic[ModelType]):
         document: Optional[dict[str, Any]] = await async_find_one(self.collection, {"_id": ObjectId(user_id)})
 
         if document is not None:
-            return self.model_class.model_dump(**document)
+            return self.model_class(**document)
 
         return None
 
@@ -40,7 +40,7 @@ class BaseRepository(Generic[ModelType]):
     async def find_all(self) -> List[ModelType]:
         """Find all documents in the collection."""
         documents = await async_find(self.collection, {})
-        return [self.model_class.model_dump(**doc) for doc in documents]
+        return [self.model_class(**doc) for doc in documents]
 
 
     async def create(self, model: ModelType) -> ModelType:

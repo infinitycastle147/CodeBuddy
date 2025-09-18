@@ -37,31 +37,17 @@ async def detect_diagram_type(
     request: DiagramTypeDetectionRequest,
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
-    """
-    Analyze user input and recommend the most appropriate diagram type.
-    
-    This endpoint uses AI to analyze the user's query and suggest one of 22 supported
-    diagram types (flowchart, sequence, class, etc.). The frontend can use this to
-    provide users with intelligent diagram type suggestions before generation.
-    
-    Args:
-        request: Contains user input for analysis
-        current_user: Authenticated user (required for API access)
-        
-    Returns:
-        dict: Response containing the recommended diagram type
-    """
+    """Analyze user input and recommend the most appropriate diagram type."""
+
     try:
         # Generate diagram type using AI
         detected_type = await detect_diagram_type_content(request.user_input, str(current_user.id))
-        
-        logger.info(f"Detected diagram type: {detected_type}")
 
         response = DiagramTypeDetectionResponse(diagram_type=detected_type)
         
         return create_response(
             message="Diagram type detected successfully", 
-            data=response.dict()
+            data=response
         )
     except Exception as e:
         return create_error_response(
@@ -270,7 +256,7 @@ async def detect_diagram_type_content(user_input: str, user_id: str) -> str:
 
     except Exception as e:
         logger.error(f"Error detecting diagram type: {e}")
-        return ""
+        return "flowchart"  # Default fallback as per prompt
 
 
 async def generate_diagram_content(request: DiagramRequest, user_id: str) -> str:

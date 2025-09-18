@@ -3,8 +3,9 @@ import uvicorn
 from typing import Dict
 
 # Third-party imports
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyCookie
 
 # Local application imports
 from app.routers.setup_router import router as setup_router
@@ -19,11 +20,19 @@ from settings import settings
 def create_app() -> FastAPI:
     """Factory function to create and configure the FastAPI application. """
 
+    cookie_sec = APIKeyCookie(name="session_id")
+
     codebuddy_app = FastAPI(
         title="CodeBuddy",
         description="CodeBuddy is a tool for developers to help them understand their code by generating diagrams and interacting with AI.",
         swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}},
     )
+
+    @user_router.get("/me", tags=["auth"])
+    def get_current_user(session_id: str = Depends(cookie_sec)):
+        if session_id != "valid_cookie":  # example check
+            raise HTTPException(status_code=401, detail="Invalid session cookie")
+        return {"user": "demo_user"}
 
     # Configure CORS middleware
     codebuddy_app.add_middleware(
@@ -35,7 +44,7 @@ def create_app() -> FastAPI:
     )
 
     # Add credential decryption middleware
-    codebuddy_app.middleware("http")(decrypt_credentials_middleware)
+    # codebuddy_app.middleware("http")(decrypt_credentials_middleware)
     
     # Add authentication middleware
     codebuddy_app.middleware("http")(auth_middleware)

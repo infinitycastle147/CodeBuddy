@@ -51,15 +51,7 @@ def is_public_path(path: str, method: str = "GET") -> bool:
     return True
 
 async def auth_middleware(request: Request, call_next):
-    """
-    Authentication middleware that validates NextAuth sessions.
-    
-    For protected routes, this middleware:
-    1. Calls NextAuth API to validate session cookies
-    2. Extracts user data from session
-    3. Sets request.state.user for downstream dependencies
-    4. Returns 401 if authentication fails
-    """
+    """Authentication middleware that validates NextAuth sessions."""
 
     path = request.url.path
     method = request.method
@@ -74,6 +66,9 @@ async def auth_middleware(request: Request, call_next):
     
     try:
         # Call NextAuth API to validate session
+
+        logger.debug(f"request cookies: {request.cookies}")
+
         session_data = await session_handler.validate_session(request)
         nextauth_user = session_data.get('user', {})
         

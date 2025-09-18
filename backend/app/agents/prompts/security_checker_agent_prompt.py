@@ -28,7 +28,7 @@ Your responsibilities:
 If the query passes all checks, respond in this format:
 
 <approval status="approved">
-The query is safe for processing by downstream agents.
+{{query}}
 </approval>
 
 If the query is unsafe, malformed, or blocked, respond in this format:

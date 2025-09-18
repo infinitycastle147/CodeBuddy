@@ -27,10 +27,8 @@ def before_agent_callback(callback_context: CallbackContext):
 
 
 def get_security_checker_agent():
-    """
-    Creates and configures the Security Checker Agent with the required callbacks.
-    This agent is responsible for validating the security of user queries.
-    """
+    """Creates and configures the Security Checker Agent with the required callbacks."""
+
     security_checker_agent = LlmAgent(
         name="security_checker_agent",
         instruction=PromptManager.get_prompt("security_checker_agent"),

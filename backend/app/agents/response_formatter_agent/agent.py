@@ -9,19 +9,9 @@ from ..schemas import FormattedResponse
 
 
 def before_agent_callback(callback_context: CallbackContext):
-    """
-    Callback function to save the refined query text into the session state['information'].
-    This function runs before the agent's main logic and ensures that the 'information'
-    key in the state is populated with user content if not already present.
-    """
-    information = callback_context.state.get("information", None)
+    """Callback function to save the refined query text into the session state['information']."""
 
-    if information is None:
-        information = (
-            callback_context.user_content.parts[0].text
-            if callback_context.user_content.parts
-            else "N/A"
-        )
+    information = callback_context.state.get("information", None)
 
     callback_context.state["information"] = information
 

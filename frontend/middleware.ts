@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect unauthenticated users from protected routes to login
-    if (!token) {
+    if (!token && !isPublicRoute) {
       const loginUrl = new URL('/login', request.url)
         loginUrl.searchParams.set('callbackUrl', pathname + request.nextUrl.search);
         return NextResponse.redirect(loginUrl)

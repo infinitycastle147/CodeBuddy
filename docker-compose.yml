@@ -1,0 +1,126 @@
+# Development Docker Compose for CodeBuddy (Frontend + Backend)
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - APPLICATION_REDIS_URL=redis://redis:6379/0
+      - APPLICATION_MONGO_URI=mongodb://mongo:27017
+      - APPLICATION_MONGO_DB=${APPLICATION_MONGO_DB:-codebuddy}
+      - APPLICATION_ENCRYPTION_KEY=${APPLICATION_ENCRYPTION_KEY}
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+      - dev_clones:/app/clones
+    depends_on:
+      - redis
+      - mongo
+    restart: unless-stopped
+    networks:
+      - codebuddy-dev
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Celery worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - APPLICATION_REDIS_URL=redis://redis:6379/0
+      - APPLICATION_MONGO_URI=mongodb://mongo:27017
+      - APPLICATION_MONGO_DB=${APPLICATION_MONGO_DB:-codebuddy}
+      - APPLICATION_ENCRYPTION_KEY=${APPLICATION_ENCRYPTION_KEY}
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+      - dev_clones:/app/clones
+    depends_on:
+      - redis
+      - mongo
+    restart: unless-stopped
+    command: ["celery", "-A", "app.celery_config.worker.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+    networks:
+      - codebuddy-dev
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - MONGODB_URI=mongodb://mongo:27017/${APPLICATION_MONGO_DB:-codebuddy}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - codebuddy-dev
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - dev_redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    networks:
+      - codebuddy-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - dev_mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=${APPLICATION_MONGO_DB:-codebuddy}
+    restart: unless-stopped
+    networks:
+      - codebuddy-dev
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  dev_redis_data:
+    driver: local
+  dev_mongo_data:
+    driver: local
+  dev_clones:
+    driver: local
+
+networks:
+  codebuddy-dev:
+    driver: bridge

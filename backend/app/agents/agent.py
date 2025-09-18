@@ -19,22 +19,8 @@ from app.dto.connection_dto import BaseMCPConnectionRequest
 
 
 def get_diagram_agent(request: DiagramRequest):
-    """
-    Creates and returns a diagram agent with type-specific diagram generation capabilities.
+    """Creates and returns a diagram agent with type-specific diagram generation capabilities."""
 
-    This function creates a sequential agent workflow that:
-    1. Validates security and input safety
-    2. Generates refined queries for information retrieval
-    3. Retrieves relevant information from connected sources (GitHub/Jira)
-    4. Generates type-specific diagrams using the validated diagram type
-    5. Validates and checks the generated diagram syntax
-
-    Args:
-        request (DiagramRequest): Contains user input, diagram type, and MCP connection details
-
-    Returns:
-        SequentialAgent: Configured agent pipeline for diagram generation
-    """
     # Extract diagram type for type-specific generation
     diagram_type = request.type
 
@@ -63,9 +49,8 @@ def get_diagram_agent(request: DiagramRequest):
 
 
 def get_chat_agent(mcp_connection: Optional[BaseMCPConnectionRequest] = None):
-    """
-    Creates and returns a chat agent with optional MCP connection parameters.
-    """
+    """Creates and returns a chat agent with optional MCP connection parameters."""
+
     return SequentialAgent(
         name="chat_agent",
         sub_agents=[

@@ -219,17 +219,10 @@ try {
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-zenuml
-    title System Interaction
-    
-    Client->Server: request
-    Server->Database: query
-    Database->Server: @return data
-    Server->Client: @return response
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

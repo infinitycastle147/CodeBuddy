@@ -166,18 +166,10 @@ packet-beta
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-packet-beta
-    title "HTTP Request Header"
-    0-7: "Method"
-    8-15: "Version"
-    16-31: "Status Code"
-    32-63: "Content Length"
-    64-95: "Content Type"
-    96-127: "Authentication"
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

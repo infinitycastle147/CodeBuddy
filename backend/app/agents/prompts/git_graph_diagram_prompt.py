@@ -249,19 +249,10 @@ Checking out before branch creation
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-gitGraph
-    commit user_id: "Initial commit"
-    
-    branch develop
-    checkout develop
-    commit user_id: "Development work"
-    
-    checkout main
-    merge develop user_id: "Merge to main"
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

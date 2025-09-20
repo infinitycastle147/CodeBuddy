@@ -278,24 +278,10 @@ verifymethod: Review          %% Should be Inspection
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-requirementDiagram
-    functionalRequirement Authentication {
-        user_id: AUTH-001
-        text: Users must authenticate with username and password
-        risk: High
-        verifymethod: Test
-    }
-    
-    element AuthService {
-        type: Component
-        docref: auth-service.md
-    }
-    
-    Authentication - satisfies -> AuthService
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

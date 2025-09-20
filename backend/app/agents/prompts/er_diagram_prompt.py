@@ -653,27 +653,10 @@ Before outputting any ER diagram:
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-erDiagram
-    CUSTOMER {
-        string customer_id PK
-        string email UK
-        string first_name
-        string last_name
-        datetime created_at
-    }
-    
-    ORDER {
-        string order_id PK
-        string customer_id FK
-        datetime order_date
-        decimal total_amount
-    }
-    
-    CUSTOMER ||--o{ ORDER : places
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Strategic Database Design Thinking
 

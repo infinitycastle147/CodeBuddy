@@ -493,24 +493,10 @@ Before outputting any class diagram:
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-classDiagram
-    class Animal {
-        +String name
-        -int age
-        +getName() String
-        +setAge(int newAge)
-    }
-    
-    class Dog {
-        +String breed
-        +bark() void
-    }
-    
-    Animal <|-- Dog
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Strategic Thinking for Class Diagrams
 

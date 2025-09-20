@@ -270,23 +270,10 @@ block-beta
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-block-beta
-    columns 3
-    
-    WebClient["Web Client"]
-    APIServer["API Server"] 
-    Database[("Database")]
-    
-    WebClient --> APIServer
-    APIServer --> Database
-    
-    style WebClient fill:#e3f2fd
-    style APIServer fill:#f3e5f5
-    style Database fill:#e8f5e8
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

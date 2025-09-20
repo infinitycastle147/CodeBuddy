@@ -169,21 +169,10 @@ Wrong quadrant positioning or contradictory labels
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-quadrantChart
-    title Strategic Analysis
-    x-axis Low Dimension --> High Dimension
-    y-axis Low Dimension --> High Dimension
-    quadrant-1 Label
-    quadrant-2 Label
-    quadrant-3 Label
-    quadrant-4 Label
-    
-    "Item 1": [0.3, 0.8]
-    "Item 2": [0.7, 0.4]
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

@@ -71,6 +71,16 @@ export interface DiagramUpdateRequest {
   content: string
 }
 
+export interface TextToDiagramRequest {
+  query: string
+  text: string
+  diagram_type: string
+}
+
+export interface TextToDiagramResponse {
+  diagram: string
+}
+
 export interface TaskStatus {
   task_id: string
   status: 'pending' | 'started' | 'retry' | 'failure' | 'success'
@@ -107,11 +117,15 @@ export const api = {
   updateDiagram: (diagramId: string, data: DiagramUpdateRequest) => 
     apiClient.patch<Diagram>(`/diagram/${diagramId}`, data),
   detectDiagramType: (data: DiagramTypeDetectionRequest) => 
-    apiClient.post<{ recommended_type: string; confidence: number }>('/diagram/detect-type', data),
+    apiClient.post<{ diagram_type: string }>('/diagram/detect-type', data),
 
   // Users
   listUsers: () => apiClient.get<User[]>('/user/'),
   createUser: (userData: Omit<User, 'id'>) => apiClient.post<User>('/user/', userData),
   getUser: (userId: string) => apiClient.get<User>(`/user/${userId}`),
   getUserByEmail: (email: string) => apiClient.get<User>(`/user/email/${email}`),
+
+  // Text to Diagram
+  generateDiagramFromText: (data: TextToDiagramRequest) =>
+    apiClient.post<TextToDiagramResponse>('/test/', data),
 }

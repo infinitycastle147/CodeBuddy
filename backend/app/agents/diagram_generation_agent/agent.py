@@ -1,16 +1,18 @@
 # Third-Party Imports
+from loguru import logger
+
 from app.constants.diagram_types import DiagramType
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 
 # Local Application Imports
+from app.dto import DiagramOutputFormat
 from ..prompt_manager import PromptManager
 
 
 def before_agent_callback(callback_context: CallbackContext):
-    """
-    Callback to save user query and retrieved information into session state for diagram generation.
-    """
+    """Callback to save user query and retrieved information into session state for diagram generation."""
+
     # Retrieve user query from the callback context state
     user_query = callback_context.state.get("query")
 
@@ -24,6 +26,8 @@ def before_agent_callback(callback_context: CallbackContext):
     # Retrieve the information from the callback context state
     info = callback_context.state.get("information")
 
+    logger.debug(f"Test - Info: {info}")
+
     # Save general instructions and information into the session state
     callback_context.state["information"] = info
     # Save user query into the session state
@@ -35,7 +39,7 @@ def before_agent_callback(callback_context: CallbackContext):
 
 def get_diagram_generation_agent(diagram_type: str):
 
-    diagram_generation_prompt = PromptManager.get_diagram_prompt_safe(
+    diagram_generation_prompt = PromptManager.get_diagram_prompt(
         diagram_type=DiagramType.from_string(diagram_type)
     )
 
@@ -47,6 +51,7 @@ def get_diagram_generation_agent(diagram_type: str):
         model="gemini-2.0-flash",
         output_key="diagram",
         before_agent_callback=before_agent_callback,
+        output_schema=DiagramOutputFormat
     )
 
     return diagram_generation_agent

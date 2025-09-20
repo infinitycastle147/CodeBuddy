@@ -259,6 +259,21 @@ export function useDetectDiagramType() {
   });
 }
 
+export function useGenerateDiagramFromText() {
+  const queryClient = useQueryClient();
+  const showError = useErrorHandler();
+  const showSuccess = useSuccessHandler();
+
+  return useMutation({
+    mutationFn: api.generateDiagramFromText,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.diagrams });
+      showSuccess("Diagram generated successfully");
+    },
+    onError: (error) => showError(error, "Failed to generate diagram from text"),
+  });
+}
+
 export function useListChats() {
   return useQuery({
     queryKey: queryKeys.chats,

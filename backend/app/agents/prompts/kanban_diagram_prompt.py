@@ -203,20 +203,10 @@ kanban
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-kanban
-    todo[To Do]
-        task1[Setup Development Environment] @{ assigned: "DevOps", priority: "High" }
-        task2[Create Project Documentation] @{ assigned: "Tech Writer", priority: "Low" }
-    
-    progress[In Progress]
-        task3[Implement Core Features] @{ assigned: "Developer", priority: "Very High", ticket: "DEV-001" }
-    
-    done[Completed]
-        task4[Initial Project Setup] @{ assigned: "Project Manager", priority: "High" }
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

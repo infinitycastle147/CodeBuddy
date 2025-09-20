@@ -464,19 +464,10 @@ Before outputting any state diagram:
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-stateDiagram-v2
-    [*] --> InitialState
-    
-    InitialState --> ProcessingState : trigger
-    ProcessingState --> FinalState : complete
-    ProcessingState --> ErrorState : error
-    
-    ErrorState --> InitialState : retry
-    FinalState --> [*]
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Strategic State Modeling
 

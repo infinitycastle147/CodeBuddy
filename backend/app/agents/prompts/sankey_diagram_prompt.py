@@ -192,19 +192,10 @@ Process,Output,150    %% More output than input
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-sankey-beta
-
-Source,Target,Value
-Revenue,Marketing,100000
-Revenue,Operations,150000
-Marketing,Digital,60000
-Marketing,Content,40000
-Operations,Support,80000
-Operations,Admin,70000
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

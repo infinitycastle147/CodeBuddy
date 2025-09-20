@@ -212,20 +212,10 @@ service dependencies(dependencies)[API]           %% Should use standard icon
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-architecture-beta
-    group frontend(cloud)[Frontend]
-    group backend(cloud)[Backend]
-    
-    service ui(server)[Web UI] in frontend
-    service dependencies(server)[API Server] in backend
-    service db(database)[Database] in backend
-    
-    ui:R --> L:dependencies
-    dependencies:R --> L:db
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

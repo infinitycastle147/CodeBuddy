@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Depends, status
 
 # Application imports
-from app.agents.agent import get_diagram_agent
+from app.agents.agent import get_repo_diagram_generation_agent
 from app.agents.diagram_typeDetector_agent import get_diagram_type_detector_agent
 from app.dto.diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest
 from app.dto.diagram_type_dto import DiagramTypeDetectionRequest, DiagramTypeDetectionResponse
@@ -274,7 +274,7 @@ async def generate_diagram_content(request: DiagramRequest, user_id: str) -> str
         content = types.Content(role="user", parts=[types.Part(text=request.user_input)])
 
         runner = Runner(
-            agent=get_diagram_agent(request),
+            agent=get_repo_diagram_generation_agent(request),
             app_name=settings.application_name,
             session_service=session_service,
         )

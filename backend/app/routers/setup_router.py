@@ -1,7 +1,3 @@
-"""
-Setup Router
-"""
-
 from fastapi import APIRouter, status, Depends
 from typing import Annotated
 from app.core.responses import create_error_response, create_response
@@ -12,7 +8,7 @@ from app.celery_config.worker import celery_app
 from app.models.user import User
 from app.auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/tools", tags=["tools"])
+router = APIRouter(prefix="/setup", tags=["setup"])
 
 
 @router.get("/health", summary="Health Check", tags=["tools"])
@@ -26,9 +22,8 @@ async def setup_repo(
         request: RepoRequest,
         current_user: Annotated[User, Depends(get_current_user)]
 ) -> dict:
-    """
-    Initiate repository processing as a background Celery task for the current user.
-    """
+    """Initiate repository processing as a background Celery task for the current user."""
+
     try:
         task = process_repository.delay(str(current_user.id), request.repo_url, request.access_token)
         return create_response(

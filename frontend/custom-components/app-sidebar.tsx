@@ -65,6 +65,11 @@ const navigationItems: NavigationItem[] = [
     icon: <GitBranchPlus className="w-4 h-4" />,
     label: "Diagrams",
   },
+  {
+    href: "/text-to-diagram",
+    icon: <FileText className="w-4 h-4" />,
+    label: "Text to Diagram",
+  },
   // {
   //   href: "/explorer",
   //   icon: <FileText className="w-4 h-4" />,

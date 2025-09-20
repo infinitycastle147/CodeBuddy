@@ -40,19 +40,8 @@ async def create_user(
     user: User, 
     user_repo: Annotated[UserRepository, Depends(get_user_repository)]
 ) -> dict:
-    """
-    Create a new user in the system.
+    """Create a new user in the system."""
 
-    Parameters:
-        user (User): The user data to create.
-        user_repo (UserRepository): The user repository dependency.
-
-    Returns:
-        UserResponse: The created user data.
-
-    Raises:
-        HTTPException: If user with the same email already exists or if there's a server error.
-    """
     try:
         # Check if user already exists
         existing_user = await user_repo.find_by_email(str(user.email))
@@ -93,19 +82,8 @@ async def get_user(
     current_user: Annotated[User, Depends(require_same_user)],
     user_id: str = Path(..., description="The ID of the user to retrieve"),
 ) -> dict:
-    """
-    Get a user by their ID. Users can only access their own data.
+    """Get a user by their ID. Users can only access their own data."""
 
-    Parameters:
-        user_id (str): The ID of the user to retrieve.
-        current_user (User): The authenticated user (validated for ownership).
-
-    Returns:
-        UserResponse: The user data.
-
-    Raises:
-        HTTPException: If access denied or server error.
-    """
     try:
         user_response = UserResponseDto.from_odm(current_user)
         user = user_response.model_dump(by_alias=True)
@@ -138,18 +116,8 @@ async def get_user(
 async def list_users(
     user_repo: Annotated[UserRepository, Depends(get_user_repository)]
 ) -> dict:
-    """
-    Get a list of all users in the system.
+    """Get a list of all users in the system."""
 
-    Parameters:
-        user_repo (UserRepository): The user repository dependency.
-
-    Returns:
-        List[UserResponse]: A list of all users.
-
-    Raises:
-        HTTPException: If there's a server error.
-    """
     try:
         users = await user_repo.find_all()
         if not users:

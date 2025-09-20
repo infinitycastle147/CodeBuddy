@@ -10,7 +10,7 @@ from app.dto.chat_dto import (
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
-from app.agents import get_chat_agent
+from app.agents import get_repo_chat_agent
 from app.repositories.implementations import ChatRepository
 from app.dependencies.dependencies import get_chat_repository
 from app.core.responses import create_response, create_error_response
@@ -207,7 +207,7 @@ async def generate_ai_response(request: ChatRequest, user_id: str) -> str:
         content = types.Content(role="user", parts=[types.Part(text=request.message)])
 
         runner = Runner(
-            agent=get_chat_agent(request),
+            agent=get_repo_chat_agent(request),
             app_name=settings.application_name,
             session_service=session_service,
         )

@@ -185,18 +185,10 @@ curve Data{15, -2, 8, 12, 3} %% Values exceed range
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-radar-beta
-    title "Performance Analysis"
-    axis Speed, Quality, Reliability, Cost, Features
-    curve Product_A{8, 7, 9, 6, 8}
-    curve Product_B{6, 9, 7, 8, 6}
-    curve Product_C{7, 8, 8, 7, 9}
-    max 10
-    min 0
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

@@ -220,21 +220,10 @@ C4Context with detailed components mixed with high-level systems
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-C4Context
-    title System Context - E-commerce Platform
-    
-    Person(customer, "Customer", "Online shopper")
-    System(ecommerce, "E-commerce Platform", "Online shopping system")
-    System_Ext(payment, "Payment Gateway", "Processes payments")
-    System_Ext(shipping, "Shipping Service", "Handles deliveries")
-    
-    Rel(customer, ecommerce, "Browses and purchases", "HTTPS")
-    Rel(ecommerce, payment, "Processes payments", "API")
-    Rel(ecommerce, shipping, "Arranges delivery", "API")
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

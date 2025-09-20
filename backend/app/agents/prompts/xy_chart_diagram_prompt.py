@@ -173,16 +173,10 @@ line [10, 20, 30, 40]    %% 3 categories, 4 data points
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-xychart-beta
-    title "Sales Performance Analysis"
-    x-axis [Q1, Q2, Q3, Q4]
-    y-axis "Revenue ($000)" 0 --> 200
-    line [120, 135, 148, 165]
-    bar [110, 125, 140, 155]
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

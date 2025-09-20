@@ -60,8 +60,9 @@ class ApiClient {
       if (responseData.success) {
         return responseData.data
       } else {
-        // Handle error response
-        throw new ApiError(response.status, response.statusText, responseData)
+        // Handle error response with more meaningful message
+        const errorMessage = responseData.error?.message || 'API request failed'
+        throw new ApiError(response.status, errorMessage, responseData)
       }
     } catch (error) {
       if (error instanceof ApiError) {

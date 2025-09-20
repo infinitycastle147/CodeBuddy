@@ -371,16 +371,10 @@ Before outputting any sequence diagram, verify:
 
 ## Output Format
 
-Always output the complete, ready-to-use Mermaid code:
-
-```mermaid
-sequenceDiagram
-    participant A as "System A"
-    participant B as "System B"
-    
-    A ->> B: Your interaction here
-    B -->> A: Response
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Configuration and Styling
 

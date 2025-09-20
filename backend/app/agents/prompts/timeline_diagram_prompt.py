@@ -206,24 +206,10 @@ timeline
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-timeline
-    title Project Development Timeline
-    
-    section Phase 1
-        Week 1 : Planning
-        Week 2 : Design
-        
-    section Phase 2  
-        Week 3 : Development
-        Week 4 : Testing
-        
-    section Phase 3
-        Week 5 : Deployment
-        Week 6 : Launch
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

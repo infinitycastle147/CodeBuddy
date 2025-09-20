@@ -595,21 +595,10 @@ Before outputting any Gantt diagram:
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-gantt
-    title Project Timeline
-    dateFormat YYYY-MM-DD
-    
-    section Phase 1
-        Task 1 :done, t1, 2024-01-01, 5d
-        Task 2 :active, t2, after t1, 3d
-        
-    section Phase 2
-        Task 3 :t3, after t2, 7d
-        Milestone :milestone, m1, after t3
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Strategic Project Management Thinking
 

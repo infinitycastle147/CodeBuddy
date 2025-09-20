@@ -305,14 +305,12 @@ function DiagramTypeSelector({ value, onChange, onTypeSelect }: DiagramTypeSelec
       { user_input: customDescription },
       {
         onSuccess: (data) => {
-          setDetectedType(data.recommended_type);
-          setConfidence(data.confidence);
+          setDetectedType(data.diagram_type);
+          setConfidence(1.0); // Default confidence since API doesn't return it
           setIsDetecting(false);
           toast({
             title: "Type Detected",
-            description: `Recommended: ${data.recommended_type} (${Math.round(
-              data.confidence * 100
-            )}% confidence)`,
+            description: `Recommended: ${data.diagram_type}`,
           });
         },
         onError: () => {

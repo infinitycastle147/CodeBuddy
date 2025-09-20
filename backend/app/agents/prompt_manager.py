@@ -1,3 +1,5 @@
+from loguru import logger
+
 from app.constants.diagram_types import DiagramType
 from .prompts.information_retrieval_agent_prompt import (
     INFORMATION_RETRIEVAL_AGENT_PROMPT,
@@ -36,6 +38,7 @@ from .prompts.packet_diagram_prompt import PACKET_DIAGRAM_PROMPT
 from .prompts.kanban_diagram_prompt import KANBAN_DIAGRAM_PROMPT
 from .prompts.architecture_diagram_prompt import ARCHITECTURE_DIAGRAM_PROMPT
 from .prompts.radar_diagram_prompt import RADAR_DIAGRAM_PROMPT
+from .prompts.diagram_data_refiner_agent_prompt import DIAGRAM_DATA_REFINER_AGENT_PROMPT
 
 
 class PromptManager:
@@ -54,6 +57,7 @@ class PromptManager:
         "chat_query_generator_agent": CHAT_QUERY_GENERATOR_AGENT_PROMPT,
         "security_checker_agent": SECURITY_CHECKER_AGENT_PROMPT,
         "diagram_typeDetector_agent": DIAGRAM_TYPE_DETECTOR_AGENT_PROMPT,
+        "diagram_data_refiner_agent": DIAGRAM_DATA_REFINER_AGENT_PROMPT,
     }
 
     # Mapping of diagram types to their specific prompts
@@ -90,7 +94,7 @@ class PromptManager:
 
 
     @classmethod
-    def get_diagram_prompt_safe(cls, diagram_type: DiagramType) -> str:
-        if diagram_type not in cls._DIAGRAM_TYPE_PROMPTS:
+    def get_diagram_prompt(cls, diagram_type: DiagramType) -> str:
+        if diagram_type.value not in cls._DIAGRAM_TYPE_PROMPTS:
             return cls.get_prompt("diagram_generation_agent")
-        return cls._DIAGRAM_TYPE_PROMPTS[diagram_type]
+        return cls._DIAGRAM_TYPE_PROMPTS[diagram_type.value]

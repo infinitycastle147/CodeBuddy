@@ -8,10 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyCookie
 
 # Local application imports
-from app.routers.setup_router import router as setup_router
-from app.routers.chat_router import router as chat_router
-from app.routers.diagram_router import router as diagram_router
-from app.routers.user_router import router as user_router
+from app.routers import user_router, diagram_router, chat_router, setup_router, test_router
 from app.core.middleware import decrypt_credentials_middleware
 from app.auth.middleware import auth_middleware
 from settings import settings
@@ -54,6 +51,7 @@ def create_app() -> FastAPI:
     codebuddy_app.include_router(chat_router)
     codebuddy_app.include_router(diagram_router)
     codebuddy_app.include_router(user_router)
+    codebuddy_app.include_router(test_router)
 
     # Health check endpoint
     @codebuddy_app.get("/health")

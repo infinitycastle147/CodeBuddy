@@ -26,3 +26,6 @@ class DiagramResponse(BaseModelWithId):
     type: str = Field(..., description="Type of the diagram")
     description: str = Field(..., description="Description of the diagram")
     content: str = Field(..., description="Content of the diagram in mermaid format")
+
+class DiagramOutputFormat(BaseModel):
+    diagram: str = Field(..., description="Diagram output format")

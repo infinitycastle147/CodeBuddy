@@ -514,6 +514,7 @@ Before outputting any user journey diagram:
 - [ ] All sections have clear, logical names
 - [ ] Tasks follow proper format: `Task: Score: Actors`
 - [ ] Scores are between 0-7 and reflect realistic experiences
+- [ ] Do not include unsupported Mermaid keywords (`alt`, `else`, `end`) in journey diagrams.
 - [ ] Actors are relevant to each task
 - [ ] Sections follow logical chronological flow
 - [ ] Pain points (low scores) are realistic and actionable
@@ -523,20 +524,10 @@ Before outputting any user journey diagram:
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-journey
-    title User Experience Journey
-    
-    section Phase One
-        First Task: 5: User
-        Second Task: 3: User, System
-        
-    section Phase Two
-        Third Task: 7: User
-        Final Task: 6: User, Support
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Strategic Journey Mapping Thinking
 

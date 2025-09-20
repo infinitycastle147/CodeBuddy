@@ -231,14 +231,10 @@ Before outputting any flowchart, verify:
 
 ## Output Format
 
-Always output the complete, ready-to-use Mermaid code in a code block:
-
-```mermaid
-flowchart TD
-    start([Start])
-    %% Your flowchart here
-    end_node([End])
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 Remember: Start simple, build incrementally, and prioritize clarity over complexity. The goal is to create flowcharts that are both syntactically correct and immediately understandable.
 """

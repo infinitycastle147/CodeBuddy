@@ -520,15 +520,10 @@ Before outputting any pie chart:
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-pie title "Revenue Distribution by Product Line - Q4 2024"
-    "Enterprise Software" : 145
-    "Cloud Services" : 89
-    "Professional Services" : 67
-    "Support & Maintenance" : 34
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Strategic Data Visualization Thinking
 

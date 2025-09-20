@@ -277,22 +277,10 @@ mindmap
 
 ## Output Format
 
-Always provide complete, ready-to-use Mermaid code:
-
-```mermaid
-mindmap
-  root((Central Topic))
-    Main Branch 1
-      Sub-topic A
-      Sub-topic B
-        Detail 1
-        Detail 2
-    Main Branch 2
-      Sub-topic C
-      Sub-topic D
-    Main Branch 3
-      Sub-topic E
-```
+IMPORTANT: You MUST respond ONLY with a JSON object that matches this exact schema:
+{
+    "diagram" : "Write your Mermaid diagram code here. Ensure it is properly formatted and follows Mermaid syntax."
+}
 
 ## Key Success Factors
 

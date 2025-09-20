@@ -4,7 +4,7 @@ from .connection_dto import (
     GithubConnectionRequest,
     ConnectionResponse,
 )
-from .diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest
+from .diagram_dto import DiagramRequest, DiagramResponse, DiagramUpdateRequest, DiagramOutputFormat
 from .setup_dto import RepoRequest
 from .user_dto import UserResponseDto
 
@@ -21,4 +21,5 @@ __all__ = [
     "RepoRequest",
     "DiagramUpdateRequest",
     "UserResponseDto",
+    "DiagramOutputFormat"
 ]

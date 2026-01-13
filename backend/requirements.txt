@@ -88,7 +88,7 @@ python-dateutil==2.9.0.post0
 tzdata==2025.2
 packaging==24.2
 regex==2024.11.6
-filelock==3.18.0
+filelock==3.20.3
 importlib_metadata==8.6.1
 zipp==3.21.0
 

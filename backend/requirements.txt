@@ -5,7 +5,7 @@ pydantic==2.11.5
 pydantic-settings==2.9.1
 pydantic_core==2.33.2
 starlette==0.46.2
-python-multipart==0.0.20
+python-multipart==0.0.22
 
 # Database dependencies
 pymongo==4.13.0

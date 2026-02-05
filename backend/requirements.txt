@@ -37,7 +37,7 @@ google-cloud-core==2.4.3
 googleapis-common-protos==1.70.0
 grpcio==1.71.0
 grpcio-status==1.71.0
-protobuf==5.29.5
+protobuf==5.29.6
 
 # Cohere client
 cohere==5.13.1

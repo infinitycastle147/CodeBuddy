@@ -84,7 +84,7 @@ opentelemetry-resourcedetector-gcp==1.9.0a0
 opentelemetry-sdk==1.33.1
 opentelemetry-semantic-conventions==0.54b1
 packaging==25.0
-pillow==11.3.0
+pillow==12.1.1
 prompt_toolkit==3.0.51
 propcache==0.3.1
 proto-plus==1.26.1
